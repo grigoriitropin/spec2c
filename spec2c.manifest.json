@@ -1,0 +1,22 @@
+{
+  "licenses": [
+    {
+      "name": "Apache-2.0",
+      "spdx_id": "Apache-2.0",
+      "kind": "agent-authored",
+      "patent_grant": true
+    }
+  ],
+  "packages": [
+    {
+      "name": "spec2c",
+      "description": "Generate correct-by-construction C tools for Vehir from a JSON specification",
+      "artifact_type": "tool",
+      "artifact_name": "spec2c",
+      "license": "Apache-2.0",
+      "license_version": "0.1.0",
+      "repo_url": "https://codeberg.org/vehir/spec2c"
+    }
+  ],
+  "edges": []
+}
