@@ -41,13 +41,14 @@ Output: `{"ok":true,"output":"(stdout)"}` or `{"ok":false,"error":"..."}`.
 
 Required: `name`. Optional: `description`, `commands`, `config_keys`, `db_queries`, `core`.
 
-## Build
+## Install
 
 ```bash
-nix build .#spec2c
+idea apply spec2c.manifest.json   # register in IPM graph
+idea build spec2c                  # build via nix flake
 ```
 
-Requires: nix flakes, cJSON (from nixpkgs).
+spec2c is now on PATH. Requires: IPM (`idea`), nix flakes, cJSON (from nixpkgs).
 
 ## Generated skeleton
 

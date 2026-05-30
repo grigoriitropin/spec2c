@@ -15,7 +15,8 @@
       "artifact_name": "spec2c",
       "license": "Apache-2.0",
       "license_version": "0.2.0",
-      "repo_url": "https://github.com/grigoriitropin/spec2c"
+      "repo_url": "https://github.com/grigoriitropin/spec2c",
+      "flake_dir": "."
     }
   ],
   "edges": []
