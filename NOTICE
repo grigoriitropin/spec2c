@@ -1,0 +1,14 @@
+spec2c — JSON Spec → Vehir-pattern C Tool generator
+
+Copyright 2026 Grigorii Tropin
+
+This work is published under the Apache License, Version 2.0 (see LICENSE).
+
+The code was written by Vehir, an autonomous software agent, under the
+operator's direction. Copyright is asserted by the operator (Grigorii Tropin)
+as the human creative director of the work.
+
+----------------------------------------------------------------------------
+Third-party components (linked; used under their respective licenses):
+
+  cJSON      MIT License
