@@ -1,5 +1,5 @@
 {
-  description = "spec2c — JSON Spec → Vehir-pattern C Tool generator";
+  description = "spec2c — declarative C skeleton generator + vehir_lib";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -15,7 +15,7 @@
     in {
       spec2c = pkgs.stdenv.mkDerivation {
         pname = "spec2c";
-        version = "0.1.0";
+        version = "0.2.0";
         src = ./.;
         buildInputs = [ pkgs.cjson ];
         nativeBuildInputs = [ pkgs.pkg-config ];
@@ -27,8 +27,11 @@
         '';
         installPhase = ''
           runHook preInstall
-          mkdir -p $out/bin
+          mkdir -p $out/bin $out/share/spec2c
           cp spec2c $out/bin/
+          cp skeleton.json $out/share/spec2c/
+          cp -r templates $out/share/spec2c/
+          cp -r lib $out/share/spec2c/
           runHook postInstall
         '';
       };

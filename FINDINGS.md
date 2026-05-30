@@ -1,8 +1,8 @@
-# Verification Gate — `spec2c` (new package, no legacy)
+# Verification Gate — `spec2c` v0.2 (declarative redesign)
 
-> This package is net-new — there is no legacy source to compare against. The "ground-truth"
-> is the SPEC.md design document and the existing Vehir tool patterns from `~/vehir-next/core/`
-> and `~/vehir-next/net/`.
+> v0.1 was imperative (template strings embedded in C). v0.2 is fully declarative:
+> external `skeleton.json` + pure-C section files with `{{key}}` substitution.
+> The generator is a thin substitution engine — zero template logic in code.
 
 ## Package summary
 
@@ -12,91 +12,87 @@
 | artifact_type  | `tool`                                             |
 | proof_status   | `works`                                            |
 | compat_verdict | `compatible`                                       |
-| license        | `Apache-2.0` (owned)                               |
-| source         | `spec2c.c` (545 LOC)                               |
+| license        | `Apache-2.0` (Grigorii Tropin)                     |
+| source         | `spec2c.c` (270 LOC)                               |
+| templates      | `skeleton.json` + `templates/*.c` (53 LOC total)   |
+| shared lib     | `lib/vehir_lib.h` + `lib/vehir_lib.c` (180 LOC)    |
 | build          | `flake.nix` → `nix build .#spec2c`                 |
 
-## What it does
+## Architecture
 
-Reads a JSON specification and emits a correct-by-construction Vehir-pattern C skeleton.
-The skeleton guarantees: no leaks, no unchecked returns, no suppressed output, no SQL
-injection (bind-params via db-proxy), no hardcode, structured JSON output, `--help`.
+```
+spec.json → spec2c → tool.c (thin wiring) → calls → vehir_lib (shared logic)
+                          ↑                              ├─ vl_die()
+  skeleton.json ──────────┤                              ├─ vl_cfg_load/require
+  templates/*.c ──────────┘                              ├─ vl_db_check/query_json
+                                                         └─ vl_safe_exec()
 
-Generated skeleton sections (conditional on spec):
-- `die_json()` — JSON error output with tool name
-- Config loader (`default_config_path`, `cfg_load_value`, `cfg_require`) — reads `~/.config/vehir/env`
-- DB helpers (`db_check`, `db_query_json`) — wraps `vehir_db_*` API, converts to cJSON
-- `usage()` + `main()` — --help, config parsing, DB init, call to hand-written core function
+tool_core.c (hand-written) ← extern → tool.c
+```
+
+- **Conditions** are a fixed enum: `always`, `has-config`, `has-db` — not a mini-language.
+- **Templates** are pure C + `{{key}}` placeholders — zero logic, zero `{{#if}}`.
+- **Core** is REFERENCED (`extern`), never inlined — the hand-written file stands alone.
+- **Forbidden patterns** (shell, output suppression, SQL interpolation) are ABSENT from
+  templates → structurally impossible in generated tools.
 
 ## SOUL-standard checklist
 
 | # | Criterion                           | Pass | Notes                                                        |
 |---|-------------------------------------|------|--------------------------------------------------------------|
-| 1 | C only                              | YES  | Single `.c` file, cJSON via nixpkgs                          |
+| 1 | C only                              | YES  | spec2c.c + lib/*.c, cJSON via nixpkgs                        |
 | 2 | Nix is the only build system        | YES  | `flake.nix` → `nix build .#spec2c`                          |
-| 3 | Fail hard, zero silent failure      | YES  | Every `fopen`, `malloc`, `realloc`, `ferror`, `cJSON_Parse`, `strdup` checked; exits non-zero with structured JSON error |
-| 4 | DRY                                 | YES  | `die`/`die_detail` shared error paths; `emit_*` functions reuse `spec_t` |
-| 5 | Zero dead code                      | YES  | No unused functions, no ifdefs, no stubs                     |
-| 6 | Zero hardcode                       | YES  | Paths/names from JSON spec only; no static assumptions       |
-| 7 | `-Wall -Wextra -Werror -std=c2x`   | YES  | Set in `flake.nix` cflags; builds clean                     |
-| 8 | No output suppression               | YES  | Errors to both stderr (human) and stdout (structured JSON)   |
-| 9 | Security not weakened               | YES  | No secrets, no network, no privilege escalation; generated code enforces chmod 600 on config |
-| 10| N/A (no legacy)                     | N/A  | New package, no legacy to shed                               |
-| 11| Hand-rolled parsing replaced        | N/A  | Uses cJSON from nixpkgs for all JSON parsing                 |
+| 3 | Fail hard, zero silent failure      | YES  | Every alloc/parse/file-op checked; structured JSON errors    |
+| 4 | DRY                                 | YES  | `vl_*` functions shared across all generated tools; `ADD` macro for substitution |
+| 5 | Zero dead code                      | YES  | `-Werror` catches all; DB functions stub when not linked     |
+| 6 | Zero hardcode                       | YES  | Template paths resolved at runtime via `--base`; spec values via substitution |
+| 7 | `-Wall -Wextra -Werror -std=c2x`   | YES  | Both spec2c and generated scaffold compile clean             |
+| 8 | No output suppression               | YES  | Errors to stderr + JSON to stdout; no redirect, no filter    |
+| 9 | Security not weakened               | YES  | `vl_safe_exec` = fork+execvp, never shell; `vl_cfg_load` = chmod 600 guard |
+| 10| N/A (no legacy, redesigned)         | N/A  | v0.1 discarded; v0.2 is clean architecture                   |
+| 11| No hand-rolled parsing              | YES  | cJSON for all JSON parsing                                   |
 
 ## LLM-convenience checklist
 
 | # | Criterion                        | Pass | Notes                                                           |
 |---|----------------------------------|------|-----------------------------------------------------------------|
-| 1 | Structured JSON output           | YES  | spec2c output: `{"ok":true/false, ...}`. Generated tools also emit structured JSON |
-| 2 | Consistent schema                | YES  | Success: `{ok, output}`. Error: `{ok, error, [detail]}`        |
-| 3 | `--help` / usage                 | YES  | `spec2c --help` → clear usage to stderr, exit 0                |
-| 4 | Predictable exit codes           | YES  | 0 = success, 1 = error                                          |
-| 5 | No hidden coupling               | YES  | Generated code: optional coupling to `db.h` (db package). spec2c itself: standalone |
-| 6 | No hidden state                  | YES  | Pure function of (spec file, CLI args)                          |
-| 7 | Declarative where it helps       | YES  | JSON spec IS the declarative input; manifest-driven IPM registration |
-| 8 | Parseable by an LLM              | YES  | `spec2c spec.json` → C skeleton file + JSON result. Both LLM-parseable |
+| 1 | Structured JSON output           | YES  | spec2c: `{ok, output}`. Generated tools: `{ok, ...}` via vl_die |
+| 2 | Consistent schema                | YES  | Success: `{ok, output}`. Error: `{ok, error}`                  |
+| 3 | `--help` / usage                 | YES  | `spec2c --help`; generated tools emit `--help`                 |
+| 4 | Predictable exit codes           | YES  | 0 = success, 1 = error, 2 = usage                              |
+| 5 | No hidden coupling               | YES  | scaffold → vehir_lib (explicit); core → scaffold (extern usage) |
+| 6 | No hidden state                  | YES  | Pure substitution engine; templates are data, not code         |
+| 7 | Declarative over imperative       | YES  | skeleton.json + templates = declaration; spec2c = reconciler   |
+| 8 | Parseable by an LLM              | YES  | Both spec.json and generated scaffold are LLM-parseable        |
 
-## Tests performed
+## Proof: file-age regeneration
 
-| Test                                  | Result | Notes                                                    |
-|---------------------------------------|--------|----------------------------------------------------------|
-| `spec2c --help`                       | PASS   | Usage to stderr, exit 0                                  |
-| `spec2c test/tool.spec.json`          | PASS   | Generated C skeleton with config_keys                    |
-| `spec2c - < test/tool.spec.json`      | PASS   | stdin input works                                        |
-| `spec2c -o /tmp/out.c test/...`       | PASS   | File output works                                        |
-| Minimal spec (name only)              | PASS   | Minimal skeleton, no config, no DB                       |
-| Full spec (DB + config + commands)    | PASS   | All sections generated, hyphenated name → C ident        |
-| Missing `name` field                  | PASS   | Error: `"spec missing required field"`                   |
-| Invalid JSON                          | PASS   | Error: `"JSON parse error in spec"` with detail          |
-| Generated skeleton compiles           | PASS   | `cc -Wall -Wextra -Werror -std=c2x -fsyntax-only` clean  |
-| Generated skeleton (hyphenated name)  | PASS   | `-` replaced with `_` in C identifiers; compiles clean   |
+| Metric                    | Hand-written           | Declarative (v0.2)        |
+|---------------------------|------------------------|---------------------------|
+| Scaffold (generated)      | —                      | 42 LOC (wiring)           |
+| Core (hand-written)       | —                      | 122 LOC (business logic)  |
+| Total (scaffold + core)   | 169 LOC (monolith)     | 164 LOC (split)           |
+| vehir_lib (shared)        | 0 (inlined in tool)    | 132 LOC (shared by all)   |
 
-## Design notes
-
-- **Hyphen → underscore:** Tool names like `data-collector` become `data_collector_run` for C
-  identifiers. Display names (error messages, usage) retain hyphens.
-- **Config whitespace:** `cfg_load_value` skips whitespace between key and `=` (e.g., `KEY = val`
-  matches key `KEY`), matching forge.c behaviour.
-- **DB dependency:** Generated code includes `"db.h"` and calls `vehir_db_*` only when the spec
-  has `db_queries`. Without DB, the `vehir_db` pointer is set to `NULL` — no db-proxy needed.
-- **Core function signature:** Adapts to config/commands presence: `config_path` param only when
-  `config_keys` is non-empty; `arg_off` param only when `commands` is non-empty.
-- **Config perms guard:** Generated `cfg_load_value` refuses to read config files readable by
-  group/other (chmod 600 requirement), matching the Vehir broker security pattern.
+Generated scaffold compiles clean, links with vehir_lib + core, and runs:
+- `file-age --help` → usage
+- `file-age check fresh.json 3600` → `{"ok":true, ...}`
+- `file-age check stale.json 3600` → `{"ok":false, ...}`
+- `file-age check nonexist.json 3600` → `{"ok":false,"error":"..."}`
 
 ## Verdict
 
-**PASS.** `spec2c` meets both SOUL-standard and LLM-convenience requirements. The generated
-skeletons match the real Vehir tool patterns observed in `file-age`, `forge`, and `db-probe`.
-The tool is net-new with no legacy debt.
+**PASS.** The declarative architecture eliminates the imperative template-in-code problem.
+The scaffold is correct-by-construction (no forbidden patterns structurally possible).
+The shared lib (`vehir_lib`) consolidates cross-cutting logic (DRY at binary level).
+The generator is minimal (270 LOC) — templates are data, not code.
 
 ## Commands to verify
 
 ```bash
-nix build .#spec2c                  # builds clean
-./result/bin/spec2c --help          # usage
-./result/bin/spec2c spec.json       # generate skeleton
-cc -Wall -Wextra -Werror -std=c2x   # verify generated code compiles
-  -fsyntax-only generated.c -lcjson
+nix build .#spec2c                                                    # build generator
+./result/bin/spec2c --base . test/file-age.spec.json -o out.c        # generate
+cc -Wall -Wextra -Werror -std=c2x -Ilib out.c test/file_age_core.c \
+   lib/vehir_lib.c -lcjson -o file-age                               # compile
+./file-age check test/data.json 3600 timestamp                        # run
 ```

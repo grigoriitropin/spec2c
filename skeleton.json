@@ -1,0 +1,21 @@
+{
+  "version": "0.2.0",
+  "conditions": ["always", "has-config", "has-db"],
+  "sections": [
+    {
+      "id": "header",
+      "condition": "always",
+      "file": "templates/header.c"
+    },
+    {
+      "id": "usage",
+      "condition": "always",
+      "file": "templates/usage.c"
+    },
+    {
+      "id": "main",
+      "condition": "always",
+      "file": "templates/main.c"
+    }
+  ]
+}
