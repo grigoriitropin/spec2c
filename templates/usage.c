@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 _Noreturn void usage(const char *prog) {
     fprintf(stderr,
         "Usage: %s{{config_opt}}\n"

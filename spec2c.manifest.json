@@ -3,7 +3,7 @@
     {
       "name": "Apache-2.0",
       "spdx_id": "Apache-2.0",
-      "kind": "agent-authored",
+      "kind": "upstream_reference",
       "patent_grant": true
     }
   ],
@@ -14,8 +14,8 @@
       "artifact_type": "tool",
       "artifact_name": "spec2c",
       "license": "Apache-2.0",
-      "license_version": "0.1.0",
-      "repo_url": "https://codeberg.org/vehir/spec2c"
+      "license_version": "0.2.0",
+      "repo_url": "https://github.com/grigoriitropin/spec2c"
     }
   ],
   "edges": []

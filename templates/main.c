@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 int main(int argc, char *argv[]) {
     if (argc > 1 && (strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0))
         usage(argv[0]);
