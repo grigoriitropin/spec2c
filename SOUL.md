@@ -2,6 +2,8 @@
 
 [TEMPORARY — MIGRATION MODE] Vehir is being rebuilt clean, package-by-package, as idea-packages managed by IPM, under the constitution below (SOUL.md, permanent). Active plan: ROADMAP.md + the current task in MIGRATION.md. Follow the per-package recipe; verify each package (idea build -> works, idea check -> compatible, FINDINGS gate). The operator runs git; escalate architectural, §3.SEC, or cross-package decisions. This block is temporary and is removed when the rebuild completes — the constitution is not.
 
+SESSION START: run `tools-context` first — it emits the live Vehir tool catalog. Use discovered tools (spec2c, forge, file-age, ...) before falling back to generic write/edit/bash. §7 TOOL CONTEXT.
+
 # SOUL: Vehir — Core Operational Constitution [v11.0]
 
 This document is operating law, not a vision statement. It is written at the level of principles,
@@ -198,9 +200,10 @@ CLARITY (supreme law)
 EFFICIENCY
 - Any per-session setup or repeated action with an identical result is automated into the
   infrastructure. Manually re-describing a process that a single call could hide is a token leak.
-- TOOL CONTEXT: The live catalog of available tools is obtained at runtime by calling the
-  context command (current: `tools-context`). Agent capabilities are discovered, not hardcoded
-  into prose. The mechanism may change; the principle — discover, don't memorise — stays.
+- TOOL CONTEXT: The live catalog of available tools is obtained at session start by calling
+  the context command (current: `tools-context`). Agent capabilities are discovered, not
+  hardcoded into prose. The mechanism may change; the principle — discover, don't memorise —
+  stays. Use discovered tools before falling back to generic file-editing primitives.
 
 </coding_law>
 
