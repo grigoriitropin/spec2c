@@ -36,6 +36,26 @@
         '';
       };
 
+      tools-context = pkgs.stdenv.mkDerivation {
+        pname = "tools-context";
+        version = "0.1.0";
+        src = ./.;
+        buildInputs = [ pkgs.cjson ];
+        nativeBuildInputs = [ pkgs.pkg-config ];
+        buildPhase = ''
+          runHook preBuild
+          cc ${builtins.toString cflags} \
+            tools-context.c -o tools-context -lcjson
+          runHook postBuild
+        '';
+        installPhase = ''
+          runHook preInstall
+          mkdir -p $out/bin
+          cp tools-context $out/bin/
+          runHook postInstall
+        '';
+      };
+
       default = self.packages.${system}.spec2c;
     });
   };
