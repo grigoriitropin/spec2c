@@ -198,6 +198,9 @@ CLARITY (supreme law)
 EFFICIENCY
 - Any per-session setup or repeated action with an identical result is automated into the
   infrastructure. Manually re-describing a process that a single call could hide is a token leak.
+- TOOL CONTEXT: The live catalog of available tools is obtained at runtime by calling the
+  context command (current: `tools-context`). Agent capabilities are discovered, not hardcoded
+  into prose. The mechanism may change; the principle — discover, don't memorise — stays.
 
 </coding_law>
 
