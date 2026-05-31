@@ -80,22 +80,28 @@ static void parse_spec(const char *text, spec_t *s) {
     cJSON *j = cJSON_GetObjectItemCaseSensitive(root, "name");
     if (!cJSON_IsString(j) || !j->valuestring[0]) die("spec missing \"name\"");
     s->name = strdup(j->valuestring);
+    if (!s->name) die("strdup failed");
     s->ident = name_to_ident(s->name);
+    if (!s->ident) die("strdup failed");
 
     j = cJSON_GetObjectItemCaseSensitive(root, "description");
     s->description = (cJSON_IsString(j) && j->valuestring[0])
         ? strdup(j->valuestring) : strdup("No description");
+    if (!s->description) die("strdup failed");
 
     cJSON *core = cJSON_GetObjectItemCaseSensitive(root, "core");
     if (core && cJSON_IsObject(core)) {
         j = cJSON_GetObjectItemCaseSensitive(core, "function");
-        if (cJSON_IsString(j) && j->valuestring[0])
+        if (cJSON_IsString(j) && j->valuestring[0]) {
             s->core_function = strdup(j->valuestring);
+            if (!s->core_function) die("strdup failed");
+        }
     }
     if (!s->core_function) {
         char buf[256];
         snprintf(buf, sizeof(buf), "%s_run", s->ident ? s->ident : s->name);
         s->core_function = strdup(buf);
+        if (!s->core_function) die("strdup failed");
     }
 
     cJSON *cmds = cJSON_GetObjectItemCaseSensitive(root, "commands");
