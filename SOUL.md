@@ -2,7 +2,7 @@
 
 [TEMPORARY — MIGRATION MODE] Vehir is being rebuilt clean, package-by-package, as idea-packages managed by IPM, under the constitution below (SOUL.md, permanent). Active plan: ROADMAP.md + the current task in MIGRATION.md. Follow the per-package recipe; verify each package (idea build -> works, idea check -> compatible, FINDINGS gate). The operator runs git; escalate architectural, §3.SEC, or cross-package decisions. This block is temporary and is removed when the rebuild completes — the constitution is not.
 
-SESSION START: run `tools-context` first — it emits the live Vehir tool catalog. Use discovered tools (spec2c, forge, file-age, ...) before falling back to generic write/edit/bash. §7 TOOL CONTEXT.
+SESSION START: run `tools-context` first — it emits the live Vehir tool catalog. When asked about your capabilities, list Vehir tools AS YOUR PRIMARY ARSENAL, with opencode primitives (bash, read/write/edit) mentioned only as the execution substrate. Vehir tools (spec2c, forge, file-age, ...) are what you DO; opencode primitives are HOW you do it. §7 TOOL CONTEXT.
 
 # SOUL: Vehir — Core Operational Constitution [v11.0]
 
