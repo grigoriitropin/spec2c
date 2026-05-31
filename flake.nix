@@ -56,6 +56,29 @@
         '';
       };
 
+      spec2c-check = pkgs.stdenv.mkDerivation {
+        pname = "spec2c-check";
+        version = "0.3.0";
+        src = ./.;
+        buildInputs = [ pkgs.cjson pkgs.ast-grep ];
+        nativeBuildInputs = [ pkgs.pkg-config pkgs.makeWrapper ];
+        buildPhase = ''
+          runHook preBuild
+          cc ${builtins.toString cflags} \
+            spec2c-check.c -o spec2c-check -lcjson
+          runHook postBuild
+        '';
+        installPhase = ''
+          runHook preInstall
+          mkdir -p $out/bin $out/share/spec2c
+          cp spec2c-check $out/bin/
+          cp soul-patterns.json $out/share/spec2c/
+          wrapProgram $out/bin/spec2c-check \
+            --prefix PATH : ${pkgs.ast-grep}/bin
+          runHook postInstall
+        '';
+      };
+
       default = self.packages.${system}.spec2c;
     });
   };

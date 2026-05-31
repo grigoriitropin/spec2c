@@ -1,0 +1,50 @@
+{
+  "version": "0.3.0",
+  "description": "Canonical SOUL-compliance patterns — shared by spec2c (generate) and spec2c-check (check).",
+  "patterns": [
+    {
+      "id": "shell-out",
+      "severity": "error",
+      "identifiers": ["system", "popen"],
+      "message": "Shell execution forbidden; use vl_safe_exec() (fork+execvp, no shell)",
+      "suggestion": "Replace with vl_safe_exec() for fork+execvp, or use direct syscalls"
+    },
+    {
+      "id": "output-suppression",
+      "severity": "error",
+      "forbidden_strings": ["/dev/null"],
+      "message": "Output suppression forbidden per SOUL §3",
+      "suggestion": "Remove /dev/null redirect; errors must go to stderr+stdout"
+    },
+    {
+      "id": "stderr-redirect",
+      "severity": "error",
+      "forbidden_strings": ["2>/dev/null", "2>&1"],
+      "message": "stderr suppression forbidden per SOUL §3",
+      "suggestion": "Remove stderr redirection; errors must be visible"
+    },
+    {
+      "id": "sql-interpolation",
+      "severity": "warning",
+      "identifiers": ["sprintf", "snprintf"],
+      "sql_patterns": ["SELECT", "INSERT", "UPDATE", "DELETE", "DROP", "CREATE", "ALTER"],
+      "message": "Possible SQL injection via string interpolation",
+      "suggestion": "Use vl_db_query_json() with parameterized queries"
+    },
+    {
+      "id": "unchecked-return",
+      "severity": "warning",
+      "identifiers": ["malloc", "realloc", "calloc", "fopen", "strdup"],
+      "null_check_window": 3,
+      "message": "Return value not checked for null/error",
+      "suggestion": "Add null check; every return must be verified per SOUL §7"
+    },
+    {
+      "id": "unchecked-scaffold-exit",
+      "severity": "warning",
+      "identifiers": ["exit", "_exit"],
+      "message": "Direct exit() in core logic; use vl_die() for structured JSON errors",
+      "suggestion": "Replace exit()/abort() with vl_die() to emit structured JSON on failure"
+    }
+  ]
+}

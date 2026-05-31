@@ -1,0 +1,23 @@
+{
+  "licenses": [
+    {
+      "name": "Apache-2.0",
+      "spdx_id": "Apache-2.0",
+      "kind": "upstream_reference",
+      "patent_grant": true
+    }
+  ],
+  "packages": [
+    {
+      "name": "spec2c-check",
+      "description": "Conformance checker for spec2c-generated C tools — verifies SOUL compliance using ast-grep patterns",
+      "artifact_type": "tool",
+      "artifact_name": "spec2c-check",
+      "license": "Apache-2.0",
+      "license_version": "0.3.0",
+      "repo_url": "https://github.com/grigoriitropin/spec2c",
+      "flake_dir": "."
+    }
+  ],
+  "edges": []
+}

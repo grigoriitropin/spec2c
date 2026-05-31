@@ -248,17 +248,32 @@ int main(int argc, char *argv[]) {
     const char *spec_path = NULL;
     const char *out_path = NULL;
     const char *base_dir = NULL;
+    int check_mode = 0;
+    const char *check_spec = NULL;
 
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
             fprintf(stderr,
                 "Usage: spec2c [--base <dir>] [-o <out.c>] <spec.json>\n"
+                "       spec2c --check <file.c> [--spec <spec.json>] [--base <dir>]\n"
                 "\n"
-                "  spec.json       JSON tool specification (use '-' for stdin)\n"
+                "  <spec.json>     JSON tool specification (use '-' for stdin)\n"
                 "  -o <out.c>      Write output to file (default: stdout)\n"
                 "  --base <dir>    Template/skeleton base directory\n"
+                "  --check <file>  Run conformance check on generated C file\n"
+                "  --spec <spec>   Spec file for scaffold comparison (with --check)\n"
                 "  --help, -h\n");
             return 0;
+        } else if (strcmp(argv[i], "--check") == 0) {
+            check_mode = 1;
+            if (i + 1 < argc && argv[i+1][0] != '-') {
+                spec_path = argv[++i];
+            } else {
+                die("missing file argument for --check");
+            }
+        } else if (strcmp(argv[i], "--spec") == 0) {
+            if (++i >= argc) die("missing argument for --spec");
+            check_spec = argv[i];
         } else if (strcmp(argv[i], "-o") == 0) {
             if (++i >= argc) die("missing argument for -o");
             out_path = argv[i];
@@ -270,6 +285,19 @@ int main(int argc, char *argv[]) {
         } else {
             die("unexpected argument");
         }
+    }
+
+    if (check_mode) {
+        if (!spec_path) die("file argument required for --check");
+        if (!base_dir) base_dir = ".";
+        char cmd[4096];
+        snprintf(cmd, sizeof(cmd),
+            "spec2c-check \"%s\" --base \"%s\" --patterns \"%s/soul-patterns.json\"%s%s%s",
+            spec_path, base_dir, base_dir,
+            check_spec ? " --spec \"" : "",
+            check_spec ? check_spec : "",
+            check_spec ? "\"" : "");
+        return system(cmd);
     }
 
     if (!spec_path) die("spec file required");
