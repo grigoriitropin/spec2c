@@ -44,31 +44,6 @@
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "string_substitute",
-              "invocation_arguments": {
-                "template_str": "\"{{MOD}}.h\"",
-                "table": "t_hdrpath"
-              },
-              "result_assignment_variable": "hdr_path",
-              "result_type": "string"
-            },
-            {
-              "instruction_type": "function_invocation",
-              "invocation_name": "write_buffer_to_file",
-              "invocation_arguments": {
-                "buf": "hdr_buf",
-                "path": "hdr_path"
-              }
-            },
-            {
-              "instruction_type": "function_invocation",
-              "invocation_name": "free_string_buffer",
-              "invocation_arguments": {
-                "buf": "hdr_buf"
-              }
-            },
-            {
-              "instruction_type": "function_invocation",
               "invocation_name": "create_hash_table",
               "invocation_arguments": {},
               "result_assignment_variable": "t_modinc",
@@ -995,6 +970,31 @@
             "table_handle": "t_hdrpath",
             "entry_key": "\"MOD\"",
             "entry_value": "modname"
+          }
+        },
+        {
+          "instruction_type": "function_invocation",
+          "invocation_name": "string_substitute",
+          "invocation_arguments": {
+            "template_str": "\"{{MOD}}.h\"",
+            "table": "t_hdrpath"
+          },
+          "result_assignment_variable": "hdr_path",
+          "result_type": "string"
+        },
+        {
+          "instruction_type": "function_invocation",
+          "invocation_name": "write_buffer_to_file",
+          "invocation_arguments": {
+            "buf": "hdr_buf",
+            "path": "hdr_path"
+          }
+        },
+        {
+          "instruction_type": "function_invocation",
+          "invocation_name": "free_string_buffer",
+          "invocation_arguments": {
+            "buf": "hdr_buf"
           }
         }
       ]
