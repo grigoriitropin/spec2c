@@ -16,12 +16,13 @@ info()  { [ "$VERBOSE" = "--verbose" ] && echo "  · $1" || true; }
 rm -rf "$TMPDIR" && mkdir -p "$TMPDIR"
 trap 'rm -rf "$TMPDIR"' EXIT
 
-info "=== Step 1: Build Stage 0 (nix) ==="
-if ! STORE=$(nix build --no-link --json . 2>/dev/null | python3 -c "import sys,json;print(json.loads(sys.stdin.read())[0]['outputs']['out'])"); then
-    fail "nix build failed"
+info "=== Step 1: Build Stage 0 via IPM ==="
+if ! STORE=$(ipm build --attr spec2c 2>&1 | python3 -c "import sys,json;d=json.loads([l for l in sys.stdin if l.startswith('{')][-1]);print(d.get('store_path',''))"); then
+    fail "ipm build spec2c failed"
 fi
-STAGE0="$STORE/bin/spec2c"
-pass "Stage 0 built: $STAGE0"
+STAGE0="${STORE}/bin/spec2c"
+[ -x "$STAGE0" ] || STAGE0=$(which spec2c)
+pass "Stage 0: $STAGE0"
 
 info "=== Step 2: Compile ipm_builtins.o ==="
 gcc -c $CFLAGS -Wall -Werror -I"$CJSON/include" src/ipm_builtins.c -o "$TMPDIR/ipm_builtins.o"
