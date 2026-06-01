@@ -53,3 +53,33 @@ Runs the full bootstrap chain and asserts:
 
 Defined in `flake.nix`:
 - `-O2 -fno-ident -frandom-seed=spec2c -Wl,--build-id=none`
+
+## Frozen Boundaries
+
+```
+Core language:      8 instruction types (immutable)
+Core runtime:       src/ipm_builtins.c (199 LOC, immutable)
+Bootstrap anchor:   spec2c.c at commit 446c083 (re-frozen)
+Self-hosting loop:  spec2c.ipm + modules/ (no optional builtins)
+
+Expansion zone (additive only):
+  Optional runtime: runtime/ipm_builtins_fs.c (≤150 LOC, pure wrappers)
+  New .ipm programs: standalone workspaces, not IPM internals
+```
+
+## Bootstrap Recovery
+
+If the multi-file compiler is corrupted, restore from the monolithic bootstrap:
+```bash
+gcc spec2c.c -o stage0_recovery
+./stage0_recovery bootstrap/spec2c-monolith.ipm -o recovery.c
+gcc recovery.c src/ipm_builtins.c -o recovery
+./recovery modules/codegen.ipm codegen.c  # works with multi-file modules
+```
+
+## Structural Enforcement
+
+spec2c enforces at compile time (defaults, overridable per-module via `structural_limits`):
+- File lines: max 2000
+- Functions per file: max 15
+- Top-level instructions per function: max 250
