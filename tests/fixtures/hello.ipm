@@ -1,0 +1,1 @@
+{"package_name":"hello-world-test","package_type":"tool","template_definitions":{"main_c":"#include <stdio.h>\nint main(){printf(\"{{package_name}}\\n\");return 0;}"}}

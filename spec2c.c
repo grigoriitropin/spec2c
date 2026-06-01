@@ -296,6 +296,18 @@ static void generate_from_ipm(const ipm_spec_t *spec, const char *out_path) {
     ipm_add_subst(subs, &nsubs, "pipeline_execution",
         "fprintf(stderr, \"spec2c: pipeline complete\\n\");");
 
+    /* Metadata header for generated C — inserted as template substitution */
+    char meta[4096];
+    snprintf(meta, sizeof(meta),
+        "/* IPM Generated Code - DO NOT EDIT\n"
+        " * Source: %s\n"
+        " * Package: %s (%s)\n"
+        " * Generator: spec2c v0.2 (Phase 1: template substitution)\n"
+        " * Schema: ipm_schema.json\n"
+        " */",
+        spec->name, spec->name, spec->type);
+    ipm_add_subst(subs, &nsubs, "ipm_metadata_header", meta);
+
     /* Iterate template definitions and apply substitutions */
     cJSON *tmpl = templates->child;
     FILE *out_fp = out_path ? fopen(out_path, "w") : stdout;
