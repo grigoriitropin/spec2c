@@ -311,7 +311,8 @@
                 "template": "template_entry_valstr",
                 "subst_table": "subst_table"
               },
-              "result_assignment_variable": "generated_code"
+              "result_assignment_variable": "generated_code",
+              "result_type": "string"
             },
             {
               "instruction_type": "function_invocation",

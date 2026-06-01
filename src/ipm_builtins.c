@@ -301,7 +301,7 @@ void compile_ast_functions_to_c(cJSON *spec_json, const char *output_path) {
     }
 
     /* Emit includes */
-    fprintf(out, "#include <string.h>\n#include <stdio.h>\n#include <stdlib.h>\n#include \"ipm_builtins.h\"\n\n");
+    fprintf(out, "#include <string.h>\n#include <stdio.h>\n#include <stdlib.h>\n#include <cjson/cJSON.h>\n#include \"ipm_builtins.h\"\n\n");
     cJSON *fn = funcs->child;
     /* forward declarations */
     while (fn) {
