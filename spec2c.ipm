@@ -154,24 +154,7 @@
           "description": "Human-readable error description"
         }
       ],
-      "execution_instructions": [
-        {
-          "instruction_type": "function_invocation",
-          "invocation_name": "print_error_to_stderr",
-          "invocation_arguments": {
-            "message": "error_message"
-          },
-          "result_type": "void"
-        },
-        {
-          "instruction_type": "function_invocation",
-          "invocation_name": "exit_process",
-          "invocation_arguments": {
-            "exit_code": 1
-          },
-          "result_type": "void"
-        }
-      ]
+      "execution_instructions": []
     },
     "ipm_add_subst": {
       "description": "Add a key-value pair to the substitution hash table",
