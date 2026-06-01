@@ -478,6 +478,7 @@ static void compile_functions_to_c(const ipm_spec_t *spec, FILE *out) {
                 else if (!strcmp(ret, "json_object")) ret_c = "cJSON *";
                 else if (!strcmp(ret, "json_array")) ret_c = "cJSON *";
                 else if (!strcmp(ret, "db_handle")) ret_c = "struct vehir_db *";
+                else if (!strcmp(ret, "subst_table")) ret_c = "subst_table *";
             }
             fprintf(out, "/* %s: %s */\n", name, desc ? desc : "no description");
             fprintf(out, "static %s %s(", ret_c, name);
