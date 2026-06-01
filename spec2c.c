@@ -425,7 +425,7 @@ int main(int argc, char *argv[]) {
     /* Old .spec.json format — backward compat */
     spec_t spec;
     parse_spec_from_cjson(spec_json, &spec);
-    cJSON_Delete(spec_json);
+    /* parse_spec_from_cjson calls cJSON_Delete on spec_json — don't double-free */
     free(spec_text);
 
     subst_t subs[SUBST_MAX];
