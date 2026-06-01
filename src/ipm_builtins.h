@@ -44,4 +44,7 @@ void die_builtin(const char *msg);
 void print_error_to_stderr(const char *msg);
 void exit_process(int code);
 
+/* AST-to-C compiler (Phase 2b built-in) */
+void compile_ast_functions_to_c(cJSON *spec_json, FILE *out);
+
 #endif /* IPM_BUILTINS_H */
