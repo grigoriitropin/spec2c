@@ -37,8 +37,8 @@
     "SPEC2C_OUTPUT_DIRECTORY"
   ],
   "template_definitions": {
-    "spec2c_main_c": "#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n\n{{compiler_includes}}\n\n{{compiler_function_implementations}}\n\nint main(int argc, char** argv) {\n    {{argument_parsing_logic}}\n    {{pipeline_initialization}}\n    {{pipeline_execution}}\n    return 0;\n}\n",
-    "spec2c_usage_h": "void print_usage_and_exit(const char* program_name);\n\nvoid print_usage_and_exit(const char* program_name) {\n    fprintf(stderr,\n        \"Usage: %s [--base <directory>] [-o <output.c>] <specification.json>\\n\"\n        \"\\n\"\n        \"{{command_descriptions}}\"\n        \"\\n\"\n        \"Output: JSON {\\\"ok\\\":true\\\"}\"\n        \"Exit:   0 = success, 1 = error\\n\",\n        program_name);\n    exit(2);\n}"
+    "spec2c_main_c": "// IPM Generated Code — DO NOT EDIT\n#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n#include <cjson/cJSON.h>\n\n{{ipm_metadata_header}}\n\nint main(int argc, char **argv) {\n    if (argc < 3) {\n        fprintf(stderr, \"Usage: %s <input.ipm> <output.c>\\n\", argv[0]);\n        return 1;\n    }\n    return execute_pipeline(argv[1], argv[2]);\n}\n",
+    "spec2c_usage_h": "// IPM Generated Code\nvoid print_usage_and_exit(const char *prog) {\n    fprintf(stderr, \"Usage: %s <input.ipm> <output.c>\\n\", prog);\n    exit(2);\n}"
   },
   "function_definitions": {
     "parse_command_line_arguments": {
@@ -112,125 +112,92 @@
       "return_type": "int"
     },
     "execute_pipeline": {
-      "description": "Main compilation pipeline: read specification, parse JSON, compute substitution variables, iterate section definitions, apply template substitutions, emit generated C source.",
+      "description": "Main compilation pipeline: read specification file, parse JSON, compute substitution variables, iterate template definitions, apply substitutions, emit generated C source",
+      "return_type": "int",
       "parameter_definitions": [
         {
           "parameter_name": "specification_file_path",
           "parameter_type": "string",
-          "description": "Path to the .ipm specification JSON file."
+          "description": "Path to the .ipm specification JSON file"
         },
         {
           "parameter_name": "output_file_path",
           "parameter_type": "string",
-          "description": "Path where generated C source is written."
-        },
-        {
-          "parameter_name": "template_directory",
-          "parameter_type": "string",
-          "description": "Directory containing C template files."
+          "description": "Path where generated C source is written"
         }
       ],
       "execution_instructions": [
         {
-          "instruction_type": "variable_declaration",
-          "variable_name": "specification_content",
-          "variable_type": "string",
-          "assignment_operation": "read_file_to_string",
-          "source_target": "specification_file_path"
-        },
-        {
-          "instruction_type": "variable_declaration",
-          "variable_name": "parsed_ast",
-          "variable_type": "json_object",
-          "assignment_operation": "parse_json_string",
-          "source_target": "specification_content"
+          "instruction_type": "function_invocation",
+          "invocation_name": "read_file",
+          "invocation_arguments": {
+            "file_path": "specification_file_path"
+          },
+          "result_assignment_variable": "specification_content"
         },
         {
           "instruction_type": "conditional_branch",
-          "condition_description": "Verify the specification contains mandatory template definitions for code generation.",
-          "condition_operation": "key_exists",
-          "condition_target": "parsed_ast",
-          "condition_key": "template_definitions",
-          "branch_on_success": [
-            {
-              "instruction_type": "variable_declaration",
-              "variable_name": "substitution_variables",
-              "variable_type": "json_object",
-              "assignment_operation": "parse_json_string",
-              "source_target": "computing_substitution_context"
-            },
-            {
-              "instruction_type": "function_invocation",
-              "invocation_name": "compute_substitution_variables",
-              "invocation_arguments": {
-                "parsed_specification": {
-                  "source": "parsed_ast"
-                }
-              },
-              "result_assignment_variable": "substitution_variables"
-            },
-            {
-              "instruction_type": "function_invocation",
-              "invocation_name": "iterate_and_substitute_templates",
-              "invocation_arguments": {
-                "template_definitions": {
-                  "source": "parsed_ast.template_definitions"
-                },
-                "substitution_variables": {
-                  "source": "substitution_variables"
-                }
-              },
-              "result_assignment_variable": "generated_c_source_code"
-            },
-            {
-              "instruction_type": "function_invocation",
-              "invocation_name": "write_string_to_file",
-              "invocation_arguments": {
-                "file_path": "output_file_path",
-                "content_to_write": {
-                  "source": "generated_c_source_code"
-                }
-              },
-              "result_assignment_variable": "file_write_status"
-            },
-            {
-              "instruction_type": "conditional_branch",
-              "condition_description": "Check that the generated C source was successfully written to disk.",
-              "condition_operation": "enum_equals",
-              "condition_target": "file_write_status",
-              "condition_value": "success",
-              "branch_on_success": [
-                {
-                  "instruction_type": "return_statement",
-                  "return_payload": {
-                    "execution_status": "success",
-                    "output_artifact_path": "output_file_path"
-                  }
-                }
-              ],
-              "branch_on_failure": [
-                {
-                  "instruction_type": "return_statement",
-                  "return_payload": {
-                    "execution_status": "failure",
-                    "error_code": "filesystem_write_failure"
-                  }
-                }
-              ]
-            }
-          ],
+          "condition_description": "Check if spec file was read successfully",
+          "condition_operation": "is_not_null",
+          "condition_target": "specification_content",
           "branch_on_failure": [
             {
-              "instruction_type": "return_statement",
-              "return_payload": {
-                "execution_status": "failure",
-                "error_code": "missing_template_definitions"
+              "instruction_type": "function_invocation",
+              "invocation_name": "die",
+              "invocation_arguments": {
+                "error_message": "cannot read specification file"
               }
             }
           ]
+        },
+        {
+          "instruction_type": "function_invocation",
+          "invocation_name": "parse_json_string",
+          "invocation_arguments": {
+            "content": "specification_content"
+          },
+          "result_assignment_variable": "parsed_ast"
+        },
+        {
+          "instruction_type": "conditional_branch",
+          "condition_description": "Check if JSON was parsed successfully",
+          "condition_operation": "is_not_null",
+          "condition_target": "parsed_ast",
+          "branch_on_failure": [
+            {
+              "instruction_type": "function_invocation",
+              "invocation_name": "die",
+              "invocation_arguments": {
+                "error_message": "JSON parse error in specification file"
+              }
+            }
+          ]
+        },
+        {
+          "instruction_type": "function_invocation",
+          "invocation_name": "compute_substs",
+          "invocation_arguments": {
+            "parsed_spec": "parsed_ast"
+          },
+          "result_assignment_variable": "subst_table"
+        },
+        {
+          "instruction_type": "function_invocation",
+          "invocation_name": "generate_from_ipm",
+          "invocation_arguments": {
+            "parsed_spec": "parsed_ast",
+            "subst_table": "subst_table",
+            "output_file_path": "output_file_path"
+          },
+          "result_assignment_variable": "generation_status"
+        },
+        {
+          "instruction_type": "return_statement",
+          "return_payload": {
+            "execution_status": "success"
+          }
         }
-      ],
-      "return_type": "int"
+      ]
     },
     "name_to_ident": {
       "description": "Convert package name to C identifier — replace hyphens with underscores",
