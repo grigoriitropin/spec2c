@@ -22,12 +22,234 @@
           "result_type": "string_buffer"
         },
         {
-          "instruction_type": "function_invocation",
-          "invocation_name": "append_to_buffer",
-          "invocation_arguments": {
-            "buf": "buf",
-            "str": "\"#include <string.h>\\n#include <stdio.h>\\n#include <stdlib.h>\\n#include <cjson/cJSON.h>\\n#include \\\"ipm_builtins.h\\\"\\n\\n\""
-          }
+          "instruction_type": "access_json_field",
+          "variable_name": "modname",
+          "variable_type": "string",
+          "source_object": "spec_json",
+          "field_name": "module_name"
+        },
+        {
+          "instruction_type": "conditional_branch",
+          "condition_operation": "is_not_null",
+          "condition_target": "modname",
+          "branch_on_success": [
+            {
+              "instruction_type": "function_invocation",
+              "invocation_name": "create_string_buffer",
+              "invocation_arguments": {},
+              "result_assignment_variable": "hdr_buf",
+              "result_type": "string_buffer"
+            },
+            {
+              "instruction_type": "function_invocation",
+              "invocation_name": "create_hash_table",
+              "invocation_arguments": {},
+              "result_assignment_variable": "t_guard",
+              "result_type": "subst_table"
+            },
+            {
+              "instruction_type": "function_invocation",
+              "invocation_name": "hash_table_insert",
+              "invocation_arguments": {
+                "table_handle": "t_guard",
+                "entry_key": "\"MOD\"",
+                "entry_value": "modname"
+              }
+            },
+            {
+              "instruction_type": "function_invocation",
+              "invocation_name": "string_substitute",
+              "invocation_arguments": {
+                "template_str": "\"/* Auto-generated from {{MOD}}.ipm */\\n#ifndef {{MOD}}_H\\n#define {{MOD}}_H\\n\\n#include \\\"ipm_builtins.h\\\"\\n\"",
+                "table": "t_guard"
+              },
+              "result_assignment_variable": "guard_hdr",
+              "result_type": "string"
+            },
+            {
+              "instruction_type": "function_invocation",
+              "invocation_name": "append_to_buffer",
+              "invocation_arguments": {
+                "buf": "hdr_buf",
+                "str": "guard_hdr"
+              }
+            },
+            {
+              "instruction_type": "access_json_field",
+              "variable_name": "imports",
+              "variable_type": "json_array",
+              "source_object": "spec_json",
+              "field_name": "imports"
+            },
+            {
+              "instruction_type": "conditional_branch",
+              "condition_operation": "is_not_null",
+              "condition_target": "imports",
+              "branch_on_success": [
+                {
+                  "instruction_type": "iterate_over_collection",
+                  "collection_variable": "imports",
+                  "item_variable": "imp",
+                  "body_instructions": [
+                    {
+                      "instruction_type": "function_invocation",
+                      "invocation_name": "create_hash_table",
+                      "invocation_arguments": {},
+                      "result_assignment_variable": "t_imp",
+                      "result_type": "subst_table"
+                    },
+                    {
+                      "instruction_type": "function_invocation",
+                      "invocation_name": "hash_table_insert",
+                      "invocation_arguments": {
+                        "table_handle": "t_imp",
+                        "entry_key": "\"IMP\"",
+                        "entry_value": "imp_valstr"
+                      }
+                    },
+                    {
+                      "instruction_type": "function_invocation",
+                      "invocation_name": "string_substitute",
+                      "invocation_arguments": {
+                        "template_str": "\"#include \\\"{{IMP}}.h\\\"\\n\"",
+                        "table": "t_imp"
+                      },
+                      "result_assignment_variable": "imp_line",
+                      "result_type": "string"
+                    },
+                    {
+                      "instruction_type": "function_invocation",
+                      "invocation_name": "append_to_buffer",
+                      "invocation_arguments": {
+                        "buf": "hdr_buf",
+                        "str": "imp_line"
+                      }
+                    }
+                  ]
+                }
+              ],
+              "branch_on_failure": []
+            },
+            {
+              "instruction_type": "function_invocation",
+              "invocation_name": "create_hash_table",
+              "invocation_arguments": {},
+              "result_assignment_variable": "t_endguard",
+              "result_type": "subst_table"
+            },
+            {
+              "instruction_type": "function_invocation",
+              "invocation_name": "hash_table_insert",
+              "invocation_arguments": {
+                "table_handle": "t_endguard",
+                "entry_key": "\"MOD\"",
+                "entry_value": "modname"
+              }
+            },
+            {
+              "instruction_type": "function_invocation",
+              "invocation_name": "string_substitute",
+              "invocation_arguments": {
+                "template_str": "\"\\n#endif /* {{MOD}}_H */\\n\"",
+                "table": "t_endguard"
+              },
+              "result_assignment_variable": "end_guard",
+              "result_type": "string"
+            },
+            {
+              "instruction_type": "function_invocation",
+              "invocation_name": "append_to_buffer",
+              "invocation_arguments": {
+                "buf": "hdr_buf",
+                "str": "end_guard"
+              }
+            },
+            {
+              "instruction_type": "function_invocation",
+              "invocation_name": "create_hash_table",
+              "invocation_arguments": {},
+              "result_assignment_variable": "t_hdrpath",
+              "result_type": "subst_table"
+            },
+            {
+              "instruction_type": "function_invocation",
+              "invocation_name": "hash_table_insert",
+              "invocation_arguments": {
+                "table_handle": "t_hdrpath",
+                "entry_key": "\"MOD\"",
+                "entry_value": "modname"
+              }
+            },
+            {
+              "instruction_type": "function_invocation",
+              "invocation_name": "string_substitute",
+              "invocation_arguments": {
+                "template_str": "\"{{MOD}}.h\"",
+                "table": "t_hdrpath"
+              },
+              "result_assignment_variable": "hdr_path",
+              "result_type": "string"
+            },
+            {
+              "instruction_type": "function_invocation",
+              "invocation_name": "write_buffer_to_file",
+              "invocation_arguments": {
+                "buf": "hdr_buf",
+                "path": "hdr_path"
+              }
+            },
+            {
+              "instruction_type": "function_invocation",
+              "invocation_name": "free_string_buffer",
+              "invocation_arguments": {
+                "buf": "hdr_buf"
+              }
+            },
+            {
+              "instruction_type": "function_invocation",
+              "invocation_name": "create_hash_table",
+              "invocation_arguments": {},
+              "result_assignment_variable": "t_modinc",
+              "result_type": "subst_table"
+            },
+            {
+              "instruction_type": "function_invocation",
+              "invocation_name": "hash_table_insert",
+              "invocation_arguments": {
+                "table_handle": "t_modinc",
+                "entry_key": "\"MOD\"",
+                "entry_value": "modname"
+              }
+            },
+            {
+              "instruction_type": "function_invocation",
+              "invocation_name": "string_substitute",
+              "invocation_arguments": {
+                "template_str": "\"#include \\\"{{MOD}}.h\\\"\\n\\n\"",
+                "table": "t_modinc"
+              },
+              "result_assignment_variable": "mod_include",
+              "result_type": "string"
+            },
+            {
+              "instruction_type": "function_invocation",
+              "invocation_name": "append_to_buffer",
+              "invocation_arguments": {
+                "buf": "buf",
+                "str": "mod_include"
+              }
+            }
+          ],
+          "branch_on_failure": [
+            {
+              "instruction_type": "function_invocation",
+              "invocation_name": "append_to_buffer",
+              "invocation_arguments": {
+                "buf": "buf",
+                "str": "\"#include <string.h>\\n#include <stdio.h>\\n#include <stdlib.h>\\n#include <cjson/cJSON.h>\\n#include \\\"ipm_builtins.h\\\"\\n\\n\""
+              }
+            }
+          ]
         },
         {
           "instruction_type": "access_json_field",
