@@ -34,6 +34,12 @@ typedef struct {
     int         has_db;
 } spec_t;
 
+static const char *jstr(const cJSON *obj, const char *key) {
+    const cJSON *v = cJSON_GetObjectItemCaseSensitive(obj, key);
+    if (!v || !cJSON_IsString(v)) return NULL;
+    return v->valuestring;
+}
+
 static _Noreturn void die(const char *msg) {
     cJSON *r = cJSON_CreateObject();
     if (!r) { fprintf(stderr, "spec2c: FATAL: cJSON alloc failed\n"); exit(1); }
@@ -257,7 +263,128 @@ static void ipm_add_subst(subst_t *subs, int *n, const char *k, const char *v) {
     (*n)++;
 }
 
+/* ── Phase 2a: AST-to-C compiler ─────────────────────────────────────── */
+
+static const char *vartype_to_c(const char *t) {
+    if (!strcmp(t, "string")) return "char *";
+    if (!strcmp(t, "int")) return "int";
+    if (!strcmp(t, "float")) return "double";
+    if (!strcmp(t, "boolean")) return "int";
+    if (!strcmp(t, "json_object")) return "cJSON *";
+    if (!strcmp(t, "json_array")) return "cJSON *";
+    if (!strcmp(t, "db_handle")) return "struct vehir_db *";
+    return "void *";
+}
+
+static void compile_instructions(cJSON *instructions, FILE *out, int indent) {
+    if (!cJSON_IsArray(instructions)) return;
+    for (int ii = 0; ii < cJSON_GetArraySize(instructions); ii++) {
+        cJSON *inst = cJSON_GetArrayItem(instructions, ii);
+        if (!inst) continue;
+        cJSON *it = cJSON_GetObjectItemCaseSensitive(inst, "instruction_type");
+        if (!cJSON_IsString(it)) continue;
+        const char *type = it->valuestring;
+        for (int s = 0; s < indent; s++) fputs("  ", out);
+
+        if (!strcmp(type, "variable_declaration")) {
+            const char *vn = jstr(inst, "variable_name");
+            const char *vt = jstr(inst, "variable_type");
+            const char *op = jstr(inst, "assignment_operation");
+            cJSON *st = cJSON_GetObjectItemCaseSensitive(inst, "source_target");
+            const char *src = "";
+            if (cJSON_IsString(st)) src = st->valuestring;
+            else if (st) { cJSON *s2 = cJSON_GetObjectItemCaseSensitive(st, "source"); if (cJSON_IsString(s2)) src = s2->valuestring; }
+            if (vn && vt && op) {
+                fprintf(out, "%s %s = %s(%s);\n", vartype_to_c(vt), vn, op, src);
+            }
+        } else if (!strcmp(type, "function_invocation")) {
+            const char *fn = jstr(inst, "invocation_name");
+            const char *rv = jstr(inst, "result_assignment_variable");
+            if (fn) {
+                if (rv) fprintf(out, "int %s = ", rv);
+                fprintf(out, "%s(/* args */);\n", fn);
+            }
+        } else if (!strcmp(type, "conditional_branch")) {
+            const char *op = jstr(inst, "condition_operation");
+            cJSON *ct = cJSON_GetObjectItemCaseSensitive(inst, "condition_target");
+            const char *cv = jstr(inst, "condition_value");
+            const char *ck = jstr(inst, "condition_key");
+            const char *tgt = "";
+            if (cJSON_IsString(ct)) tgt = ct->valuestring;
+            else if (ct) { cJSON *s2 = cJSON_GetObjectItemCaseSensitive(ct, "source"); if (cJSON_IsString(s2)) tgt = s2->valuestring; }
+            if (!strcmp(op, "key_exists")) {
+                fprintf(out, "if (cJSON_HasObjectItem(%s, \"%s\")) {\n", tgt, ck ? ck : "");
+            } else if (!strcmp(op, "string_equals") || !strcmp(op, "enum_equals")) {
+                fprintf(out, "if (strcmp(%s, \"%s\") == 0) {\n", tgt, cv ? cv : "");
+            } else if (!strcmp(op, "is_not_null")) {
+                fprintf(out, "if (%s != NULL) {\n", tgt);
+            } else {
+                fprintf(out, "if (/* %s */ 0) {\n", op);
+            }
+            cJSON *bon = cJSON_GetObjectItemCaseSensitive(inst, "branch_on_success");
+            compile_instructions(bon, out, indent + 1);
+            fprintf(out, "%*c} else {\n", indent * 2, ' ');
+            cJSON *bof = cJSON_GetObjectItemCaseSensitive(inst, "branch_on_failure");
+            compile_instructions(bof, out, indent + 1);
+            fprintf(out, "%*c}\n", indent * 2, ' ');
+        } else if (!strcmp(type, "return_statement")) {
+            cJSON *rp = cJSON_GetObjectItemCaseSensitive(inst, "return_payload");
+            if (rp) {
+                const char *es = jstr(rp, "execution_status");
+                const char *ec = jstr(rp, "error_code");
+                if (es && !strcmp(es, "success")) fprintf(out, "return 0;");
+                else if (es && !strcmp(es, "failure")) fprintf(out, "die(\"%s\"); return 1;", ec ? ec : "unknown error");
+                else fprintf(out, "return 0;");
+                fprintf(out, "\n");
+            }
+        } else if (!strcmp(type, "database_execute_parameterized")) {
+            const char *sql = jstr(inst, "sql_query_string");
+            fprintf(out, "/* DB exec: %s */\n", sql ? sql : "?");
+        }
+    }
+}
+
+static void compile_functions_to_c(const ipm_spec_t *spec, FILE *out) {
+    cJSON *funcs = cJSON_GetObjectItemCaseSensitive(spec->meta, "function_definitions");
+    if (!funcs || !cJSON_IsObject(funcs)) return;
+
+    cJSON *fn = funcs->child;
+    while (fn) {
+        const char *name = fn->string;
+        const char *desc = jstr(fn, "description");
+        cJSON *params = cJSON_GetObjectItemCaseSensitive(fn, "parameter_definitions");
+        cJSON *body  = cJSON_GetObjectItemCaseSensitive(fn, "execution_instructions");
+
+        if (body && cJSON_IsArray(body)) {
+            fprintf(out, "/* %s: %s */\n", name, desc ? desc : "no description");
+            /* Emit function signature with return type from last instruction */
+            fprintf(out, "static int %s(", name);
+            if (params && cJSON_IsArray(params)) {
+                for (int p = 0; p < cJSON_GetArraySize(params); p++) {
+                    cJSON *par = cJSON_GetArrayItem(params, p);
+                    const char *pn = jstr(par, "parameter_name");
+                    const char *pt = jstr(par, "parameter_type");
+                    if (p > 0) fprintf(out, ", ");
+                    fprintf(out, "%s %s", vartype_to_c(pt), pn);
+                }
+            }
+            fprintf(out, ") {\n");
+            compile_instructions(body, out, 1);
+            fprintf(out, "}\n\n");
+        }
+        fn = fn->next;
+    }
+}
+
+/* ── Phase 1: template substitution ──────────────────────────────────── */
+
 static void generate_from_ipm(const ipm_spec_t *spec, const char *out_path) {
+    FILE *out_fp = out_path ? fopen(out_path, "w") : stdout;
+    if (!out_fp) die("cannot open output file");
+
+    /* Phase 2a: compile AST functions to C */
+    compile_functions_to_c(spec, out_fp);
+
     /* Collect template definitions */
     cJSON *templates = cJSON_GetObjectItemCaseSensitive(spec->meta, "template_definitions");
     if (!templates || !cJSON_IsObject(templates)) {
@@ -310,8 +437,6 @@ static void generate_from_ipm(const ipm_spec_t *spec, const char *out_path) {
 
     /* Iterate template definitions and apply substitutions */
     cJSON *tmpl = templates->child;
-    FILE *out_fp = out_path ? fopen(out_path, "w") : stdout;
-    if (!out_fp) die("cannot open output file");
 
     while (tmpl) {
         const char *tmpl_name = tmpl->string;
