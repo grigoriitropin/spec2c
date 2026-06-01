@@ -11,7 +11,8 @@
   in {
     packages = forAllSystems (system: let
       pkgs = pkgsFor system;
-      cflags = [ "-Wall" "-Wextra" "-Werror" "-std=c2x" ];
+      cflags = [ "-O2" "-Wall" "-Wextra" "-Werror" "-std=c2x"
+                 "-fno-ident" "-frandom-seed=spec2c" "-Wl,--build-id=none" ];
     in {
       spec2c = pkgs.stdenv.mkDerivation {
         pname = "spec2c";
