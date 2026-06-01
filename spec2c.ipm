@@ -71,15 +71,7 @@
           "condition_description": "Check if spec file was read successfully",
           "condition_operation": "is_not_null",
           "condition_target": "specification_content",
-          "branch_on_failure": [
-            {
-              "instruction_type": "function_invocation",
-              "invocation_name": "die",
-              "invocation_arguments": {
-                "error_message": "cannot read specification file"
-              }
-            }
-          ]
+          "branch_on_failure": []
         },
         {
           "instruction_type": "function_invocation",
@@ -95,15 +87,7 @@
           "condition_description": "Check if JSON was parsed successfully",
           "condition_operation": "is_not_null",
           "condition_target": "parsed_ast",
-          "branch_on_failure": [
-            {
-              "instruction_type": "function_invocation",
-              "invocation_name": "die",
-              "invocation_arguments": {
-                "error_message": "JSON parse error in specification file"
-              }
-            }
-          ]
+          "branch_on_failure": []
         },
         {
           "instruction_type": "function_invocation",

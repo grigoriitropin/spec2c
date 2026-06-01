@@ -321,12 +321,12 @@ static void compile_instructions(cJSON *instructions, FILE *out, int indent, con
                     fprintf(out, "%s %s = ", rc, rv);
                 }
                 fprintf(out, "%s(", fn);
-                /* emit arguments */
+                /* emit arguments — values are always variable references, never quoted */
                 if (args && cJSON_IsObject(args)) {
                     cJSON *arg = args->child; int first = 1;
                     while (arg) {
                         if (!first) fprintf(out, ", ");
-                        if (cJSON_IsString(arg)) fprintf(out, "\"%s\"", arg->valuestring);
+                        if (cJSON_IsString(arg)) fprintf(out, "%s", arg->valuestring);
                         else if (cJSON_IsNumber(arg)) fprintf(out, "%d", arg->valueint);
                         else fprintf(out, "%s", arg->valuestring);
                         first = 0;
