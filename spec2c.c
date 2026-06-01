@@ -384,14 +384,7 @@ int main(int argc, char *argv[]) {
     if (!spec_path) die("spec file required");
     if (!base_dir) base_dir = ".";
 
-    char *skel_path = resolve_template(base_dir, "skeleton.json");
-    char *skel_text = read_file(skel_path);
-    free(skel_path);
-
-    cJSON *skel = cJSON_Parse(skel_text);
-    free(skel_text);
-    if (!skel) die("JSON parse error in skeleton.json");
-
+    /* Read and parse the spec first to detect .ipm format */
     char *spec_text = read_file(spec_path);
     cJSON *spec_json = cJSON_Parse(spec_text);
     if (!spec_json) die("JSON parse error in spec file");
@@ -418,9 +411,17 @@ int main(int argc, char *argv[]) {
         cJSON_Delete(r);
         cJSON_Delete(spec_json);
         free(spec_text);
-        cJSON_Delete(skel);
         return 0;
     }
+
+    /* Old .spec.json format — needs skeleton.json */
+    char *skel_path = resolve_template(base_dir, "skeleton.json");
+    char *skel_text = read_file(skel_path);
+    free(skel_path);
+
+    cJSON *skel = cJSON_Parse(skel_text);
+    free(skel_text);
+    if (!skel) die("JSON parse error in skeleton.json");
 
     /* Old .spec.json format — backward compat */
     spec_t spec;
