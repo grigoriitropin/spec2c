@@ -39,6 +39,13 @@ int          hash_table_count(const subst_table *table);
 /* String substitution */
 string string_substitute(string template_str, const subst_table *table);
 
+/* String buffer (append-to-memory, flush once — deterministic codegen) */
+typedef struct { char *data; size_t len; size_t cap; } string_buffer;
+string_buffer* create_string_buffer(void);
+void append_to_buffer(string_buffer *buf, const char *str);
+void write_buffer_to_file(string_buffer *buf, const char *path);
+void free_string_buffer(string_buffer *buf);
+
 /* Error handling */
 void die_builtin(const char *msg);
 void print_error_to_stderr(const char *msg);

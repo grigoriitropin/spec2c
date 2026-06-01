@@ -129,6 +129,43 @@ string string_substitute(string template_str, const subst_table *table) {
     return result;
 }
 
+/* ── String buffer (append-only, flush once) ─────────────────────────── */
+
+string_buffer* create_string_buffer(void) {
+    string_buffer *buf = malloc(sizeof(string_buffer));
+    buf->cap = 8192;
+    buf->data = malloc(buf->cap);
+    buf->data[0] = '\0';
+    buf->len = 0;
+    return buf;
+}
+
+void append_to_buffer(string_buffer *buf, const char *str) {
+    if (!buf || !str) return;
+    size_t slen = strlen(str);
+    while (buf->len + slen + 1 > buf->cap) {
+        buf->cap *= 2;
+        buf->data = realloc(buf->data, buf->cap);
+    }
+    memcpy(buf->data + buf->len, str, slen);
+    buf->len += slen;
+    buf->data[buf->len] = '\0';
+}
+
+void write_buffer_to_file(string_buffer *buf, const char *path) {
+    if (!buf || !path) return;
+    FILE *f = fopen(path, "w");
+    if (!f) return;
+    fwrite(buf->data, 1, buf->len, f);
+    fclose(f);
+}
+
+void free_string_buffer(string_buffer *buf) {
+    if (!buf) return;
+    free(buf->data);
+    free(buf);
+}
+
 /* ── Error handling ───────────────────────────────────────────────────── */
 
 void die_builtin(const char *msg) {
