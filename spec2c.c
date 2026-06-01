@@ -354,6 +354,28 @@ static void compile_instructions(cJSON *instructions, FILE *out, int indent, con
                 compile_instructions(body, out, indent + 1, return_type);
                 fprintf(out, "%*c}\n", indent * 2, ' ');
             }
+        } else if (!strcmp(type, "iterate_over_object_keys")) {
+            const char *col = jstr(inst, "collection_variable");
+            const char *key  = jstr(inst, "key_variable");
+            const char *val  = jstr(inst, "value_variable");
+            cJSON *body = cJSON_GetObjectItemCaseSensitive(inst, "body_instructions");
+            if (col && key && val && body) {
+                fprintf(out, "cJSON *%s = %s;\n", val, col);
+                fprintf(out, "cJSON_ArrayForEach(%s, %s) {\n", val, col);
+                fprintf(out, "  const char *%s = %s->string;\n", key, val);
+                compile_instructions(body, out, indent + 1, return_type);
+                fprintf(out, "}\n");
+            }
+        } else if (!strcmp(type, "access_json_field")) {
+            const char *vn = jstr(inst, "variable_name");
+            const char *vt = jstr(inst, "variable_type");
+            const char *so = jstr(inst, "source_object");
+            const char *fn = jstr(inst, "field_name");
+            if (vn && so && fn) {
+                const char *ct = vartype_to_c(vt);
+                fprintf(out, "cJSON *%s = cJSON_GetObjectItemCaseSensitive(%s, \"%s\");%s\n",
+                        vn, so, fn, (!strcmp(ct, "int") || !strcmp(ct, "double")) ? "" : "");
+            }
         } else if (!strcmp(type, "database_execute_parameterized")) {
             const char *sql = jstr(inst, "sql_query_string");
             fprintf(out, "/* DB exec: %s */\n", sql ? sql : "?");
@@ -428,6 +450,7 @@ static void generate_from_ipm(const ipm_spec_t *spec, const char *out_path) {
     ipm_add_subst(subs, &nsubs, "argument_parsing_logic", "if (argc < 2) print_usage_and_exit(argv[0]);");
     ipm_add_subst(subs, &nsubs, "pipeline_initialization", "fprintf(stderr, \"gen\\n\");");
     ipm_add_subst(subs, &nsubs, "pipeline_execution", "fprintf(stderr, \"done\\n\");");
+    ipm_add_subst(subs, &nsubs, "ipm_metadata_header", "/* IPM Generated Code — DO NOT EDIT */");
 
     /* Emit includes from the first template (provides cJSON, etc.) */
     cJSON *templates = cJSON_GetObjectItemCaseSensitive(spec->meta, "template_definitions");
