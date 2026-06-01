@@ -217,7 +217,7 @@
               "invocation_name": "hash_table_insert",
               "invocation_arguments": {
                 "table_handle": "subst_table",
-                "entry_key": "has_configuration",
+                "entry_key": "\"has_configuration\"",
                 "entry_value": "1"
               }
             }
@@ -228,7 +228,7 @@
               "invocation_name": "hash_table_insert",
               "invocation_arguments": {
                 "table_handle": "subst_table",
-                "entry_key": "has_configuration",
+                "entry_key": "\"has_configuration\"",
                 "entry_value": "0"
               }
             }
