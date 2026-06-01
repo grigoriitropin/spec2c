@@ -365,8 +365,8 @@ static void compile_functions_to_c(const ipm_spec_t *spec, FILE *out) {
     cJSON *funcs = cJSON_GetObjectItemCaseSensitive(spec->meta, "function_definitions");
     if (!funcs || !cJSON_IsObject(funcs)) return;
 
-    /* Inject required includes for AST-generated code */
-    fprintf(out, "#include <string.h>\n#include <cjson/cJSON.h>\n\n");
+    /* Inject standard C headers; cjson comes from template's {{compiler_includes}} */
+    fprintf(out, "#include <string.h>\n#include <stdio.h>\n#include <stdlib.h>\n\n");
 
     cJSON *fn = funcs->child;
     while (fn) {
@@ -413,60 +413,38 @@ static void generate_from_ipm(const ipm_spec_t *spec, const char *out_path) {
     FILE *out_fp = out_path ? fopen(out_path, "w") : stdout;
     if (!out_fp) die("cannot open output file");
 
-    /* Phase 2a: compile AST functions to C */
-    compile_functions_to_c(spec, out_fp);
-
-    /* Collect template definitions */
-    cJSON *templates = cJSON_GetObjectItemCaseSensitive(spec->meta, "template_definitions");
-    if (!templates || !cJSON_IsObject(templates)) {
-        /* No inline templates — fall back to skeleton.json + templates/ */
-        return;
-    }
-
-    /* Build substitution context from package metadata */
+    /* Build substitution context first (needed by both passes) */
     subst_t subs[SUBST_MAX]; int nsubs = 0;
     ipm_add_subst(subs, &nsubs, "package_name", spec->name);
     ipm_add_subst(subs, &nsubs, "package_type", spec->type);
     ipm_add_subst(subs, &nsubs, "package_description", spec->desc ? spec->desc : "No description");
 
-    /* Compute built-in substitutions (config, db, etc.) */
     cJSON *cfg = cJSON_GetObjectItemCaseSensitive(spec->meta, "configuration_keys");
     int has_config = cfg && cJSON_IsArray(cfg) && cJSON_GetArraySize(cfg) > 0;
     ipm_add_subst(subs, &nsubs, "has_configuration", has_config ? "1" : "0");
-    ipm_add_subst(subs, &nsubs, "configuration_keys_json",
-                  has_config ? cJSON_PrintUnformatted(cfg) : "[]");
 
-    cJSON *dep = cJSON_GetObjectItemCaseSensitive(spec->meta, "external_dependencies");
-    ipm_add_subst(subs, &nsubs, "external_dependencies_json",
-                  (dep && cJSON_IsArray(dep)) ? cJSON_PrintUnformatted(dep) : "[]");
-
-    cJSON *blt = cJSON_GetObjectItemCaseSensitive(spec->meta, "built_in_functions");
-    ipm_add_subst(subs, &nsubs, "built_in_functions_json",
-                  (blt && cJSON_IsArray(blt)) ? cJSON_PrintUnformatted(blt) : "[]");
-
-    /* Compiler-specific substitutions */
     ipm_add_subst(subs, &nsubs, "compiler_includes", "#include <cjson/cJSON.h>\n#include <string.h>");
     ipm_add_subst(subs, &nsubs, "compiler_function_implementations", "");
-    ipm_add_subst(subs, &nsubs, "argument_parsing_logic",
-        "if (argc < 2) print_usage_and_exit(argv[0]);");
-    ipm_add_subst(subs, &nsubs, "pipeline_initialization",
-        "fprintf(stderr, \"spec2c: generating %s\\n\", argv[1]);");
-    ipm_add_subst(subs, &nsubs, "pipeline_execution",
-        "fprintf(stderr, \"spec2c: pipeline complete\\n\");");
+    ipm_add_subst(subs, &nsubs, "argument_parsing_logic", "if (argc < 2) print_usage_and_exit(argv[0]);");
+    ipm_add_subst(subs, &nsubs, "pipeline_initialization", "fprintf(stderr, \"gen\\n\");");
+    ipm_add_subst(subs, &nsubs, "pipeline_execution", "fprintf(stderr, \"done\\n\");");
 
-    /* Metadata header for generated C — inserted as template substitution */
-    char meta[4096];
-    snprintf(meta, sizeof(meta),
-        "/* IPM Generated Code - DO NOT EDIT\n"
-        " * Source: %s\n"
-        " * Package: %s (%s)\n"
-        " * Generator: spec2c v0.2 (Phase 1: template substitution)\n"
-        " * Schema: ipm_schema.json\n"
-        " */",
-        spec->name, spec->name, spec->type);
-    ipm_add_subst(subs, &nsubs, "ipm_metadata_header", meta);
+    /* Emit includes from the first template (provides cJSON, etc.) */
+    cJSON *templates = cJSON_GetObjectItemCaseSensitive(spec->meta, "template_definitions");
+    if (templates && cJSON_IsObject(templates) && templates->child) {
+        cJSON *first = templates->child;
+        if (cJSON_IsString(first)) {
+            char *inc = subst_apply("{{compiler_includes}}", subs, nsubs);
+            fprintf(out_fp, "%s\n", inc);
+            free(inc);
+        }
+    }
 
-    /* Iterate template definitions and apply substitutions */
+    /* Phase 2a: compile AST functions to C */
+    compile_functions_to_c(spec, out_fp);
+
+    /* Phase 1: template substitution for remaining templates */
+    if (!templates || !cJSON_IsObject(templates)) return;
     cJSON *tmpl = templates->child;
 
     while (tmpl) {
