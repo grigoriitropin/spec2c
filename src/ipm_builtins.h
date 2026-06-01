@@ -46,7 +46,8 @@ void append_to_buffer(string_buffer *buf, const char *str);
 void write_buffer_to_file(string_buffer *buf, const char *path);
 void free_string_buffer(string_buffer *buf);
 
-/* Error handling */
+/* Error handling — structured JSON output */
+void json_die(const char *function_name, const char *instruction_index_str, const char *error_msg, const char *fix_hint);
 void die_builtin(const char *msg);
 void print_error_to_stderr(const char *msg);
 void exit_process(int code);

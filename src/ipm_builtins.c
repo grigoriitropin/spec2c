@@ -168,8 +168,26 @@ void free_string_buffer(string_buffer *buf) {
 
 /* ── Error handling ───────────────────────────────────────────────────── */
 
+void json_die(const char *function_name, const char *instruction_index_str,
+              const char *error_msg, const char *fix_hint) {
+    cJSON *r = cJSON_CreateObject();
+    if (!r) { fprintf(stderr, "{\"ok\":false,\"error\":\"cJSON alloc failed\"}\n"); exit(1); }
+    cJSON_AddBoolToObject(r, "ok", 0);
+    cJSON_AddStringToObject(r, "error", error_msg ? error_msg : "unknown error");
+    if (function_name && function_name[0])
+        cJSON_AddStringToObject(r, "function", function_name);
+    if (instruction_index_str && instruction_index_str[0])
+        cJSON_AddNumberToObject(r, "instruction_index", atoi(instruction_index_str));
+    if (fix_hint && fix_hint[0])
+        cJSON_AddStringToObject(r, "fix_hint", fix_hint);
+    char *s = cJSON_PrintUnformatted(r);
+    if (s) { fprintf(stderr, "%s\n", s); free(s); }
+    cJSON_Delete(r);
+    exit(1);
+}
+
 void die_builtin(const char *msg) {
-    fprintf(stderr, "FATAL: %s\n", msg ? msg : "unknown error");
+    fprintf(stderr, "{\"ok\":false,\"error\":\"%s\"}\n", msg ? msg : "unknown error");
     exit(1);
 }
 

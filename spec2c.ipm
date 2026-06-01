@@ -1032,7 +1032,44 @@
                                           "result_type": "void"
                                         }
                                       ],
-                                      "branch_on_failure": []
+                                      "branch_on_failure": [
+                                        {
+                                          "instruction_type": "function_invocation",
+                                          "invocation_name": "create_hash_table",
+                                          "invocation_arguments": {},
+                                          "result_assignment_variable": "t_err",
+                                          "result_type": "subst_table"
+                                        },
+                                        {
+                                          "instruction_type": "function_invocation",
+                                          "invocation_name": "hash_table_insert",
+                                          "invocation_arguments": {
+                                            "table_handle": "t_err",
+                                            "entry_key": "\"TYPE\"",
+                                            "entry_value": "inst_type"
+                                          }
+                                        },
+                                        {
+                                          "instruction_type": "function_invocation",
+                                          "invocation_name": "string_substitute",
+                                          "invocation_arguments": {
+                                            "template_str": "\"unknown instruction type: {{TYPE}}\"",
+                                            "table": "t_err"
+                                          },
+                                          "result_assignment_variable": "err_msg",
+                                          "result_type": "string"
+                                        },
+                                        {
+                                          "instruction_type": "function_invocation",
+                                          "invocation_name": "json_die",
+                                          "invocation_arguments": {
+                                            "function_name": "\"compile_instruction\"",
+                                            "instruction_index": "\"0\"",
+                                            "error_msg": "err_msg",
+                                            "fix_hint": "\"valid types: variable_declaration, function_invocation, conditional_branch, return_statement, iterate_over_collection, iterate_over_object_keys, access_json_field, database_execute_parameterized\""
+                                          }
+                                        }
+                                      ]
                                     }
                                   ]
                                 }
