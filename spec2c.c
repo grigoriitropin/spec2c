@@ -300,9 +300,33 @@ static void compile_instructions(cJSON *instructions, FILE *out, int indent, con
         } else if (!strcmp(type, "function_invocation")) {
             const char *fn = jstr(inst, "invocation_name");
             const char *rv = jstr(inst, "result_assignment_variable");
+            cJSON *args = cJSON_GetObjectItemCaseSensitive(inst, "invocation_arguments");
             if (fn) {
-                if (rv) fprintf(out, "int %s = ", rv);
-                fprintf(out, "%s(/* args */);\n", fn);
+                if (rv) {
+                    /* try to infer return type from function name */
+                    const char *rt = "int";
+                    if (strstr(fn, "read_") || strstr(fn, "write_") || strstr(fn, "string_"))
+                        rt = "";
+                    if (!strcmp(fn, "parse_json_string")) rt = "cJSON *";
+                    if (!strcmp(fn, "create_hash_table")) rt = "subst_table *";
+                    if (!strcmp(fn, "hash_table_lookup") || !strcmp(fn, "hash_table_count"))
+                        rt = "const char *";
+                    fprintf(out, "%s %s = ", 
+                            (!strcmp(rt, "int") || !rt[0]) ? "int" : rt, rv);
+                }
+                fprintf(out, "%s(", fn);
+                /* emit arguments */
+                if (args && cJSON_IsObject(args)) {
+                    cJSON *arg = args->child; int first = 1;
+                    while (arg) {
+                        if (!first) fprintf(out, ", ");
+                        if (cJSON_IsString(arg)) fprintf(out, "%s", arg->valuestring);
+                        else fprintf(out, "/*arg*/"); 
+                        first = 0;
+                        arg = arg->next;
+                    }
+                }
+                fprintf(out, ");\n");
             }
         } else if (!strcmp(type, "conditional_branch")) {
             const char *op = jstr(inst, "condition_operation");
