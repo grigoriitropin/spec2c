@@ -479,12 +479,20 @@
               "value_variable": "fn_spec",
               "body_instructions": [
                 {
-                  "instruction_type": "function_invocation",
-                  "invocation_name": "append_to_buffer",
-                  "invocation_arguments": {
-                    "buf": "buf",
-                    "str": "\"static \""
-                  }
+                  "instruction_type": "conditional_branch",
+                  "condition_operation": "is_not_null",
+                  "condition_target": "modname",
+                  "branch_on_success": [],
+                  "branch_on_failure": [
+                    {
+                      "instruction_type": "function_invocation",
+                      "invocation_name": "append_to_buffer",
+                      "invocation_arguments": {
+                        "buf": "buf",
+                        "str": "\"static \""
+                      }
+                    }
+                  ]
                 },
                 {
                   "instruction_type": "access_json_field",
@@ -728,12 +736,20 @@
                   }
                 },
                 {
-                  "instruction_type": "function_invocation",
-                  "invocation_name": "append_to_buffer",
-                  "invocation_arguments": {
-                    "buf": "buf",
-                    "str": "\"static \""
-                  }
+                  "instruction_type": "conditional_branch",
+                  "condition_operation": "is_not_null",
+                  "condition_target": "modname",
+                  "branch_on_success": [],
+                  "branch_on_failure": [
+                    {
+                      "instruction_type": "function_invocation",
+                      "invocation_name": "append_to_buffer",
+                      "invocation_arguments": {
+                        "buf": "buf",
+                        "str": "\"static \""
+                      }
+                    }
+                  ]
                 },
                 {
                   "instruction_type": "access_json_field",
