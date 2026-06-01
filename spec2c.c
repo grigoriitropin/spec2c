@@ -310,6 +310,7 @@ static void compile_instructions(cJSON *instructions, FILE *out, int indent, con
                         if (!strcmp(rt, "string") || !strcmp(rt, "char")) rc = "char *";
                         else if (!strcmp(rt, "json_object")) rc = "cJSON *";
                         else if (!strcmp(rt, "json_array")) rc = "cJSON *";
+                        else if (!strcmp(rt, "subst_table")) rc = "subst_table *";
                         else if (!strcmp(rt, "int")) rc = "int";
                         else if (!strcmp(rt, "void")) rc = "void";
                     } else {
