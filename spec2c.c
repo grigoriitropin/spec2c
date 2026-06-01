@@ -370,8 +370,11 @@ static void compile_instructions(cJSON *instructions, FILE *out, int indent, con
             if (rp) {
                 const char *es = jstr(rp, "execution_status");
                 const char *ec = jstr(rp, "error_code");
+                const char *rv = jstr(rp, "value");
                 if (es && !strcmp(es, "failure")) {
                     fprintf(out, "die(\"%s\");%s\n", ec ? ec : "unknown error", is_void ? "" : " return 1;");
+                } else if (rv) {
+                    fprintf(out, "return %s;\n", rv);
                 } else if (is_void) {
                     fprintf(out, "return;\n");
                 } else {

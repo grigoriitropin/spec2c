@@ -239,8 +239,22 @@ static void builtin_compile_instructions(cJSON *instructions, FILE *out, int ind
             builtin_compile_instructions(bof, out, indent + 1, return_type);
             fprintf(out, "%*c}\n", indent * 2, ' ');
         } else if (!strcmp(type, "return_statement")) {
+            cJSON *rp = cJSON_GetObjectItemCaseSensitive(inst, "return_payload");
             int is_void = return_type && !strcmp(return_type, "void");
-            fprintf(out, "%s\n", is_void ? "return;" : "return 0;");
+            if (rp) {
+                const char *es = builtin_jstr(rp, "execution_status");
+                const char *rv = builtin_jstr(rp, "value");
+                if (es && !strcmp(es, "failure"))
+                    fprintf(out, "die(\"%s\");%s\n", builtin_jstr(rp, "error_code"), is_void ? "" : " return 1;");
+                else if (rv)
+                    fprintf(out, "return %s;\n", rv);
+                else if (is_void)
+                    fprintf(out, "return;\n");
+                else
+                    fprintf(out, "return 0;\n");
+            } else {
+                fprintf(out, "%s\n", is_void ? "return;" : "return 0;");
+            }
         } else if (!strcmp(type, "iterate_over_object_keys")) {
             const char *col = builtin_jstr(inst, "collection_variable");
             const char *key = builtin_jstr(inst, "key_variable");

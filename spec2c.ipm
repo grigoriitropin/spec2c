@@ -166,7 +166,8 @@
           "instruction_type": "return_statement",
           "return_payload": {
             "execution_status": "success",
-            "output_artifact_path": "file_content"
+            "output_artifact_path": "file_content",
+            "value": "file_content"
           }
         }
       ]
@@ -256,7 +257,8 @@
           "instruction_type": "return_statement",
           "return_payload": {
             "execution_status": "success",
-            "output_artifact_path": "subst_table"
+            "output_artifact_path": "subst_table",
+            "value": "subst_table"
           }
         }
       ]
