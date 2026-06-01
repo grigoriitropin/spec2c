@@ -292,9 +292,16 @@ static void builtin_compile_instructions(cJSON *instructions, FILE *out, int ind
 
 void compile_ast_functions_to_c(cJSON *spec_json, const char *output_path) {
     cJSON *funcs = cJSON_GetObjectItemCaseSensitive(spec_json, "function_definitions");
-    if (!funcs || !cJSON_IsObject(funcs)) return;
     FILE *out = output_path ? fopen(output_path, "a") : stdout;
     if (!out) return;
+    if (!funcs || !cJSON_IsObject(funcs)) {
+        fprintf(out, "/* compile_ast: no function_definitions */\n");
+        if (output_path) fclose(out);
+        return;
+    }
+
+    /* Emit includes */
+    fprintf(out, "#include <string.h>\n#include <stdio.h>\n#include <stdlib.h>\n#include \"ipm_builtins.h\"\n\n");
     cJSON *fn = funcs->child;
     /* forward declarations */
     while (fn) {
@@ -327,6 +334,7 @@ void compile_ast_functions_to_c(cJSON *spec_json, const char *output_path) {
     fn = funcs->child;
     while (fn) {
         const char *name = fn->string;
+        const char *desc = builtin_jstr(fn, "description");
         const char *ret = builtin_jstr(fn, "return_type");
         const char *ret_c = "void";
         if (ret) {
@@ -336,6 +344,7 @@ void compile_ast_functions_to_c(cJSON *spec_json, const char *output_path) {
             else if (!strcmp(ret, "json_object")) ret_c = "cJSON *";
             else if (!strcmp(ret, "subst_table")) ret_c = "subst_table *";
         }
+        fprintf(out, "/* %s: %s */\n", name, desc ? desc : "no description");
         fprintf(out, "static %s %s(", ret_c, name);
         cJSON *params = cJSON_GetObjectItemCaseSensitive(fn, "parameter_definitions");
         if (params && cJSON_IsArray(params)) {
