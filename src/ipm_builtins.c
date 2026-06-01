@@ -20,7 +20,7 @@ string read_file_to_string(const char *path) {
 
 void write_string_to_file(const char *path, string content) {
     if (!path || !content) return;
-    FILE *f = fopen(path, "w");
+    FILE *f = fopen(path, "a");  /* append — caller manages file lifecycle */
     if (!f) return;
     fputs(content, f);
     fclose(f);
@@ -279,7 +279,7 @@ static void builtin_compile_instructions(cJSON *instructions, FILE *out, int ind
 void compile_ast_functions_to_c(cJSON *spec_json, const char *output_path) {
     cJSON *funcs = cJSON_GetObjectItemCaseSensitive(spec_json, "function_definitions");
     if (!funcs || !cJSON_IsObject(funcs)) return;
-    FILE *out = output_path ? fopen(output_path, "w") : stdout;
+    FILE *out = output_path ? fopen(output_path, "a") : stdout;
     if (!out) return;
     cJSON *fn = funcs->child;
     /* forward declarations */

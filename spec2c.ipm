@@ -59,6 +59,15 @@
       "execution_instructions": [
         {
           "instruction_type": "function_invocation",
+          "invocation_name": "write_string_to_file",
+          "invocation_arguments": {
+            "path": "output_file_path",
+            "content": "\"\""
+          },
+          "result_type": "void"
+        },
+        {
+          "instruction_type": "function_invocation",
           "invocation_name": "read_file",
           "invocation_arguments": {
             "file_path": "specification_file_path"
