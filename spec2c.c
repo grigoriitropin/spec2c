@@ -387,8 +387,8 @@ static void compile_functions_to_c(const ipm_spec_t *spec, FILE *out) {
     cJSON *funcs = cJSON_GetObjectItemCaseSensitive(spec->meta, "function_definitions");
     if (!funcs || !cJSON_IsObject(funcs)) return;
 
-    /* Inject standard C headers; cjson comes from template's {{compiler_includes}} */
-    fprintf(out, "#include <string.h>\n#include <stdio.h>\n#include <stdlib.h>\n\n");
+    /* Inject standard C headers; cjson comes from template */
+    fprintf(out, "#include <string.h>\n#include <stdio.h>\n#include <stdlib.h>\n#include \"ipm_builtins.h\"\n\n");
 
     cJSON *fn = funcs->child;
     while (fn) {

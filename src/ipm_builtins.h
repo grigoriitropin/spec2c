@@ -1,0 +1,47 @@
+// SPDX-License-Identifier: Apache-2.0
+// ipm_builtins.h — runtime library declarations for spec2c-generated code
+#ifndef IPM_BUILTINS_H
+#define IPM_BUILTINS_H
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <cjson/cJSON.h>
+
+typedef char* string;
+typedef cJSON json_object;
+
+typedef struct {
+    char *key;
+    char *value;
+} subst_entry;
+
+typedef struct {
+    subst_entry *entries;
+    int count;
+    int capacity;
+} subst_table;
+
+/* I/O */
+string read_file_to_string(const char *path);
+void   write_string_to_file(const char *path, string content);
+
+/* JSON */
+json_object* parse_json_string(string content);
+
+/* Hash table (sorted array — deterministic iteration) */
+subst_table* create_hash_table(void);
+void         hash_table_insert(subst_table *table, const char *key, const char *value);
+const char*  hash_table_lookup(const subst_table *table, const char *key);
+void         hash_table_free(subst_table *table);
+int          hash_table_count(const subst_table *table);
+
+/* String substitution */
+string string_substitute(string template_str, const subst_table *table);
+
+/* Error handling */
+void die_builtin(const char *msg);
+void print_error_to_stderr(const char *msg);
+void exit_process(int code);
+
+#endif /* IPM_BUILTINS_H */
