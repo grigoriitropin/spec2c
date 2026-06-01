@@ -142,15 +142,7 @@
           "condition_description": "Check if file was read successfully",
           "condition_operation": "is_not_null",
           "condition_target": "file_content",
-          "branch_on_failure": [
-            {
-              "instruction_type": "function_invocation",
-              "invocation_name": "die",
-              "invocation_arguments": {
-                "msg": "cannot open file"
-              }
-            }
-          ]
+          "branch_on_failure": []
         },
         {
           "instruction_type": "return_statement",
@@ -284,15 +276,7 @@
           "condition_description": "Check if template definitions exist",
           "condition_operation": "is_not_null",
           "condition_target": "templates",
-          "branch_on_failure": [
-            {
-              "instruction_type": "function_invocation",
-              "invocation_name": "die",
-              "invocation_arguments": {
-                "msg": "missing template_definitions in spec"
-              }
-            }
-          ]
+          "branch_on_failure": []
         },
         {
           "instruction_type": "iterate_over_object_keys",
