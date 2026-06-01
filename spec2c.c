@@ -300,19 +300,25 @@ static void compile_instructions(cJSON *instructions, FILE *out, int indent, con
         } else if (!strcmp(type, "function_invocation")) {
             const char *fn = jstr(inst, "invocation_name");
             const char *rv = jstr(inst, "result_assignment_variable");
+            const char *rt = jstr(inst, "result_type"); /* optional type hint */
             cJSON *args = cJSON_GetObjectItemCaseSensitive(inst, "invocation_arguments");
             if (fn) {
                 if (rv) {
-                    /* try to infer return type from function name */
-                    const char *rt = "int";
-                    if (strstr(fn, "read_") || strstr(fn, "write_") || strstr(fn, "string_"))
-                        rt = "";
-                    if (!strcmp(fn, "parse_json_string")) rt = "cJSON *";
-                    if (!strcmp(fn, "create_hash_table")) rt = "subst_table *";
-                    if (!strcmp(fn, "hash_table_lookup") || !strcmp(fn, "hash_table_count"))
-                        rt = "const char *";
-                    fprintf(out, "%s %s = ", 
-                            (!strcmp(rt, "int") || !rt[0]) ? "int" : rt, rv);
+                    const char *rc = "int";
+                    if (rt) {
+                        if (!strcmp(rt, "string") || !strcmp(rt, "char")) rc = "char *";
+                        else if (!strcmp(rt, "json_object")) rc = "cJSON *";
+                        else if (!strcmp(rt, "json_array")) rc = "cJSON *";
+                        else if (!strcmp(rt, "int")) rc = "int";
+                        else if (!strcmp(rt, "void")) rc = "void";
+                    } else {
+                        if (strstr(fn, "read_file")) rc = "char *";
+                        else if (strstr(fn, "parse_json")) rc = "cJSON *";
+                        else if (strstr(fn, "create_hash_table")) rc = "subst_table *";
+                        else if (strstr(fn, "hash_table_lookup")) rc = "const char *";
+                        else if (!strcmp(fn, "string_substitute")) rc = "char *";
+                    }
+                    fprintf(out, "%s %s = ", rc, rv);
                 }
                 fprintf(out, "%s(", fn);
                 /* emit arguments */

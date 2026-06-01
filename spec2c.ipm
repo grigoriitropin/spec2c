@@ -63,7 +63,8 @@
           "invocation_arguments": {
             "file_path": "specification_file_path"
           },
-          "result_assignment_variable": "specification_content"
+          "result_assignment_variable": "specification_content",
+          "result_type": "string"
         },
         {
           "instruction_type": "conditional_branch",
@@ -86,7 +87,8 @@
           "invocation_arguments": {
             "content": "specification_content"
           },
-          "result_assignment_variable": "parsed_ast"
+          "result_assignment_variable": "parsed_ast",
+          "result_type": "json_object"
         },
         {
           "instruction_type": "conditional_branch",
@@ -109,7 +111,8 @@
           "invocation_arguments": {
             "parsed_spec": "parsed_ast"
           },
-          "result_assignment_variable": "subst_table"
+          "result_assignment_variable": "subst_table",
+          "result_type": "json_object"
         },
         {
           "instruction_type": "function_invocation",
@@ -119,7 +122,8 @@
             "subst_table": "subst_table",
             "output_file_path": "output_file_path"
           },
-          "result_assignment_variable": "generation_status"
+          "result_assignment_variable": "generation_status",
+          "result_type": "int"
         },
         {
           "instruction_type": "return_statement",
@@ -172,14 +176,16 @@
           "invocation_name": "print_error_to_stderr",
           "invocation_arguments": {
             "message": "error_message"
-          }
+          },
+          "result_type": "void"
         },
         {
           "instruction_type": "function_invocation",
           "invocation_name": "exit_process",
           "invocation_arguments": {
             "exit_code": 1
-          }
+          },
+          "result_type": "void"
         }
       ]
     },
@@ -211,7 +217,8 @@
             "table_handle": "table",
             "entry_key": "key",
             "entry_value": "value"
-          }
+          },
+          "result_type": "void"
         },
         {
           "instruction_type": "return_statement",
@@ -238,7 +245,8 @@
           "invocation_arguments": {
             "path": "file_path"
           },
-          "result_assignment_variable": "file_content"
+          "result_assignment_variable": "file_content",
+          "result_type": "string"
         },
         {
           "instruction_type": "conditional_branch",
@@ -279,7 +287,8 @@
           "instruction_type": "function_invocation",
           "invocation_name": "create_hash_table",
           "invocation_arguments": {},
-          "result_assignment_variable": "subst_table"
+          "result_assignment_variable": "subst_table",
+          "result_type": "json_object"
         },
         {
           "instruction_type": "access_json_field",
@@ -295,7 +304,8 @@
             "table_handle": "subst_table",
             "entry_key": "package_name",
             "entry_value": "pkg_name"
-          }
+          },
+          "result_type": "void"
         },
         {
           "instruction_type": "access_json_field",
@@ -311,7 +321,8 @@
             "table_handle": "subst_table",
             "entry_key": "package_type",
             "entry_value": "pkg_type"
-          }
+          },
+          "result_type": "void"
         },
         {
           "instruction_type": "conditional_branch",
