@@ -218,7 +218,7 @@
               "invocation_arguments": {
                 "table_handle": "subst_table",
                 "entry_key": "\"has_configuration\"",
-                "entry_value": "1"
+                "entry_value": 1
               }
             }
           ],
@@ -229,7 +229,7 @@
               "invocation_arguments": {
                 "table_handle": "subst_table",
                 "entry_key": "\"has_configuration\"",
-                "entry_value": "0"
+                "entry_value": 0
               }
             }
           ]
