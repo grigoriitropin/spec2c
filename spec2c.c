@@ -435,7 +435,7 @@ static void compile_functions_to_c(const ipm_spec_t *spec, FILE *out) {
     if (!funcs || !cJSON_IsObject(funcs)) return;
 
     /* Inject standard C headers */
-    fprintf(out, "#include <string.h>\n#include <stdio.h>\n#include <stdlib.h>\n#include \"ipm_builtins.h\"\n\n");
+    fprintf(out, "#include <string.h>\n#include <stdio.h>\n#include <stdlib.h>\n#include <cjson/cJSON.h>\n#include \"ipm_builtins.h\"\n\n");
 
     /* Forward-declare all functions to avoid ordering issues */
     cJSON *fn = funcs->child;

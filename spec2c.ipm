@@ -37,7 +37,7 @@
     "SPEC2C_OUTPUT_DIRECTORY"
   ],
   "template_definitions": {
-    "spec2c_main_c": "// IPM Generated Code — DO NOT EDIT\n#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n#include <cjson/cJSON.h>\n\n{{ipm_metadata_header}}\n\nint main(int argc, char **argv) {\n    if (argc < 3) {\n        fprintf(stderr, \"Usage: %s <input.ipm> <output.c>\\n\", argv[0]);\n        return 1;\n    }\n    return execute_pipeline(argv[1], argv[2]);\n}\n",
+    "spec2c_main_c": "// IPM Generated Code — DO NOT EDIT\n#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n\n{{ipm_metadata_header}}\n\nint main(int argc, char **argv) {\n    if (argc < 3) {\n        fprintf(stderr, \"Usage: %s <input.ipm> <output.c>\\n\", argv[0]);\n        return 1;\n    }\n    return execute_pipeline(argv[1], argv[2]);\n}\n",
     "spec2c_usage_h": "// IPM Generated Code\nvoid print_usage_and_exit(const char *prog) {\n    fprintf(stderr, \"Usage: %s <input.ipm> <output.c>\\n\", prog);\n    exit(2);\n}"
   },
   "function_definitions": {
@@ -304,6 +304,15 @@
           "key_variable": "template_name",
           "value_variable": "template_entry",
           "body_instructions": [
+            {
+              "instruction_type": "function_invocation",
+              "invocation_name": "write_string_to_file",
+              "invocation_arguments": {
+                "path": "output_file_path",
+                "content": "\"/* --- template: \""
+              },
+              "result_type": "void"
+            },
             {
               "instruction_type": "function_invocation",
               "invocation_name": "string_substitute",
