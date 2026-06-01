@@ -254,7 +254,7 @@
         },
         {
           "parameter_name": "subst_table",
-          "parameter_type": "json_object",
+          "parameter_type": "subst_table",
           "description": "Pre-computed substitution table"
         },
         {
