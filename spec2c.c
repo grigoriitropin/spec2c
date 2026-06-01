@@ -323,7 +323,8 @@ static void compile_instructions(cJSON *instructions, FILE *out, int indent, con
             }
             cJSON *bon = cJSON_GetObjectItemCaseSensitive(inst, "branch_on_success");
             compile_instructions(bon, out, indent + 1, return_type);
-        } else {
+            fprintf(out, "%*c} else {\n", indent * 2, ' ');
+            cJSON *bof = cJSON_GetObjectItemCaseSensitive(inst, "branch_on_failure");
             compile_instructions(bof, out, indent + 1, return_type);
             fprintf(out, "%*c}\n", indent * 2, ' ');
         } else if (!strcmp(type, "return_statement")) {
