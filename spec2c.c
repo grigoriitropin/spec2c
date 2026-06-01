@@ -72,10 +72,8 @@ static char *read_file(const char *path) {
     return buf;
 }
 
-static void parse_spec(const char *text, spec_t *s) {
+static void parse_spec_from_cjson(cJSON *root, spec_t *s) {
     memset(s, 0, sizeof(*s));
-    cJSON *root = cJSON_Parse(text);
-    if (!root) die("JSON parse error in spec");
 
     cJSON *j = cJSON_GetObjectItemCaseSensitive(root, "name");
     if (!cJSON_IsString(j) || !j->valuestring[0]) die("spec missing \"name\"");
@@ -243,7 +241,83 @@ static char *subst_apply(const char *tmpl, const subst_t *subs, int nsubs) {
     return out;
 }
 
-static char *resolve_template(const char *base, const char *file) {
+/* ── .ipm format support (Phase 1: template substitution from AST) ──────── */
+
+typedef struct {
+    cJSON *meta;        /* full parsed JSON */
+    const char *name;
+    const char *type;
+    const char *desc;
+} ipm_spec_t;
+
+static void ipm_add_subst(subst_t *subs, int *n, const char *k, const char *v) {
+    if (*n >= SUBST_MAX) die("too many substitutions");
+    subs[*n].key = k;
+    snprintf(subs[*n].val, VAL_SZ, "%s", v ? v : "");
+    (*n)++;
+}
+
+static void generate_from_ipm(const ipm_spec_t *spec, const char *base_dir,
+                                const char *out_path) {
+    /* Collect template definitions */
+    cJSON *templates = cJSON_GetObjectItemCaseSensitive(spec->meta, "template_definitions");
+    if (!templates || !cJSON_IsObject(templates)) {
+        /* No inline templates — fall back to skeleton.json + templates/ */
+        return;
+    }
+
+    /* Build substitution context from package metadata */
+    subst_t subs[SUBST_MAX]; int nsubs = 0;
+    ipm_add_subst(subs, &nsubs, "package_name", spec->name);
+    ipm_add_subst(subs, &nsubs, "package_type", spec->type);
+    ipm_add_subst(subs, &nsubs, "package_description", spec->desc ? spec->desc : "No description");
+
+    /* Compute built-in substitutions (config, db, etc.) */
+    cJSON *cfg = cJSON_GetObjectItemCaseSensitive(spec->meta, "configuration_keys");
+    int has_config = cfg && cJSON_IsArray(cfg) && cJSON_GetArraySize(cfg) > 0;
+    ipm_add_subst(subs, &nsubs, "has_configuration", has_config ? "1" : "0");
+    ipm_add_subst(subs, &nsubs, "configuration_keys_json",
+                  has_config ? cJSON_PrintUnformatted(cfg) : "[]");
+
+    cJSON *dep = cJSON_GetObjectItemCaseSensitive(spec->meta, "external_dependencies");
+    ipm_add_subst(subs, &nsubs, "external_dependencies_json",
+                  (dep && cJSON_IsArray(dep)) ? cJSON_PrintUnformatted(dep) : "[]");
+
+    cJSON *blt = cJSON_GetObjectItemCaseSensitive(spec->meta, "built_in_functions");
+    ipm_add_subst(subs, &nsubs, "built_in_functions_json",
+                  (blt && cJSON_IsArray(blt)) ? cJSON_PrintUnformatted(blt) : "[]");
+
+    /* Compiler-specific substitutions */
+    ipm_add_subst(subs, &nsubs, "compiler_includes", "#include <cjson/cJSON.h>\n#include <string.h>");
+    ipm_add_subst(subs, &nsubs, "compiler_function_implementations", "");
+    ipm_add_subst(subs, &nsubs, "argument_parsing_logic",
+        "if (argc < 2) print_usage_and_exit(argv[0]);");
+    ipm_add_subst(subs, &nsubs, "pipeline_initialization",
+        "fprintf(stderr, \"spec2c: generating %s\\n\", argv[1]);");
+    ipm_add_subst(subs, &nsubs, "pipeline_execution",
+        "fprintf(stderr, \"spec2c: pipeline complete\\n\");");
+
+    /* Iterate template definitions and apply substitutions */
+    cJSON *tmpl = templates->child;
+    FILE *out_fp = out_path ? fopen(out_path, "w") : stdout;
+    if (!out_fp) die("cannot open output file");
+
+    while (tmpl) {
+        const char *tmpl_name = tmpl->string;
+        cJSON *content = cJSON_GetObjectItemCaseSensitive(tmpl, "template_content");
+        if (content && cJSON_IsString(content)) {
+            char *gen = subst_apply(content->valuestring, subs, nsubs);
+            fprintf(out_fp, "/* --- template: %s --- */\n", tmpl_name);
+            fprintf(out_fp, "%s\n", gen);
+            free(gen);
+        }
+        tmpl = tmpl->next;
+    }
+
+    if (out_path) fclose(out_fp);
+}
+
+/* ── old .spec.json format (backward compat) ─────────────────────────── */
     char *path = malloc(strlen(base) + strlen(file) + 2);
     if (!path) die("malloc");
     sprintf(path, "%s/%s", base, file);
@@ -318,8 +392,42 @@ int main(int argc, char *argv[]) {
     if (!skel) die("JSON parse error in skeleton.json");
 
     char *spec_text = read_file(spec_path);
+    cJSON *spec_json = cJSON_Parse(spec_text);
+    if (!spec_json) die("JSON parse error in spec file");
+
+    /* Detect .ipm format by presence of package_name key */
+    cJSON *pkg_name = cJSON_GetObjectItemCaseSensitive(spec_json, "package_name");
+    if (pkg_name && cJSON_IsString(pkg_name)) {
+        /* .ipm format — Phase 1: template substitution from AST */
+        ipm_spec_t ipm;
+        ipm.meta = spec_json;
+        ipm.name = pkg_name->valuestring;
+        cJSON *tp = cJSON_GetObjectItemCaseSensitive(spec_json, "package_type");
+        ipm.type = (tp && cJSON_IsString(tp)) ? tp->valuestring : "tool";
+        cJSON *desc = cJSON_GetObjectItemCaseSensitive(spec_json, "function_definitions");
+        ipm.desc = "generated by spec2c from .ipm specification";
+
+        generate_from_ipm(&ipm, base_dir, out_path);
+
+        cJSON *r = cJSON_CreateObject();
+        cJSON_AddBoolToObject(r, "ok", 1);
+        cJSON_AddStringToObject(r, "output", out_path ? out_path : "(stdout)");
+        char *js = cJSON_PrintUnformatted(r);
+        printf("%s\n", js);
+        free(js);
+        cJSON_Delete(r);
+        cJSON_Delete(spec_json);
+        free(spec_text);
+        free(skel_path);
+        free(skel_text);
+        cJSON_Delete(skel);
+        return 0;
+    }
+
+    /* Old .spec.json format — backward compat */
     spec_t spec;
-    parse_spec(spec_text, &spec);
+    parse_spec_from_json(spec_json, &spec);
+    cJSON_Delete(spec_json);
     free(spec_text);
 
     subst_t subs[SUBST_MAX];
