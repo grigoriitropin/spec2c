@@ -276,7 +276,7 @@ static const char *vartype_to_c(const char *t) {
     return "void *";
 }
 
-static void compile_instructions(cJSON *instructions, FILE *out, int indent) {
+static void compile_instructions(cJSON *instructions, FILE *out, int indent, const char *return_type) {
     if (!cJSON_IsArray(instructions)) return;
     for (int ii = 0; ii < cJSON_GetArraySize(instructions); ii++) {
         cJSON *inst = cJSON_GetArrayItem(instructions, ii);
@@ -322,20 +322,25 @@ static void compile_instructions(cJSON *instructions, FILE *out, int indent) {
                 fprintf(out, "if (/* %s */ 0) {\n", op);
             }
             cJSON *bon = cJSON_GetObjectItemCaseSensitive(inst, "branch_on_success");
-            compile_instructions(bon, out, indent + 1);
-            fprintf(out, "%*c} else {\n", indent * 2, ' ');
-            cJSON *bof = cJSON_GetObjectItemCaseSensitive(inst, "branch_on_failure");
-            compile_instructions(bof, out, indent + 1);
+            compile_instructions(bon, out, indent + 1, return_type);
+        } else {
+            compile_instructions(bof, out, indent + 1, return_type);
             fprintf(out, "%*c}\n", indent * 2, ' ');
         } else if (!strcmp(type, "return_statement")) {
             cJSON *rp = cJSON_GetObjectItemCaseSensitive(inst, "return_payload");
+            int is_void = return_type && !strcmp(return_type, "void");
             if (rp) {
                 const char *es = jstr(rp, "execution_status");
                 const char *ec = jstr(rp, "error_code");
-                if (es && !strcmp(es, "success")) fprintf(out, "return 0;");
-                else if (es && !strcmp(es, "failure")) fprintf(out, "die(\"%s\"); return 1;", ec ? ec : "unknown error");
-                else fprintf(out, "return 0;");
-                fprintf(out, "\n");
+                if (es && !strcmp(es, "failure")) {
+                    fprintf(out, "die(\"%s\");%s\n", ec ? ec : "unknown error", is_void ? "" : " return 1;");
+                } else if (is_void) {
+                    fprintf(out, "return;\n");
+                } else {
+                    fprintf(out, "return 0;\n");
+                }
+            } else {
+                fprintf(out, "%s\n", is_void ? "return;" : "return 0;");
             }
         } else if (!strcmp(type, "iterate_over_collection")) {
             const char *col = jstr(inst, "collection_variable");
@@ -345,7 +350,7 @@ static void compile_instructions(cJSON *instructions, FILE *out, int indent) {
                 fprintf(out, "for (int _i_%s = 0; _i_%s < cJSON_GetArraySize(%s); _i_%s++) {\n",
                         col, col, col, col);
                 fprintf(out, "  cJSON *%s = cJSON_GetArrayItem(%s, _i_%s);\n", item, col, col);
-                compile_instructions(body, out, indent + 1);
+                compile_instructions(body, out, indent + 1, return_type);
                 fprintf(out, "%*c}\n", indent * 2, ' ');
             }
         } else if (!strcmp(type, "database_execute_parameterized")) {
@@ -358,6 +363,9 @@ static void compile_instructions(cJSON *instructions, FILE *out, int indent) {
 static void compile_functions_to_c(const ipm_spec_t *spec, FILE *out) {
     cJSON *funcs = cJSON_GetObjectItemCaseSensitive(spec->meta, "function_definitions");
     if (!funcs || !cJSON_IsObject(funcs)) return;
+
+    /* Inject required includes for AST-generated code */
+    fprintf(out, "#include <string.h>\n#include <cjson/cJSON.h>\n\n");
 
     cJSON *fn = funcs->child;
     while (fn) {
@@ -391,7 +399,7 @@ static void compile_functions_to_c(const ipm_spec_t *spec, FILE *out) {
                 }
             }
             fprintf(out, ") {\n");
-            compile_instructions(body, out, 1);
+            compile_instructions(body, out, 1, ret_c);
             fprintf(out, "}\n\n");
         }
         fn = fn->next;
