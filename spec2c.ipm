@@ -418,6 +418,416 @@
           }
         }
       ]
+    },
+    "compile_instruction": {
+      "description": "Dispatch instruction to its type-specific compiler function",
+      "return_type": "void",
+      "parameter_definitions": [
+        {
+          "parameter_name": "inst",
+          "parameter_type": "json_object",
+          "description": "The instruction to compile"
+        },
+        {
+          "parameter_name": "buffer",
+          "parameter_type": "string",
+          "description": "String buffer for output"
+        }
+      ],
+      "execution_instructions": [
+        {
+          "instruction_type": "access_json_field",
+          "variable_name": "inst_type",
+          "variable_type": "string",
+          "source_object": "inst",
+          "field_name": "instruction_type"
+        },
+        {
+          "instruction_type": "conditional_branch",
+          "condition_operation": "string_equals",
+          "condition_target": "inst_type",
+          "condition_value": "variable_declaration",
+          "branch_on_success": [
+            {
+              "instruction_type": "function_invocation",
+              "invocation_name": "compile_variable_declaration",
+              "invocation_arguments": {
+                "inst": "inst",
+                "buffer": "buffer"
+              },
+              "result_type": "void"
+            }
+          ],
+          "branch_on_failure": [
+            {
+              "instruction_type": "conditional_branch",
+              "condition_operation": "string_equals",
+              "condition_target": "inst_type",
+              "condition_value": "function_invocation",
+              "branch_on_success": [
+                {
+                  "instruction_type": "function_invocation",
+                  "invocation_name": "compile_function_invocation",
+                  "invocation_arguments": {
+                    "inst": "inst",
+                    "buffer": "buffer"
+                  },
+                  "result_type": "void"
+                }
+              ],
+              "branch_on_failure": [
+                {
+                  "instruction_type": "conditional_branch",
+                  "condition_operation": "string_equals",
+                  "condition_target": "inst_type",
+                  "condition_value": "conditional_branch",
+                  "branch_on_success": [
+                    {
+                      "instruction_type": "function_invocation",
+                      "invocation_name": "compile_conditional_branch",
+                      "invocation_arguments": {
+                        "inst": "inst",
+                        "buffer": "buffer"
+                      },
+                      "result_type": "void"
+                    }
+                  ],
+                  "branch_on_failure": [
+                    {
+                      "instruction_type": "conditional_branch",
+                      "condition_operation": "string_equals",
+                      "condition_target": "inst_type",
+                      "condition_value": "return_statement",
+                      "branch_on_success": [
+                        {
+                          "instruction_type": "function_invocation",
+                          "invocation_name": "compile_return_statement",
+                          "invocation_arguments": {
+                            "inst": "inst",
+                            "buffer": "buffer"
+                          },
+                          "result_type": "void"
+                        }
+                      ],
+                      "branch_on_failure": [
+                        {
+                          "instruction_type": "conditional_branch",
+                          "condition_operation": "string_equals",
+                          "condition_target": "inst_type",
+                          "condition_value": "iterate_over_collection",
+                          "branch_on_success": [
+                            {
+                              "instruction_type": "function_invocation",
+                              "invocation_name": "compile_iterate_over_collection",
+                              "invocation_arguments": {
+                                "inst": "inst",
+                                "buffer": "buffer"
+                              },
+                              "result_type": "void"
+                            }
+                          ],
+                          "branch_on_failure": [
+                            {
+                              "instruction_type": "conditional_branch",
+                              "condition_operation": "string_equals",
+                              "condition_target": "inst_type",
+                              "condition_value": "iterate_over_object_keys",
+                              "branch_on_success": [
+                                {
+                                  "instruction_type": "function_invocation",
+                                  "invocation_name": "compile_iterate_over_object_keys",
+                                  "invocation_arguments": {
+                                    "inst": "inst",
+                                    "buffer": "buffer"
+                                  },
+                                  "result_type": "void"
+                                }
+                              ],
+                              "branch_on_failure": [
+                                {
+                                  "instruction_type": "conditional_branch",
+                                  "condition_operation": "string_equals",
+                                  "condition_target": "inst_type",
+                                  "condition_value": "access_json_field",
+                                  "branch_on_success": [
+                                    {
+                                      "instruction_type": "function_invocation",
+                                      "invocation_name": "compile_access_json_field",
+                                      "invocation_arguments": {
+                                        "inst": "inst",
+                                        "buffer": "buffer"
+                                      },
+                                      "result_type": "void"
+                                    }
+                                  ],
+                                  "branch_on_failure": [
+                                    {
+                                      "instruction_type": "conditional_branch",
+                                      "condition_operation": "string_equals",
+                                      "condition_target": "inst_type",
+                                      "condition_value": "database_execute_parameterized",
+                                      "branch_on_success": [
+                                        {
+                                          "instruction_type": "function_invocation",
+                                          "invocation_name": "compile_database_execute_parameterized",
+                                          "invocation_arguments": {
+                                            "inst": "inst",
+                                            "buffer": "buffer"
+                                          },
+                                          "result_type": "void"
+                                        }
+                                      ],
+                                      "branch_on_failure": []
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "compile_body": {
+      "description": "Compile an array of instructions by dispatching each one",
+      "return_type": "void",
+      "parameter_definitions": [
+        {
+          "parameter_name": "instructions",
+          "parameter_type": "json_array",
+          "description": "Array of instructions to compile"
+        },
+        {
+          "parameter_name": "buffer",
+          "parameter_type": "string",
+          "description": "String buffer for output"
+        }
+      ],
+      "execution_instructions": [
+        {
+          "instruction_type": "iterate_over_collection",
+          "collection_variable": "instructions",
+          "item_variable": "inst",
+          "body_instructions": [
+            {
+              "instruction_type": "function_invocation",
+              "invocation_name": "compile_instruction",
+              "invocation_arguments": {
+                "inst": "inst",
+                "buffer": "buffer"
+              },
+              "result_type": "void"
+            }
+          ]
+        }
+      ]
+    },
+    "compile_variable_declaration": {
+      "description": "Generate C code for variable_declaration instruction",
+      "return_type": "void",
+      "parameter_definitions": [
+        {
+          "parameter_name": "inst",
+          "parameter_type": "json_object"
+        },
+        {
+          "parameter_name": "buffer",
+          "parameter_type": "string"
+        }
+      ],
+      "execution_instructions": [
+        {
+          "instruction_type": "function_invocation",
+          "invocation_name": "append_to_buffer",
+          "invocation_arguments": {
+            "buf": "buffer",
+            "str": "\"/* compile_variable_declaration */\n\""
+          },
+          "result_type": "void"
+        }
+      ]
+    },
+    "compile_function_invocation": {
+      "description": "Generate C code for function_invocation instruction",
+      "return_type": "void",
+      "parameter_definitions": [
+        {
+          "parameter_name": "inst",
+          "parameter_type": "json_object"
+        },
+        {
+          "parameter_name": "buffer",
+          "parameter_type": "string"
+        }
+      ],
+      "execution_instructions": [
+        {
+          "instruction_type": "function_invocation",
+          "invocation_name": "append_to_buffer",
+          "invocation_arguments": {
+            "buf": "buffer",
+            "str": "\"/* compile_function_invocation */\n\""
+          },
+          "result_type": "void"
+        }
+      ]
+    },
+    "compile_conditional_branch": {
+      "description": "Generate C code for conditional_branch instruction",
+      "return_type": "void",
+      "parameter_definitions": [
+        {
+          "parameter_name": "inst",
+          "parameter_type": "json_object"
+        },
+        {
+          "parameter_name": "buffer",
+          "parameter_type": "string"
+        }
+      ],
+      "execution_instructions": [
+        {
+          "instruction_type": "function_invocation",
+          "invocation_name": "append_to_buffer",
+          "invocation_arguments": {
+            "buf": "buffer",
+            "str": "\"/* compile_conditional_branch */\n\""
+          },
+          "result_type": "void"
+        }
+      ]
+    },
+    "compile_return_statement": {
+      "description": "Generate C code for return_statement instruction",
+      "return_type": "void",
+      "parameter_definitions": [
+        {
+          "parameter_name": "inst",
+          "parameter_type": "json_object"
+        },
+        {
+          "parameter_name": "buffer",
+          "parameter_type": "string"
+        }
+      ],
+      "execution_instructions": [
+        {
+          "instruction_type": "function_invocation",
+          "invocation_name": "append_to_buffer",
+          "invocation_arguments": {
+            "buf": "buffer",
+            "str": "\"/* compile_return_statement */\n\""
+          },
+          "result_type": "void"
+        }
+      ]
+    },
+    "compile_iterate_over_collection": {
+      "description": "Generate C code for iterate_over_collection instruction",
+      "return_type": "void",
+      "parameter_definitions": [
+        {
+          "parameter_name": "inst",
+          "parameter_type": "json_object"
+        },
+        {
+          "parameter_name": "buffer",
+          "parameter_type": "string"
+        }
+      ],
+      "execution_instructions": [
+        {
+          "instruction_type": "function_invocation",
+          "invocation_name": "append_to_buffer",
+          "invocation_arguments": {
+            "buf": "buffer",
+            "str": "\"/* compile_iterate_over_collection */\n\""
+          },
+          "result_type": "void"
+        }
+      ]
+    },
+    "compile_iterate_over_object_keys": {
+      "description": "Generate C code for iterate_over_object_keys instruction",
+      "return_type": "void",
+      "parameter_definitions": [
+        {
+          "parameter_name": "inst",
+          "parameter_type": "json_object"
+        },
+        {
+          "parameter_name": "buffer",
+          "parameter_type": "string"
+        }
+      ],
+      "execution_instructions": [
+        {
+          "instruction_type": "function_invocation",
+          "invocation_name": "append_to_buffer",
+          "invocation_arguments": {
+            "buf": "buffer",
+            "str": "\"/* compile_iterate_over_object_keys */\n\""
+          },
+          "result_type": "void"
+        }
+      ]
+    },
+    "compile_access_json_field": {
+      "description": "Generate C code for access_json_field instruction",
+      "return_type": "void",
+      "parameter_definitions": [
+        {
+          "parameter_name": "inst",
+          "parameter_type": "json_object"
+        },
+        {
+          "parameter_name": "buffer",
+          "parameter_type": "string"
+        }
+      ],
+      "execution_instructions": [
+        {
+          "instruction_type": "function_invocation",
+          "invocation_name": "append_to_buffer",
+          "invocation_arguments": {
+            "buf": "buffer",
+            "str": "\"/* compile_access_json_field */\n\""
+          },
+          "result_type": "void"
+        }
+      ]
+    },
+    "compile_database_execute_parameterized": {
+      "description": "Generate C code for database_execute_parameterized instruction",
+      "return_type": "void",
+      "parameter_definitions": [
+        {
+          "parameter_name": "inst",
+          "parameter_type": "json_object"
+        },
+        {
+          "parameter_name": "buffer",
+          "parameter_type": "string"
+        }
+      ],
+      "execution_instructions": [
+        {
+          "instruction_type": "function_invocation",
+          "invocation_name": "append_to_buffer",
+          "invocation_arguments": {
+            "buf": "buffer",
+            "str": "\"/* compile_database_execute_parameterized */\n\""
+          },
+          "result_type": "void"
+        }
+      ]
     }
   }
 }
