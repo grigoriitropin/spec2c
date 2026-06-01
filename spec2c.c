@@ -409,9 +409,15 @@ static void compile_instructions(cJSON *instructions, FILE *out, int indent, con
             const char *so = jstr(inst, "source_object");
             const char *fn = jstr(inst, "field_name");
             if (vn && so && fn) {
-                const char *ct = vartype_to_c(vt);
-                fprintf(out, "cJSON *%s = cJSON_GetObjectItemCaseSensitive(%s, \"%s\");%s\n",
-                        vn, so, fn, (!strcmp(ct, "int") || !strcmp(ct, "double")) ? "" : "");
+                if (vt && (!strcmp(vt, "string") || !strcmp(vt, "char"))) {
+                    /* string field — extract value directly */
+                    fprintf(out, "const char *%s = cJSON_GetObjectItemCaseSensitive(%s,\"%s\") ? cJSON_GetObjectItemCaseSensitive(%s,\"%s\")->valuestring : \"\";\n",
+                            vn, so, fn, so, fn);
+                } else if (vt && (!strcmp(vt, "json_object") || !strcmp(vt, "json_array"))) {
+                    fprintf(out, "cJSON *%s = cJSON_GetObjectItemCaseSensitive(%s, \"%s\");\n", vn, so, fn);
+                } else {
+                    fprintf(out, "cJSON *%s = cJSON_GetObjectItemCaseSensitive(%s, \"%s\");\n", vn, so, fn);
+                }
             }
         } else if (!strcmp(type, "database_execute_parameterized")) {
             const char *sql = jstr(inst, "sql_query_string");
