@@ -586,7 +586,7 @@ static void generate_header(const ipm_spec_t *spec, const char *hdr_path) {
 static void generate_from_ipm(const ipm_spec_t *spec, const char *out_path) {
     /* Generate header if module_name is present and output is .c */
     const char *modname = jstr(spec->meta, "module_name");
-    if (modname[0] && out_path) {
+    if (modname[0] && out_path && strcmp(out_path, "/dev/null")) {
         char hdr_path[4096];
         /* Derive header path from module_name + directory of output */
         const char *slash = strrchr(out_path, '/');
@@ -717,6 +717,52 @@ int main(int argc, char *argv[]) {
     char *spec_text = read_file(spec_path);
     cJSON *spec_json = cJSON_Parse(spec_text);
     if (!spec_json) die("JSON parse error in spec file");
+
+    /* Structural enforcement — check .ipm file against SOUL §7 limits */
+    if (spec_text) {
+        int file_lines = 0;
+        for (const char *p = spec_text; *p; p++) if (*p == '\n') file_lines++;
+        cJSON *limits = cJSON_GetObjectItemCaseSensitive(spec_json, "structural_limits");
+        int max_file_lines = 2000, max_funcs = 15, max_func_lines = 250;
+        if (limits && cJSON_IsArray(limits)) {
+            for (int li = 0; li < cJSON_GetArraySize(limits); li++) {
+                cJSON *l = cJSON_GetArrayItem(limits, li);
+                const char *ln = jstr(l, "limit_name");
+                int mv = cJSON_IsNumber(cJSON_GetObjectItemCaseSensitive(l, "maximum_value"))
+                    ? cJSON_GetObjectItemCaseSensitive(l, "maximum_value")->valueint : 0;
+                if (!strcmp(ln, "file_line_count") && mv) max_file_lines = mv;
+                if (!strcmp(ln, "function_count_per_file") && mv) max_funcs = mv;
+                if (!strcmp(ln, "function_line_count") && mv) max_func_lines = mv;
+            }
+        }
+        if (file_lines > max_file_lines) {
+            char buf[256];
+            snprintf(buf, sizeof(buf), "file too long: %d lines (max %d)", file_lines, max_file_lines);
+            die(buf);
+        }
+        cJSON *funcs = cJSON_GetObjectItemCaseSensitive(spec_json, "function_definitions");
+        if (funcs && cJSON_IsObject(funcs)) {
+            int nfuncs = cJSON_GetArraySize(funcs);
+            if (nfuncs > max_funcs) {
+                char buf[256];
+                snprintf(buf, sizeof(buf), "too many functions: %d (max %d)", nfuncs, max_funcs);
+                die(buf);
+            }
+            cJSON *fn = funcs->child;
+            while (fn) {
+                int instrs = 0;
+                cJSON *body = cJSON_GetObjectItemCaseSensitive(fn, "execution_instructions");
+                if (body && cJSON_IsArray(body)) instrs = cJSON_GetArraySize(body);
+                if (instrs > max_func_lines) {
+                    char buf[256];
+                    snprintf(buf, sizeof(buf), "function '%s' too long: %d top-level instructions (max %d)",
+                             fn->string, instrs, max_func_lines);
+                    die(buf);
+                }
+                fn = fn->next;
+            }
+        }
+    }
 
     /* Detect .ipm format by presence of package_name key */
     cJSON *pkg_name = cJSON_GetObjectItemCaseSensitive(spec_json, "package_name");
