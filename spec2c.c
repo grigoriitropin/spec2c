@@ -334,8 +334,7 @@ static void compile_instructions(cJSON *instructions, FILE *out, int indent, con
                             const char *sv = arg->valuestring;
                             if (sv[0] == '"') fprintf(out, "%s", sv);  /* literal — already quoted */
                             else fprintf(out, "%s", sv);                /* variable reference */
-                        } else if (cJSON_IsNumber(arg)) {
-                            fprintf(out, "\"%d\"", arg->valueint);  /* stringify numbers for const char* params */
+                        } else if (cJSON_IsNumber(arg)) fprintf(out, "\"%d\"", arg->valueint);  /* stringify numbers */
                         first = 0;
                         arg = arg->next;
                     }
