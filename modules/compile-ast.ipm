@@ -1,0 +1,537 @@
+{
+  "function_definitions": {
+    "compile_ast_functions_to_c": {
+      "description": "Compile all function_definitions to C: includes + forward declarations + bodies",
+      "return_type": "void",
+      "parameter_definitions": [
+        {
+          "parameter_name": "spec_json",
+          "parameter_type": "json_object"
+        },
+        {
+          "parameter_name": "output_path",
+          "parameter_type": "string"
+        }
+      ],
+      "execution_instructions": [
+        {
+          "instruction_type": "function_invocation",
+          "invocation_name": "create_string_buffer",
+          "invocation_arguments": {},
+          "result_assignment_variable": "buf",
+          "result_type": "string_buffer"
+        },
+        {
+          "instruction_type": "function_invocation",
+          "invocation_name": "append_to_buffer",
+          "invocation_arguments": {
+            "buf": "buf",
+            "str": "\"#include <string.h>\\n#include <stdio.h>\\n#include <stdlib.h>\\n#include <cjson/cJSON.h>\\n#include \\\"ipm_builtins.h\\\"\\n\\n\""
+          }
+        },
+        {
+          "instruction_type": "access_json_field",
+          "variable_name": "funcs",
+          "variable_type": "json_object",
+          "source_object": "spec_json",
+          "field_name": "function_definitions"
+        },
+        {
+          "instruction_type": "conditional_branch",
+          "condition_operation": "is_not_null",
+          "condition_target": "funcs",
+          "branch_on_success": [
+            {
+              "instruction_type": "iterate_over_object_keys",
+              "collection_variable": "funcs",
+              "key_variable": "fn_name",
+              "value_variable": "fn_spec",
+              "body_instructions": [
+                {
+                  "instruction_type": "function_invocation",
+                  "invocation_name": "append_to_buffer",
+                  "invocation_arguments": {
+                    "buf": "buf",
+                    "str": "\"static \""
+                  }
+                },
+                {
+                  "instruction_type": "access_json_field",
+                  "variable_name": "ret_type",
+                  "variable_type": "string",
+                  "source_object": "fn_spec",
+                  "field_name": "return_type"
+                },
+                {
+                  "instruction_type": "function_invocation",
+                  "invocation_name": "vartype_to_c",
+                  "invocation_arguments": {
+                    "t": "ret_type"
+                  },
+                  "result_assignment_variable": "ret_c",
+                  "result_type": "string"
+                },
+                {
+                  "instruction_type": "function_invocation",
+                  "invocation_name": "append_to_buffer",
+                  "invocation_arguments": {
+                    "buf": "buf",
+                    "str": "ret_c"
+                  }
+                },
+                {
+                  "instruction_type": "function_invocation",
+                  "invocation_name": "append_to_buffer",
+                  "invocation_arguments": {
+                    "buf": "buf",
+                    "str": "\" \""
+                  }
+                },
+                {
+                  "instruction_type": "function_invocation",
+                  "invocation_name": "append_to_buffer",
+                  "invocation_arguments": {
+                    "buf": "buf",
+                    "str": "fn_name"
+                  }
+                },
+                {
+                  "instruction_type": "function_invocation",
+                  "invocation_name": "append_to_buffer",
+                  "invocation_arguments": {
+                    "buf": "buf",
+                    "str": "\"(\""
+                  }
+                },
+                {
+                  "instruction_type": "access_json_field",
+                  "variable_name": "params",
+                  "variable_type": "json_array",
+                  "source_object": "fn_spec",
+                  "field_name": "parameter_definitions"
+                },
+                {
+                  "instruction_type": "conditional_branch",
+                  "condition_operation": "is_not_null",
+                  "condition_target": "params",
+                  "branch_on_success": [
+                    {
+                      "instruction_type": "function_invocation",
+                      "invocation_name": "create_hash_table",
+                      "invocation_arguments": {},
+                      "result_assignment_variable": "t_parflag",
+                      "result_type": "subst_table"
+                    },
+                    {
+                      "instruction_type": "function_invocation",
+                      "invocation_name": "hash_table_insert",
+                      "invocation_arguments": {
+                        "table_handle": "t_parflag",
+                        "entry_key": "\"first\"",
+                        "entry_value": "\"1\""
+                      }
+                    },
+                    {
+                      "instruction_type": "iterate_over_collection",
+                      "collection_variable": "params",
+                      "item_variable": "par",
+                      "body_instructions": [
+                        {
+                          "instruction_type": "access_json_field",
+                          "variable_name": "pn",
+                          "variable_type": "string",
+                          "source_object": "par",
+                          "field_name": "parameter_name"
+                        },
+                        {
+                          "instruction_type": "access_json_field",
+                          "variable_name": "pt",
+                          "variable_type": "string",
+                          "source_object": "par",
+                          "field_name": "parameter_type"
+                        },
+                        {
+                          "instruction_type": "function_invocation",
+                          "invocation_name": "vartype_to_c",
+                          "invocation_arguments": {
+                            "t": "pt"
+                          },
+                          "result_assignment_variable": "pct",
+                          "result_type": "string"
+                        },
+                        {
+                          "instruction_type": "function_invocation",
+                          "invocation_name": "hash_table_lookup",
+                          "invocation_arguments": {
+                            "table": "t_parflag",
+                            "key": "\"first\""
+                          },
+                          "result_assignment_variable": "is_first",
+                          "result_type": "string"
+                        },
+                        {
+                          "instruction_type": "conditional_branch",
+                          "condition_operation": "string_equals",
+                          "condition_target": "is_first",
+                          "condition_value": "1",
+                          "branch_on_success": [
+                            {
+                              "instruction_type": "function_invocation",
+                              "invocation_name": "hash_table_insert",
+                              "invocation_arguments": {
+                                "table_handle": "t_parflag",
+                                "entry_key": "\"first\"",
+                                "entry_value": "\"0\""
+                              }
+                            }
+                          ],
+                          "branch_on_failure": [
+                            {
+                              "instruction_type": "function_invocation",
+                              "invocation_name": "append_to_buffer",
+                              "invocation_arguments": {
+                                "buf": "buf",
+                                "str": "\", \""
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "instruction_type": "function_invocation",
+                          "invocation_name": "append_to_buffer",
+                          "invocation_arguments": {
+                            "buf": "buf",
+                            "str": "pct"
+                          }
+                        },
+                        {
+                          "instruction_type": "function_invocation",
+                          "invocation_name": "append_to_buffer",
+                          "invocation_arguments": {
+                            "buf": "buf",
+                            "str": "\" \""
+                          }
+                        },
+                        {
+                          "instruction_type": "function_invocation",
+                          "invocation_name": "append_to_buffer",
+                          "invocation_arguments": {
+                            "buf": "buf",
+                            "str": "pn"
+                          }
+                        }
+                      ]
+                    }
+                  ],
+                  "branch_on_failure": []
+                },
+                {
+                  "instruction_type": "function_invocation",
+                  "invocation_name": "append_to_buffer",
+                  "invocation_arguments": {
+                    "buf": "buf",
+                    "str": "\");\\n\""
+                  }
+                }
+              ]
+            },
+            {
+              "instruction_type": "function_invocation",
+              "invocation_name": "append_to_buffer",
+              "invocation_arguments": {
+                "buf": "buf",
+                "str": "\"\\n\""
+              }
+            },
+            {
+              "instruction_type": "iterate_over_object_keys",
+              "collection_variable": "funcs",
+              "key_variable": "fn_name",
+              "value_variable": "fn_spec2",
+              "body_instructions": [
+                {
+                  "instruction_type": "function_invocation",
+                  "invocation_name": "append_to_buffer",
+                  "invocation_arguments": {
+                    "buf": "buf",
+                    "str": "\"/* \""
+                  }
+                },
+                {
+                  "instruction_type": "function_invocation",
+                  "invocation_name": "append_to_buffer",
+                  "invocation_arguments": {
+                    "buf": "buf",
+                    "str": "fn_name"
+                  }
+                },
+                {
+                  "instruction_type": "function_invocation",
+                  "invocation_name": "append_to_buffer",
+                  "invocation_arguments": {
+                    "buf": "buf",
+                    "str": "\": \""
+                  }
+                },
+                {
+                  "instruction_type": "access_json_field",
+                  "variable_name": "desc",
+                  "variable_type": "string",
+                  "source_object": "fn_spec2",
+                  "field_name": "description"
+                },
+                {
+                  "instruction_type": "function_invocation",
+                  "invocation_name": "append_to_buffer",
+                  "invocation_arguments": {
+                    "buf": "buf",
+                    "str": "desc"
+                  }
+                },
+                {
+                  "instruction_type": "function_invocation",
+                  "invocation_name": "append_to_buffer",
+                  "invocation_arguments": {
+                    "buf": "buf",
+                    "str": "\" */\\n\""
+                  }
+                },
+                {
+                  "instruction_type": "function_invocation",
+                  "invocation_name": "append_to_buffer",
+                  "invocation_arguments": {
+                    "buf": "buf",
+                    "str": "\"static \""
+                  }
+                },
+                {
+                  "instruction_type": "access_json_field",
+                  "variable_name": "ret_type",
+                  "variable_type": "string",
+                  "source_object": "fn_spec2",
+                  "field_name": "return_type"
+                },
+                {
+                  "instruction_type": "function_invocation",
+                  "invocation_name": "vartype_to_c",
+                  "invocation_arguments": {
+                    "t": "ret_type"
+                  },
+                  "result_assignment_variable": "ret_c",
+                  "result_type": "string"
+                },
+                {
+                  "instruction_type": "function_invocation",
+                  "invocation_name": "append_to_buffer",
+                  "invocation_arguments": {
+                    "buf": "buf",
+                    "str": "ret_c"
+                  }
+                },
+                {
+                  "instruction_type": "function_invocation",
+                  "invocation_name": "append_to_buffer",
+                  "invocation_arguments": {
+                    "buf": "buf",
+                    "str": "\" \""
+                  }
+                },
+                {
+                  "instruction_type": "function_invocation",
+                  "invocation_name": "append_to_buffer",
+                  "invocation_arguments": {
+                    "buf": "buf",
+                    "str": "fn_name"
+                  }
+                },
+                {
+                  "instruction_type": "function_invocation",
+                  "invocation_name": "append_to_buffer",
+                  "invocation_arguments": {
+                    "buf": "buf",
+                    "str": "\"(\""
+                  }
+                },
+                {
+                  "instruction_type": "access_json_field",
+                  "variable_name": "params",
+                  "variable_type": "json_array",
+                  "source_object": "fn_spec2",
+                  "field_name": "parameter_definitions"
+                },
+                {
+                  "instruction_type": "conditional_branch",
+                  "condition_operation": "is_not_null",
+                  "condition_target": "params",
+                  "branch_on_success": [
+                    {
+                      "instruction_type": "function_invocation",
+                      "invocation_name": "create_hash_table",
+                      "invocation_arguments": {},
+                      "result_assignment_variable": "t_parflag2",
+                      "result_type": "subst_table"
+                    },
+                    {
+                      "instruction_type": "function_invocation",
+                      "invocation_name": "hash_table_insert",
+                      "invocation_arguments": {
+                        "table_handle": "t_parflag2",
+                        "entry_key": "\"first\"",
+                        "entry_value": "\"1\""
+                      }
+                    },
+                    {
+                      "instruction_type": "iterate_over_collection",
+                      "collection_variable": "params",
+                      "item_variable": "par",
+                      "body_instructions": [
+                        {
+                          "instruction_type": "access_json_field",
+                          "variable_name": "pn",
+                          "variable_type": "string",
+                          "source_object": "par",
+                          "field_name": "parameter_name"
+                        },
+                        {
+                          "instruction_type": "access_json_field",
+                          "variable_name": "pt",
+                          "variable_type": "string",
+                          "source_object": "par",
+                          "field_name": "parameter_type"
+                        },
+                        {
+                          "instruction_type": "function_invocation",
+                          "invocation_name": "vartype_to_c",
+                          "invocation_arguments": {
+                            "t": "pt"
+                          },
+                          "result_assignment_variable": "pct",
+                          "result_type": "string"
+                        },
+                        {
+                          "instruction_type": "function_invocation",
+                          "invocation_name": "hash_table_lookup",
+                          "invocation_arguments": {
+                            "table": "t_parflag2",
+                            "key": "\"first\""
+                          },
+                          "result_assignment_variable": "is_first",
+                          "result_type": "string"
+                        },
+                        {
+                          "instruction_type": "conditional_branch",
+                          "condition_operation": "string_equals",
+                          "condition_target": "is_first",
+                          "condition_value": "1",
+                          "branch_on_success": [
+                            {
+                              "instruction_type": "function_invocation",
+                              "invocation_name": "hash_table_insert",
+                              "invocation_arguments": {
+                                "table_handle": "t_parflag2",
+                                "entry_key": "\"first\"",
+                                "entry_value": "\"0\""
+                              }
+                            }
+                          ],
+                          "branch_on_failure": [
+                            {
+                              "instruction_type": "function_invocation",
+                              "invocation_name": "append_to_buffer",
+                              "invocation_arguments": {
+                                "buf": "buf",
+                                "str": "\", \""
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "instruction_type": "function_invocation",
+                          "invocation_name": "append_to_buffer",
+                          "invocation_arguments": {
+                            "buf": "buf",
+                            "str": "pct"
+                          }
+                        },
+                        {
+                          "instruction_type": "function_invocation",
+                          "invocation_name": "append_to_buffer",
+                          "invocation_arguments": {
+                            "buf": "buf",
+                            "str": "\" \""
+                          }
+                        },
+                        {
+                          "instruction_type": "function_invocation",
+                          "invocation_name": "append_to_buffer",
+                          "invocation_arguments": {
+                            "buf": "buf",
+                            "str": "pn"
+                          }
+                        }
+                      ]
+                    }
+                  ],
+                  "branch_on_failure": []
+                },
+                {
+                  "instruction_type": "function_invocation",
+                  "invocation_name": "append_to_buffer",
+                  "invocation_arguments": {
+                    "buf": "buf",
+                    "str": "\") {\\n\""
+                  }
+                },
+                {
+                  "instruction_type": "access_json_field",
+                  "variable_name": "body",
+                  "variable_type": "json_array",
+                  "source_object": "fn_spec2",
+                  "field_name": "execution_instructions"
+                },
+                {
+                  "instruction_type": "function_invocation",
+                  "invocation_name": "compile_body",
+                  "invocation_arguments": {
+                    "instructions": "body",
+                    "buffer": "buf"
+                  }
+                },
+                {
+                  "instruction_type": "function_invocation",
+                  "invocation_name": "append_to_buffer",
+                  "invocation_arguments": {
+                    "buf": "buf",
+                    "str": "\"}\\n\\n\""
+                  }
+                }
+              ]
+            }
+          ],
+          "branch_on_failure": []
+        },
+        {
+          "instruction_type": "function_invocation",
+          "invocation_name": "write_buffer_to_file",
+          "invocation_arguments": {
+            "buf": "buf",
+            "path": "output_path"
+          }
+        },
+        {
+          "instruction_type": "function_invocation",
+          "invocation_name": "free_string_buffer",
+          "invocation_arguments": {
+            "buf": "buf"
+          }
+        }
+      ]
+    }
+  },
+  "module_name": "compile_ast",
+  "imports": [
+    "codegen"
+  ],
+  "package_name": "compile_ast",
+  "package_type": "module"
+}

@@ -436,42 +436,47 @@ static void compile_instructions(cJSON *instructions, FILE *out, int indent, con
 static void compile_functions_to_c(const ipm_spec_t *spec, FILE *out) {
     cJSON *funcs = cJSON_GetObjectItemCaseSensitive(spec->meta, "function_definitions");
     if (!funcs || !cJSON_IsObject(funcs)) return;
+    cJSON *fn;
 
-    /* Inject standard C headers */
-    fprintf(out, "#include <string.h>\n#include <stdio.h>\n#include <stdlib.h>\n#include <cjson/cJSON.h>\n#include \"ipm_builtins.h\"\n\n");
-
-    /* Forward-declare all functions to avoid ordering issues */
-    cJSON *fn = funcs->child;
-    while (fn) {
-        const char *name = fn->string;
-        const char *ret = jstr(fn, "return_type");
-        const char *ret_c = "void";
-        if (ret[0]) {
-            if (!strcmp(ret, "void")) ret_c = "void";
-            else if (!strcmp(ret, "int")) ret_c = "int";
-            else if (!strcmp(ret, "double")) ret_c = "double";
-            else if (!strcmp(ret, "boolean")) ret_c = "int";
-            else if (!strcmp(ret, "string") || !strcmp(ret, "char")) ret_c = "char *";
-            else if (!strcmp(ret, "json_object")) ret_c = "cJSON *";
-            else if (!strcmp(ret, "json_array")) ret_c = "cJSON *";
-            else if (!strcmp(ret, "db_handle")) ret_c = "struct vehir_db *";
-            else if (!strcmp(ret, "subst_table")) ret_c = "subst_table *";
-        }
-        fprintf(out, "static %s %s(", ret_c, name);
-        cJSON *params = cJSON_GetObjectItemCaseSensitive(fn, "parameter_definitions");
-        if (params && cJSON_IsArray(params)) {
-            for (int p = 0; p < cJSON_GetArraySize(params); p++) {
-                cJSON *par = cJSON_GetArrayItem(params, p);
-                const char *pn = jstr(par, "parameter_name");
-                const char *pt = jstr(par, "parameter_type");
-                if (p > 0) fprintf(out, ", ");
-                fprintf(out, "%s %s", vartype_to_c(pt), pn);
+    /* Include module header */
+    const char *modname = jstr(spec->meta, "module_name");
+    if (modname[0]) {
+        fprintf(out, "#include \"%s.h\"\n\n", modname);
+    } else {
+        fprintf(out, "#include <string.h>\n#include <stdio.h>\n#include <stdlib.h>\n#include <cjson/cJSON.h>\n#include \"ipm_builtins.h\"\n\n");
+        /* Forward-declare for monolithic (no-header) mode */
+        fn = funcs->child;
+        while (fn) {
+            const char *name = fn->string;
+            const char *ret = jstr(fn, "return_type");
+            const char *ret_c = "void";
+            if (ret[0]) {
+                if (!strcmp(ret, "void")) ret_c = "void";
+                else if (!strcmp(ret, "int")) ret_c = "int";
+                else if (!strcmp(ret, "double")) ret_c = "double";
+                else if (!strcmp(ret, "boolean")) ret_c = "int";
+                else if (!strcmp(ret, "string") || !strcmp(ret, "char")) ret_c = "char *";
+                else if (!strcmp(ret, "json_object")) ret_c = "cJSON *";
+                else if (!strcmp(ret, "json_array")) ret_c = "cJSON *";
+                else if (!strcmp(ret, "db_handle")) ret_c = "struct vehir_db *";
+                else if (!strcmp(ret, "subst_table")) ret_c = "subst_table *";
             }
+            fprintf(out, "static %s %s(", ret_c, name);
+            cJSON *params = cJSON_GetObjectItemCaseSensitive(fn, "parameter_definitions");
+            if (params && cJSON_IsArray(params)) {
+                for (int p = 0; p < cJSON_GetArraySize(params); p++) {
+                    cJSON *par = cJSON_GetArrayItem(params, p);
+                    const char *pn = jstr(par, "parameter_name");
+                    const char *pt = jstr(par, "parameter_type");
+                    if (p > 0) fprintf(out, ", ");
+                    fprintf(out, "%s %s", vartype_to_c(pt), pn);
+                }
+            }
+            fprintf(out, ");\n");
+            fn = fn->next;
         }
-        fprintf(out, ");\n");
-        fn = fn->next;
+        fprintf(out, "\n");
     }
-    fprintf(out, "\n");
 
     /* Generate function bodies */
     fn = funcs->child;
@@ -496,7 +501,7 @@ static void compile_functions_to_c(const ipm_spec_t *spec, FILE *out) {
                 else if (!strcmp(ret, "subst_table")) ret_c = "subst_table *";
             }
             fprintf(out, "/* %s: %s */\n", name, desc[0] ? desc : "no description");
-            fprintf(out, "static %s %s(", ret_c, name);
+            fprintf(out, "%s%s %s(", modname[0] ? "" : "static ", ret_c, name);
             if (params && cJSON_IsArray(params)) {
                 for (int p = 0; p < cJSON_GetArraySize(params); p++) {
                     cJSON *par = cJSON_GetArrayItem(params, p);
@@ -516,9 +521,87 @@ static void compile_functions_to_c(const ipm_spec_t *spec, FILE *out) {
 
 /* ── Phase 1: template substitution ──────────────────────────────────── */
 
+static void generate_header(const ipm_spec_t *spec, const char *hdr_path) {
+    cJSON *funcs = cJSON_GetObjectItemCaseSensitive(spec->meta, "function_definitions");
+    const char *modname = jstr(spec->meta, "module_name");
+    if (!modname[0] || !hdr_path) return;
+
+    FILE *hdr = fopen(hdr_path, "w");
+    if (!hdr) die("cannot open header file");
+
+    char guard[256];
+    snprintf(guard, sizeof(guard), "%s_H", modname);
+    for (char *p = guard; *p; p++) if (*p == '-') *p = '_';
+
+    fprintf(hdr, "/* Auto-generated from %s.ipm */\n", modname);
+    fprintf(hdr, "#ifndef %s\n#define %s\n\n", guard, guard);
+    fprintf(hdr, "#include \"ipm_builtins.h\"\n");
+
+    cJSON *imports = cJSON_GetObjectItemCaseSensitive(spec->meta, "imports");
+    if (imports && cJSON_IsArray(imports)) {
+        for (int i = 0; i < cJSON_GetArraySize(imports); i++) {
+            cJSON *imp = cJSON_GetArrayItem(imports, i);
+            if (cJSON_IsString(imp))
+                fprintf(hdr, "#include \"%s.h\"\n", imp->valuestring);
+        }
+    }
+    fprintf(hdr, "\n");
+
+    if (funcs && cJSON_IsObject(funcs)) {
+        cJSON *fn = funcs->child;
+        while (fn) {
+            const char *name = fn->string;
+            const char *ret = jstr(fn, "return_type");
+            const char *ret_c = "void";
+            if (ret[0]) {
+                if (!strcmp(ret, "void")) ret_c = "void";
+                else if (!strcmp(ret, "int")) ret_c = "int";
+                else if (!strcmp(ret, "string") || !strcmp(ret, "char")) ret_c = "char *";
+                else if (!strcmp(ret, "json_object")) ret_c = "cJSON *";
+                else if (!strcmp(ret, "json_array")) ret_c = "cJSON *";
+                else if (!strcmp(ret, "subst_table")) ret_c = "subst_table *";
+                else if (!strcmp(ret, "string_buffer")) ret_c = "string_buffer *";
+            }
+            fprintf(hdr, "%s %s(", ret_c, name);
+            cJSON *params = cJSON_GetObjectItemCaseSensitive(fn, "parameter_definitions");
+            if (params && cJSON_IsArray(params)) {
+                for (int p = 0; p < cJSON_GetArraySize(params); p++) {
+                    cJSON *par = cJSON_GetArrayItem(params, p);
+                    const char *pn = jstr(par, "parameter_name");
+                    const char *pt = jstr(par, "parameter_type");
+                    if (p > 0) fprintf(hdr, ", ");
+                    fprintf(hdr, "%s %s", vartype_to_c(pt), pn);
+                }
+            }
+            fprintf(hdr, ");\n");
+            fn = fn->next;
+        }
+    }
+
+    fprintf(hdr, "\n#endif /* %s_H */\n", guard);
+    fclose(hdr);
+}
+
 static void generate_from_ipm(const ipm_spec_t *spec, const char *out_path) {
+    /* Generate header if module_name is present and output is .c */
+    const char *modname = jstr(spec->meta, "module_name");
+    if (modname[0] && out_path) {
+        char hdr_path[4096];
+        /* Derive header path from module_name + directory of output */
+        const char *slash = strrchr(out_path, '/');
+        int dirlen = slash ? (int)(slash - out_path + 1) : 0;
+        snprintf(hdr_path, sizeof(hdr_path), "%.*s%s.h", dirlen, out_path, modname);
+        generate_header(spec, hdr_path);
+    }
+
     FILE *out_fp = out_path ? fopen(out_path, "w") : stdout;
     if (!out_fp) die("cannot open output file");
+
+    /* For module mode, emit includes (header handles the rest) */
+    if (modname[0]) {
+        fprintf(out_fp, "#include <string.h>\n#include <stdio.h>\n#include <stdlib.h>\n#include <cjson/cJSON.h>\n");
+        fprintf(out_fp, "#include \"%s.h\"\n\n", modname);
+    }
 
     /* Build substitution context first (needed by both passes) */
     subst_t subs[SUBST_MAX]; int nsubs = 0;
