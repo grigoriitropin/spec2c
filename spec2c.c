@@ -303,9 +303,8 @@ static void generate_from_ipm(const ipm_spec_t *spec, const char *out_path) {
 
     while (tmpl) {
         const char *tmpl_name = tmpl->string;
-        cJSON *content = cJSON_GetObjectItemCaseSensitive(tmpl, "template_content");
-        if (content && cJSON_IsString(content)) {
-            char *gen = subst_apply(content->valuestring, subs, nsubs);
+        if (cJSON_IsString(tmpl)) {
+            char *gen = subst_apply(tmpl->valuestring, subs, nsubs);
             fprintf(out_fp, "/* --- template: %s --- */\n", tmpl_name);
             fprintf(out_fp, "%s\n", gen);
             free(gen);
