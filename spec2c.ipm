@@ -37,8 +37,8 @@
     "SPEC2C_OUTPUT_DIRECTORY"
   ],
   "template_definitions": {
-    "spec2c_main_c": "int main(int argc, char **argv) {\n    if (argc < 3) {\n        fprintf(stderr, \"Usage: %s <input.ipm> <output.c>\n\", argv[0]);\n        return 1;\n    }\n    return execute_pipeline(argv[1], argv[2]);\n}\n",
-    "spec2c_usage_h": "void print_usage_and_exit(const char *prog) {\n    fprintf(stderr, \"Usage: %s <input.ipm> <output.c>\n\", prog);\n    exit(2);\n}\n"
+    "spec2c_main_c": "int main(int argc, char **argv) {\n    if (argc < 3) {\n        fprintf(stderr, \"Usage: %s <input.ipm> <output.c>\\n\", argv[0]);\n        return 1;\n    }\n    return execute_pipeline(argv[1], argv[2]);\n}\n",
+    "spec2c_usage_h": "void print_usage_and_exit(const char *prog) {\n    fprintf(stderr, \"Usage: %s <input.ipm> <output.c>\\n\", prog);\n    exit(2);\n}\n"
   },
   "function_definitions": {
     "execute_pipeline": {
