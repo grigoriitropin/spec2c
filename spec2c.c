@@ -273,6 +273,7 @@ static const char *vartype_to_c(const char *t) {
     if (!strcmp(t, "json_object")) return "cJSON *";
     if (!strcmp(t, "json_array")) return "cJSON *";
     if (!strcmp(t, "db_handle")) return "struct vehir_db *";
+    if (!strcmp(t, "subst_table")) return "subst_table *";
     return "void *";
 }
 
@@ -317,6 +318,8 @@ static void compile_instructions(cJSON *instructions, FILE *out, int indent, con
                         else if (strstr(fn, "create_hash_table")) rc = "subst_table *";
                         else if (strstr(fn, "hash_table_lookup")) rc = "const char *";
                         else if (!strcmp(fn, "string_substitute")) rc = "char *";
+                        else if (!strcmp(fn, "compute_substs")) rc = "subst_table *";
+                        else if (!strcmp(fn, "generate_from_ipm")) rc = "int";
                     }
                     fprintf(out, "%s %s = ", rc, rv);
                 }

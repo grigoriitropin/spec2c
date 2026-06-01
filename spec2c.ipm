@@ -96,7 +96,7 @@
             "parsed_spec": "parsed_ast"
           },
           "result_assignment_variable": "subst_table",
-          "result_type": "json_object"
+          "result_type": "subst_table"
         },
         {
           "instruction_type": "function_invocation",
@@ -155,7 +155,7 @@
     },
     "compute_substs": {
       "description": "Build a substitution hash table from package specification fields — name, type, config_keys, db_queries",
-      "return_type": "json_object",
+      "return_type": "subst_table",
       "parameter_definitions": [
         {
           "parameter_name": "parsed_spec",
@@ -169,7 +169,7 @@
           "invocation_name": "create_hash_table",
           "invocation_arguments": {},
           "result_assignment_variable": "subst_table",
-          "result_type": "json_object"
+          "result_type": "subst_table"
         },
         {
           "instruction_type": "access_json_field",
