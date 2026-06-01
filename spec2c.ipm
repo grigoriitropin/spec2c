@@ -690,7 +690,7 @@
       ]
     },
     "compile_function_invocation": {
-      "description": "Generate C code for function_invocation: FUNC(args); or TYPE VAR = FUNC(args);",
+      "description": "Generate C code for function_invocation",
       "return_type": "void",
       "parameter_definitions": [
         {
@@ -743,13 +743,6 @@
               "branch_on_success": [
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "create_hash_table",
-                  "invocation_arguments": {},
-                  "result_assignment_variable": "tbl",
-                  "result_type": "subst_table"
-                },
-                {
-                  "instruction_type": "function_invocation",
                   "invocation_name": "vartype_to_c",
                   "invocation_arguments": {
                     "t": "rt"
@@ -759,9 +752,16 @@
                 },
                 {
                   "instruction_type": "function_invocation",
+                  "invocation_name": "create_hash_table",
+                  "invocation_arguments": {},
+                  "result_assignment_variable": "t_hdr",
+                  "result_type": "subst_table"
+                },
+                {
+                  "instruction_type": "function_invocation",
                   "invocation_name": "hash_table_insert",
                   "invocation_arguments": {
-                    "table_handle": "tbl",
+                    "table_handle": "t_hdr",
                     "entry_key": "\"CTYPE\"",
                     "entry_value": "ct"
                   }
@@ -770,112 +770,243 @@
                   "instruction_type": "function_invocation",
                   "invocation_name": "hash_table_insert",
                   "invocation_arguments": {
-                    "table_handle": "tbl",
+                    "table_handle": "t_hdr",
                     "entry_key": "\"VAR\"",
                     "entry_value": "rv"
                   }
                 },
                 {
                   "instruction_type": "function_invocation",
+                  "invocation_name": "hash_table_insert",
+                  "invocation_arguments": {
+                    "table_handle": "t_hdr",
+                    "entry_key": "\"FUNC\"",
+                    "entry_value": "fn"
+                  }
+                },
+                {
+                  "instruction_type": "function_invocation",
                   "invocation_name": "string_substitute",
                   "invocation_arguments": {
-                    "template_str": "\"  {{CTYPE}} {{VAR}} = \"",
-                    "table": "tbl"
+                    "template_str": "\"  {{CTYPE}} {{VAR}} = {{FUNC}}(\\n\"",
+                    "table": "t_hdr"
                   },
-                  "result_assignment_variable": "prefix",
+                  "result_assignment_variable": "header",
                   "result_type": "string"
+                },
+                {
+                  "instruction_type": "function_invocation",
+                  "invocation_name": "append_to_buffer",
+                  "invocation_arguments": {
+                    "buf": "buffer",
+                    "str": "header"
+                  }
+                },
+                {
+                  "instruction_type": "conditional_branch",
+                  "condition_operation": "is_not_null",
+                  "condition_target": "args",
+                  "branch_on_success": [
+                    {
+                      "instruction_type": "function_invocation",
+                      "invocation_name": "create_hash_table",
+                      "invocation_arguments": {},
+                      "result_assignment_variable": "t_flags",
+                      "result_type": "subst_table"
+                    },
+                    {
+                      "instruction_type": "function_invocation",
+                      "invocation_name": "hash_table_insert",
+                      "invocation_arguments": {
+                        "table_handle": "t_flags",
+                        "entry_key": "\"first\"",
+                        "entry_value": "\"1\""
+                      }
+                    },
+                    {
+                      "instruction_type": "iterate_over_object_keys",
+                      "collection_variable": "args",
+                      "value_variable": "arg_val",
+                      "body_instructions": [
+                        {
+                          "instruction_type": "function_invocation",
+                          "invocation_name": "hash_table_lookup",
+                          "invocation_arguments": {
+                            "table": "t_flags",
+                            "key": "\"first\""
+                          },
+                          "result_assignment_variable": "is_first",
+                          "result_type": "string"
+                        },
+                        {
+                          "instruction_type": "conditional_branch",
+                          "condition_operation": "string_equals",
+                          "condition_target": "is_first",
+                          "condition_value": "1",
+                          "branch_on_success": [
+                            {
+                              "instruction_type": "function_invocation",
+                              "invocation_name": "hash_table_insert",
+                              "invocation_arguments": {
+                                "table_handle": "t_flags",
+                                "entry_key": "\"first\"",
+                                "entry_value": "\"0\""
+                              }
+                            }
+                          ],
+                          "branch_on_failure": [
+                            {
+                              "instruction_type": "function_invocation",
+                              "invocation_name": "append_to_buffer",
+                              "invocation_arguments": {
+                                "buf": "buffer",
+                                "str": "\", \""
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "instruction_type": "function_invocation",
+                          "invocation_name": "append_to_buffer",
+                          "invocation_arguments": {
+                            "buf": "buffer",
+                            "str": "arg_val_valstr"
+                          }
+                        }
+                      ]
+                    }
+                  ],
+                  "branch_on_failure": []
+                },
+                {
+                  "instruction_type": "function_invocation",
+                  "invocation_name": "append_to_buffer",
+                  "invocation_arguments": {
+                    "buf": "buffer",
+                    "str": "\");\\n\""
+                  }
                 }
               ],
               "branch_on_failure": [
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "append_to_buffer",
+                  "invocation_name": "create_hash_table",
+                  "invocation_arguments": {},
+                  "result_assignment_variable": "t_hdr2",
+                  "result_type": "subst_table"
+                },
+                {
+                  "instruction_type": "function_invocation",
+                  "invocation_name": "hash_table_insert",
                   "invocation_arguments": {
-                    "buf": "buffer",
-                    "str": "\"  \""
+                    "table_handle": "t_hdr2",
+                    "entry_key": "\"FUNC\"",
+                    "entry_value": "fn"
                   }
+                },
+                {
+                  "instruction_type": "function_invocation",
+                  "invocation_name": "string_substitute",
+                  "invocation_arguments": {
+                    "template_str": "\"  {{FUNC}}(\\n\"",
+                    "table": "t_hdr2"
+                  },
+                  "result_assignment_variable": "header",
+                  "result_type": "string"
                 },
                 {
                   "instruction_type": "function_invocation",
                   "invocation_name": "append_to_buffer",
                   "invocation_arguments": {
                     "buf": "buffer",
-                    "str": "fn"
+                    "str": "header"
                   }
                 },
                 {
-                  "instruction_type": "function_invocation",
-                  "invocation_name": "append_to_buffer",
-                  "invocation_arguments": {
-                    "buf": "buffer",
-                    "str": "\"(\\n\""
-                  }
-                }
-              ]
-            },
-            {
-              "instruction_type": "function_invocation",
-              "invocation_name": "append_to_buffer",
-              "invocation_arguments": {
-                "buf": "buffer",
-                "str": "prefix"
-              }
-            },
-            {
-              "instruction_type": "function_invocation",
-              "invocation_name": "append_to_buffer",
-              "invocation_arguments": {
-                "buf": "buffer",
-                "str": "fn"
-              }
-            },
-            {
-              "instruction_type": "function_invocation",
-              "invocation_name": "append_to_buffer",
-              "invocation_arguments": {
-                "buf": "buffer",
-                "str": "\"(\\n\""
-              }
-            },
-            {
-              "instruction_type": "conditional_branch",
-              "condition_operation": "is_not_null",
-              "condition_target": "args",
-              "branch_on_success": [
-                {
-                  "instruction_type": "iterate_over_object_keys",
-                  "collection_variable": "args",
-                  "key_variable": "arg_key",
-                  "value_variable": "arg_val",
-                  "body_instructions": [
+                  "instruction_type": "conditional_branch",
+                  "condition_operation": "is_not_null",
+                  "condition_target": "args",
+                  "branch_on_success": [
                     {
                       "instruction_type": "function_invocation",
-                      "invocation_name": "append_to_buffer",
-                      "invocation_arguments": {
-                        "buf": "buffer",
-                        "str": "\", \"\\n\""
-                      }
+                      "invocation_name": "create_hash_table",
+                      "invocation_arguments": {},
+                      "result_assignment_variable": "t_flags",
+                      "result_type": "subst_table"
                     },
                     {
                       "instruction_type": "function_invocation",
-                      "invocation_name": "append_to_buffer",
+                      "invocation_name": "hash_table_insert",
                       "invocation_arguments": {
-                        "buf": "buffer",
-                        "str": "arg_val_valstr"
+                        "table_handle": "t_flags",
+                        "entry_key": "\"first\"",
+                        "entry_value": "\"1\""
                       }
+                    },
+                    {
+                      "instruction_type": "iterate_over_object_keys",
+                      "collection_variable": "args",
+                      "value_variable": "arg_val",
+                      "body_instructions": [
+                        {
+                          "instruction_type": "function_invocation",
+                          "invocation_name": "hash_table_lookup",
+                          "invocation_arguments": {
+                            "table": "t_flags",
+                            "key": "\"first\""
+                          },
+                          "result_assignment_variable": "is_first",
+                          "result_type": "string"
+                        },
+                        {
+                          "instruction_type": "conditional_branch",
+                          "condition_operation": "string_equals",
+                          "condition_target": "is_first",
+                          "condition_value": "1",
+                          "branch_on_success": [
+                            {
+                              "instruction_type": "function_invocation",
+                              "invocation_name": "hash_table_insert",
+                              "invocation_arguments": {
+                                "table_handle": "t_flags",
+                                "entry_key": "\"first\"",
+                                "entry_value": "\"0\""
+                              }
+                            }
+                          ],
+                          "branch_on_failure": [
+                            {
+                              "instruction_type": "function_invocation",
+                              "invocation_name": "append_to_buffer",
+                              "invocation_arguments": {
+                                "buf": "buffer",
+                                "str": "\", \""
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "instruction_type": "function_invocation",
+                          "invocation_name": "append_to_buffer",
+                          "invocation_arguments": {
+                            "buf": "buffer",
+                            "str": "arg_val_valstr"
+                          }
+                        }
+                      ]
                     }
-                  ]
+                  ],
+                  "branch_on_failure": []
+                },
+                {
+                  "instruction_type": "function_invocation",
+                  "invocation_name": "append_to_buffer",
+                  "invocation_arguments": {
+                    "buf": "buffer",
+                    "str": "\");\\n\""
+                  }
                 }
-              ],
-              "branch_on_failure": []
-            },
-            {
-              "instruction_type": "function_invocation",
-              "invocation_name": "append_to_buffer",
-              "invocation_arguments": {
-                "buf": "buffer",
-                "str": "\");\\n\""
-              }
+              ]
             }
           ],
           "branch_on_failure": []
@@ -883,7 +1014,7 @@
       ]
     },
     "compile_conditional_branch": {
-      "description": "Generate C code for conditional_branch: if/else with compile_body recursion",
+      "description": "Generate C code for conditional_branch: if/else with compile_body",
       "return_type": "void",
       "parameter_definitions": [
         {
@@ -978,6 +1109,46 @@
               },
               "result_assignment_variable": "header",
               "result_type": "string"
+            },
+            {
+              "instruction_type": "function_invocation",
+              "invocation_name": "append_to_buffer",
+              "invocation_arguments": {
+                "buf": "buffer",
+                "str": "header"
+              }
+            },
+            {
+              "instruction_type": "function_invocation",
+              "invocation_name": "compile_body",
+              "invocation_arguments": {
+                "instructions": "bon",
+                "buffer": "buffer"
+              }
+            },
+            {
+              "instruction_type": "function_invocation",
+              "invocation_name": "append_to_buffer",
+              "invocation_arguments": {
+                "buf": "buffer",
+                "str": "\"  } else {\\n\""
+              }
+            },
+            {
+              "instruction_type": "function_invocation",
+              "invocation_name": "compile_body",
+              "invocation_arguments": {
+                "instructions": "bof",
+                "buffer": "buffer"
+              }
+            },
+            {
+              "instruction_type": "function_invocation",
+              "invocation_name": "append_to_buffer",
+              "invocation_arguments": {
+                "buf": "buffer",
+                "str": "\"  }\\n\""
+              }
             }
           ],
           "branch_on_failure": [
@@ -1012,6 +1183,46 @@
                   },
                   "result_assignment_variable": "header",
                   "result_type": "string"
+                },
+                {
+                  "instruction_type": "function_invocation",
+                  "invocation_name": "append_to_buffer",
+                  "invocation_arguments": {
+                    "buf": "buffer",
+                    "str": "header"
+                  }
+                },
+                {
+                  "instruction_type": "function_invocation",
+                  "invocation_name": "compile_body",
+                  "invocation_arguments": {
+                    "instructions": "bon",
+                    "buffer": "buffer"
+                  }
+                },
+                {
+                  "instruction_type": "function_invocation",
+                  "invocation_name": "append_to_buffer",
+                  "invocation_arguments": {
+                    "buf": "buffer",
+                    "str": "\"  } else {\\n\""
+                  }
+                },
+                {
+                  "instruction_type": "function_invocation",
+                  "invocation_name": "compile_body",
+                  "invocation_arguments": {
+                    "instructions": "bof",
+                    "buffer": "buffer"
+                  }
+                },
+                {
+                  "instruction_type": "function_invocation",
+                  "invocation_name": "append_to_buffer",
+                  "invocation_arguments": {
+                    "buf": "buffer",
+                    "str": "\"  }\\n\""
+                  }
                 }
               ],
               "branch_on_failure": [
@@ -1049,50 +1260,50 @@
                   },
                   "result_assignment_variable": "header",
                   "result_type": "string"
+                },
+                {
+                  "instruction_type": "function_invocation",
+                  "invocation_name": "append_to_buffer",
+                  "invocation_arguments": {
+                    "buf": "buffer",
+                    "str": "header"
+                  }
+                },
+                {
+                  "instruction_type": "function_invocation",
+                  "invocation_name": "compile_body",
+                  "invocation_arguments": {
+                    "instructions": "bon",
+                    "buffer": "buffer"
+                  }
+                },
+                {
+                  "instruction_type": "function_invocation",
+                  "invocation_name": "append_to_buffer",
+                  "invocation_arguments": {
+                    "buf": "buffer",
+                    "str": "\"  } else {\\n\""
+                  }
+                },
+                {
+                  "instruction_type": "function_invocation",
+                  "invocation_name": "compile_body",
+                  "invocation_arguments": {
+                    "instructions": "bof",
+                    "buffer": "buffer"
+                  }
+                },
+                {
+                  "instruction_type": "function_invocation",
+                  "invocation_name": "append_to_buffer",
+                  "invocation_arguments": {
+                    "buf": "buffer",
+                    "str": "\"  }\\n\""
+                  }
                 }
               ]
             }
           ]
-        },
-        {
-          "instruction_type": "function_invocation",
-          "invocation_name": "append_to_buffer",
-          "invocation_arguments": {
-            "buf": "buffer",
-            "str": "header"
-          }
-        },
-        {
-          "instruction_type": "function_invocation",
-          "invocation_name": "compile_body",
-          "invocation_arguments": {
-            "instructions": "bon",
-            "buffer": "buffer"
-          }
-        },
-        {
-          "instruction_type": "function_invocation",
-          "invocation_name": "append_to_buffer",
-          "invocation_arguments": {
-            "buf": "buffer",
-            "str": "\"  } else {\\n\""
-          }
-        },
-        {
-          "instruction_type": "function_invocation",
-          "invocation_name": "compile_body",
-          "invocation_arguments": {
-            "instructions": "bof",
-            "buffer": "buffer"
-          }
-        },
-        {
-          "instruction_type": "function_invocation",
-          "invocation_name": "append_to_buffer",
-          "invocation_arguments": {
-            "buf": "buffer",
-            "str": "\"  }\\n\""
-          }
         }
       ]
     },

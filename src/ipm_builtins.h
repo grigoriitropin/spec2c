@@ -32,7 +32,7 @@ json_object* parse_json_string(string content);
 /* Hash table (sorted array — deterministic iteration) */
 subst_table* create_hash_table(void);
 void         hash_table_insert(subst_table *table, const char *key, const char *value);
-const char*  hash_table_lookup(const subst_table *table, const char *key);
+char*      hash_table_lookup(const subst_table *table, const char *key);
 void         hash_table_free(subst_table *table);
 int          hash_table_count(const subst_table *table);
 

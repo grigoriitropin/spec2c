@@ -67,7 +67,7 @@ void hash_table_insert(subst_table *table, const char *key, const char *value) {
     qsort(table->entries, (size_t)table->count, sizeof(subst_entry), compare_entries);
 }
 
-const char* hash_table_lookup(const subst_table *table, const char *key) {
+char* hash_table_lookup(const subst_table *table, const char *key) {
     if (!table || !key) return NULL;
     for (int i = 0; i < table->count; i++) {
         if (strcmp(table->entries[i].key, key) == 0)

@@ -274,6 +274,7 @@ static const char *vartype_to_c(const char *t) {
     if (!strcmp(t, "json_array")) return "cJSON *";
     if (!strcmp(t, "db_handle")) return "struct vehir_db *";
     if (!strcmp(t, "subst_table")) return "subst_table *";
+    if (!strcmp(t, "string_buffer")) return "string_buffer *";
     return "void *";
 }
 
@@ -399,10 +400,10 @@ static void compile_instructions(cJSON *instructions, FILE *out, int indent, con
             const char *key  = jstr(inst, "key_variable");
             const char *val  = jstr(inst, "value_variable");
             cJSON *body = cJSON_GetObjectItemCaseSensitive(inst, "body_instructions");
-            if (col && key && val && body) {
+            if (col && val && body) {
                 fprintf(out, "cJSON *%s = %s;\n", val, col);
                 fprintf(out, "cJSON_ArrayForEach(%s, %s) {\n", val, col);
-                fprintf(out, "  const char *%s = %s->string;\n", key, val);
+                if (key) fprintf(out, "  const char *%s = %s->string;\n", key, val);
                 fprintf(out, "  const char *%s_valstr = %s->valuestring;\n", val, val);
                 compile_instructions(body, out, indent + 1, return_type);
                 fprintf(out, "}\n");
