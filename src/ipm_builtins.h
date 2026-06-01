@@ -24,7 +24,7 @@ typedef struct {
 
 /* I/O */
 string read_file_to_string(const char *path);
-void   write_string_to_file(const char *path, string content);
+void   write_string_to_file(const char *path, const char *content);
 
 /* JSON */
 json_object* parse_json_string(string content);
@@ -37,7 +37,7 @@ void         hash_table_free(subst_table *table);
 int          hash_table_count(const subst_table *table);
 
 /* String substitution */
-string string_substitute(string template_str, const subst_table *table);
+string string_substitute(const char *template_str, const subst_table *table);
 
 /* String buffer (append-to-memory, flush once — deterministic codegen) */
 typedef struct { char *data; size_t len; size_t cap; } string_buffer;
@@ -50,6 +50,9 @@ void free_string_buffer(string_buffer *buf);
 void die_builtin(const char *msg);
 void print_error_to_stderr(const char *msg);
 void exit_process(int code);
+
+/* Type mapping */
+char* vartype_to_c(const char *type_name);
 
 /* AST-to-C compiler (Phase 2b built-in) */
 void compile_ast_functions_to_c(cJSON *spec_json, const char *output_path);

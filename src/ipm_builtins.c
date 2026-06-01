@@ -18,7 +18,7 @@ string read_file_to_string(const char *path) {
     return buffer;
 }
 
-void write_string_to_file(const char *path, string content) {
+void write_string_to_file(const char *path, const char *content) {
     if (!path || !content) return;
     FILE *f = fopen(path, "a");  /* append — caller manages file lifecycle */
     if (!f) return;
@@ -92,7 +92,7 @@ int hash_table_count(const subst_table *table) {
 
 /* ── String substitution ──────────────────────────────────────────────── */
 
-string string_substitute(string template_str, const subst_table *table) {
+string string_substitute(const char *template_str, const subst_table *table) {
     if (!template_str) return NULL;
     size_t rcap = strlen(template_str) * 2 + 256;
     char *result = malloc(rcap);
@@ -183,7 +183,8 @@ void exit_process(int code) {
 
 /* ── AST-to-C compiler (Phase 2b built-in) ───────────────────────────── */
 
-static const char *builtin_vartype_to_c(const char *t) {
+char *vartype_to_c(const char *t) {
+    if (!t) return "void *";
     if (!strcmp(t, "string")) return "char *";
     if (!strcmp(t, "int")) return "int";
     if (!strcmp(t, "float")) return "double";
@@ -192,6 +193,7 @@ static const char *builtin_vartype_to_c(const char *t) {
     if (!strcmp(t, "json_array")) return "cJSON *";
     if (!strcmp(t, "db_handle")) return "struct vehir_db *";
     if (!strcmp(t, "subst_table")) return "subst_table *";
+    if (!strcmp(t, "string_buffer")) return "string_buffer *";
     return "void *";
 }
 
@@ -236,6 +238,7 @@ static void builtin_compile_instructions(cJSON *instructions, FILE *out, int ind
                         if (!strcmp(rt, "string")) rc = "char *";
                         else if (!strcmp(rt, "json_object")) rc = "cJSON *";
                         else if (!strcmp(rt, "subst_table")) rc = "subst_table *";
+                        else if (!strcmp(rt, "string_buffer")) rc = "string_buffer *";
                         else if (!strcmp(rt, "int")) rc = "int";
                     }
                     fprintf(out, "%s %s = ", rc, rv);
@@ -322,7 +325,7 @@ static void builtin_compile_instructions(cJSON *instructions, FILE *out, int ind
             cJSON *st = cJSON_GetObjectItemCaseSensitive(inst, "source_target");
             const char *src = "";
             if (cJSON_IsString(st)) src = st->valuestring;
-            if (vn && op) fprintf(out, "%s %s = %s(%s);\n", builtin_vartype_to_c(vt), vn, op, src);
+            if (vn && op) fprintf(out, "%s %s = %s(%s);\n", vartype_to_c(vt), vn, op, src);
         }
     }
 }
@@ -360,7 +363,7 @@ void compile_ast_functions_to_c(cJSON *spec_json, const char *output_path) {
                 const char *pn = builtin_jstr(par, "parameter_name");
                 const char *pt = builtin_jstr(par, "parameter_type");
                 if (p > 0) fprintf(out, ", ");
-                fprintf(out, "%s %s", builtin_vartype_to_c(pt), pn);
+                fprintf(out, "%s %s", vartype_to_c(pt), pn);
             }
         }
         fprintf(out, ");\n");
@@ -390,7 +393,7 @@ void compile_ast_functions_to_c(cJSON *spec_json, const char *output_path) {
                 const char *pn = builtin_jstr(par, "parameter_name");
                 const char *pt = builtin_jstr(par, "parameter_type");
                 if (p > 0) fprintf(out, ", ");
-                fprintf(out, "%s %s", builtin_vartype_to_c(pt), pn);
+                fprintf(out, "%s %s", vartype_to_c(pt), pn);
             }
         }
         fprintf(out, ") {\n");
