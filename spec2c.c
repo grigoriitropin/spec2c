@@ -325,14 +325,16 @@ static void compile_instructions(cJSON *instructions, FILE *out, int indent, con
                     fprintf(out, "%s %s = ", rc, rv);
                 }
                 fprintf(out, "%s(", fn);
-                /* emit arguments — values are always variable references, never quoted */
+                /* emit arguments — quoted if starts with \" (literal), unquoted if variable */
                 if (args && cJSON_IsObject(args)) {
                     cJSON *arg = args->child; int first = 1;
                     while (arg) {
                         if (!first) fprintf(out, ", ");
-                        if (cJSON_IsString(arg)) fprintf(out, "%s", arg->valuestring);
-                        else if (cJSON_IsNumber(arg)) fprintf(out, "%d", arg->valueint);
-                        else fprintf(out, "%s", arg->valuestring);
+                        if (cJSON_IsString(arg)) {
+                            const char *sv = arg->valuestring;
+                            if (sv[0] == '"') fprintf(out, "%s", sv);  /* literal — already quoted */
+                            else fprintf(out, "%s", sv);                /* variable reference */
+                        } else if (cJSON_IsNumber(arg)) fprintf(out, "%d", arg->valueint);
                         first = 0;
                         arg = arg->next;
                     }

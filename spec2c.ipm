@@ -183,7 +183,7 @@
           "invocation_name": "hash_table_insert",
           "invocation_arguments": {
             "table_handle": "subst_table",
-            "entry_key": "package_name",
+            "entry_key": "\"package_name\"",
             "entry_value": "pkg_name"
           },
           "result_type": "void"
@@ -200,7 +200,7 @@
           "invocation_name": "hash_table_insert",
           "invocation_arguments": {
             "table_handle": "subst_table",
-            "entry_key": "package_type",
+            "entry_key": "\"package_type\"",
             "entry_value": "pkg_type"
           },
           "result_type": "void"
