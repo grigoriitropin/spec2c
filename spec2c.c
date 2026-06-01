@@ -266,6 +266,7 @@ static void ipm_add_subst(subst_t *subs, int *n, const char *k, const char *v) {
 /* ── Phase 2a: AST-to-C compiler ─────────────────────────────────────── */
 
 static const char *vartype_to_c(const char *t) {
+    if (!strcmp(t, "void")) return "void";
     if (!strcmp(t, "string")) return "char *";
     if (!strcmp(t, "int")) return "int";
     if (!strcmp(t, "float")) return "double";
@@ -312,6 +313,7 @@ static void compile_instructions(cJSON *instructions, FILE *out, int indent, con
                         else if (!strcmp(rt, "json_object")) rc = "cJSON *";
                         else if (!strcmp(rt, "json_array")) rc = "cJSON *";
                         else if (!strcmp(rt, "subst_table")) rc = "subst_table *";
+                        else if (!strcmp(rt, "string_buffer")) rc = "string_buffer *";
                         else if (!strcmp(rt, "int")) rc = "int";
                         else if (!strcmp(rt, "void")) rc = "void";
                     } else {

@@ -54,7 +54,4 @@ void exit_process(int code);
 /* Type mapping */
 char* vartype_to_c(const char *type_name);
 
-/* AST-to-C compiler (Phase 2b built-in) */
-void compile_ast_functions_to_c(cJSON *spec_json, const char *output_path);
-
 #endif /* IPM_BUILTINS_H */
