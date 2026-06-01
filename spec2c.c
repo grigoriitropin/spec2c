@@ -400,6 +400,7 @@ static void compile_instructions(cJSON *instructions, FILE *out, int indent, con
                 fprintf(out, "cJSON *%s = %s;\n", val, col);
                 fprintf(out, "cJSON_ArrayForEach(%s, %s) {\n", val, col);
                 fprintf(out, "  const char *%s = %s->string;\n", key, val);
+                fprintf(out, "  const char *%s_valstr = %s->valuestring;\n", val, val);
                 compile_instructions(body, out, indent + 1, return_type);
                 fprintf(out, "}\n");
             }
