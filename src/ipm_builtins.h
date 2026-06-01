@@ -45,6 +45,6 @@ void print_error_to_stderr(const char *msg);
 void exit_process(int code);
 
 /* AST-to-C compiler (Phase 2b built-in) */
-void compile_ast_functions_to_c(cJSON *spec_json, FILE *out);
+void compile_ast_functions_to_c(cJSON *spec_json, const char *output_path);
 
 #endif /* IPM_BUILTINS_H */

@@ -276,9 +276,11 @@ static void builtin_compile_instructions(cJSON *instructions, FILE *out, int ind
     }
 }
 
-void compile_ast_functions_to_c(cJSON *spec_json, FILE *out) {
+void compile_ast_functions_to_c(cJSON *spec_json, const char *output_path) {
     cJSON *funcs = cJSON_GetObjectItemCaseSensitive(spec_json, "function_definitions");
     if (!funcs || !cJSON_IsObject(funcs)) return;
+    FILE *out = output_path ? fopen(output_path, "w") : stdout;
+    if (!out) return;
     cJSON *fn = funcs->child;
     /* forward declarations */
     while (fn) {
@@ -337,4 +339,5 @@ void compile_ast_functions_to_c(cJSON *spec_json, FILE *out) {
         fprintf(out, "}\n\n");
         fn = fn->next;
     }
+    if (output_path) fclose(out);
 }
