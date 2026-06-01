@@ -315,6 +315,15 @@
             },
             {
               "instruction_type": "function_invocation",
+              "invocation_name": "write_string_to_file",
+              "invocation_arguments": {
+                "path": "output_file_path",
+                "content": "\"/* --- template: \""
+              },
+              "result_type": "void"
+            },
+            {
+              "instruction_type": "function_invocation",
               "invocation_name": "string_substitute",
               "invocation_arguments": {
                 "template": "template_entry_valstr",
@@ -332,6 +341,75 @@
               }
             }
           ]
+        },
+        {
+          "instruction_type": "return_statement",
+          "return_payload": {
+            "execution_status": "success"
+          }
+        }
+      ]
+    },
+    "name_to_ident": {
+      "description": "Convert package name to C identifier — replace hyphens with underscores",
+      "return_type": "string",
+      "parameter_definitions": [
+        {
+          "parameter_name": "input_name",
+          "parameter_type": "string",
+          "description": "Package name with hyphens"
+        }
+      ],
+      "execution_instructions": [
+        {
+          "instruction_type": "function_invocation",
+          "invocation_name": "string_substitute",
+          "invocation_arguments": {
+            "template_str": "input_name",
+            "table": "{repl}"
+          },
+          "result_assignment_variable": "identifier",
+          "result_type": "string"
+        },
+        {
+          "instruction_type": "return_statement",
+          "return_payload": {
+            "execution_status": "success",
+            "value": "identifier"
+          }
+        }
+      ]
+    },
+    "ipm_add_subst": {
+      "description": "Add a key-value pair to the substitution hash table",
+      "return_type": "void",
+      "parameter_definitions": [
+        {
+          "parameter_name": "table",
+          "parameter_type": "subst_table",
+          "description": "Hash table to insert into"
+        },
+        {
+          "parameter_name": "key",
+          "parameter_type": "string",
+          "description": "Substitution key name"
+        },
+        {
+          "parameter_name": "value",
+          "parameter_type": "string",
+          "description": "Substitution value"
+        }
+      ],
+      "execution_instructions": [
+        {
+          "instruction_type": "function_invocation",
+          "invocation_name": "hash_table_insert",
+          "invocation_arguments": {
+            "table_handle": "table",
+            "entry_key": "\"key\"",
+            "entry_value": "value"
+          },
+          "result_type": "void"
         },
         {
           "instruction_type": "return_statement",
