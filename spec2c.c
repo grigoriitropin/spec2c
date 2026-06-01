@@ -441,6 +441,9 @@ static void compile_functions_to_c(const ipm_spec_t *spec, FILE *out) {
         fn = fn->next;
     }
     fprintf(out, "\n");
+
+    /* Generate function bodies */
+    fn = funcs->child;
     while (fn) {
         const char *name = fn->string;
         const char *desc = jstr(fn, "description");
