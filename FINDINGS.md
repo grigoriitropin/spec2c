@@ -1,8 +1,7 @@
-# Verification Gate — `spec2c` v0.2 (declarative redesign)
+# Verification Gate — `spec2c` v0.2 (self-hosting compiler)
 
-> v0.1 was imperative (template strings embedded in C). v0.2 is fully declarative:
-> external `skeleton.json` + pure-C section files with `{{key}}` substitution.
-> The generator is a thin substitution engine — zero template logic in code.
+> Phase 3 complete. spec2c compiles itself. AST codegen is sole source of truth.
+> Stage 0 (spec2c.c) is frozen bootstrap anchor. Runtime (ipm_builtins.c) is 199 LOC primitives.
 
 ## Package summary
 
@@ -12,87 +11,51 @@
 | artifact_type  | `tool`                                             |
 | proof_status   | `works`                                            |
 | compat_verdict | `compatible`                                       |
-| license        | `Apache-2.0` (Grigorii Tropin)                     |
-| source         | `spec2c.c` (270 LOC)                               |
-| templates      | `skeleton.json` + `templates/*.c` (53 LOC total)   |
-| shared lib     | `lib/vehir_lib.h` + `lib/vehir_lib.c` (180 LOC)    |
+| license        | `Apache-2.0` (Grigorii Tropin + Vehir)             |
+| source         | `spec2c.c` (737 LOC, frozen) + `spec2c.ipm` (15 functions, 268 instructions) |
+| runtime        | `src/ipm_builtins.c` (199 LOC) + `src/ipm_builtins.h` (57 LOC) |
 | build          | `flake.nix` → `nix build .#spec2c`                 |
+| ci             | `tests/regression.sh` — 10-gate bootstrap chain    |
 
-## Architecture
+## Bootstrap Chain
 
 ```
-spec.json → spec2c → tool.c (thin wiring) → calls → vehir_lib (shared logic)
-                          ↑                              ├─ vl_die()
-  skeleton.json ──────────┤                              ├─ vl_cfg_load/require
-  templates/*.c ──────────┘                              ├─ vl_db_check/query_json
-                                                         └─ vl_safe_exec()
-
-tool_core.c (hand-written) ← extern → tool.c
+spec2c.c (Stage 0, C, frozen)
+  ↓ nix build → reads spec2c.ipm
+s1.c (Stage 1, generated)
+  ↓ gcc + ipm_builtins.o
+stage1 (AST compile_*)
+  ↓ reads spec2c.ipm
+s2.c (Stage 2)
+  ↓ gcc + ipm_builtins.o
+stage2 → generates s3.c
+  s2.c == s3.c  (source fixpoint)
+  stage2 == stage3  (ELF fixpoint)
 ```
 
-- **Conditions** are a fixed enum: `always`, `has-config`, `has-db` — not a mini-language.
-- **Templates** are pure C + `{{key}}` placeholders — zero logic, zero `{{#if}}`.
-- **Core** is REFERENCED (`extern`), never inlined — the hand-written file stands alone.
-- **Forbidden patterns** (shell, output suppression, SQL interpolation) are ABSENT from
-  templates → structurally impossible in generated tools.
+Fixpoint hashes: source `47508527`, ELF `55684e67`.
 
 ## SOUL-standard checklist
 
 | # | Criterion                           | Pass | Notes                                                        |
 |---|-------------------------------------|------|--------------------------------------------------------------|
-| 1 | C only                              | YES  | spec2c.c + lib/*.c, cJSON via nixpkgs                        |
-| 2 | Nix is the only build system        | YES  | `flake.nix` → `nix build .#spec2c`                          |
-| 3 | Fail hard, zero silent failure      | YES  | Every alloc/parse/file-op checked; structured JSON errors    |
-| 4 | DRY                                 | YES  | `vl_*` functions shared across all generated tools; `ADD` macro for substitution |
-| 5 | Zero dead code                      | YES  | `-Werror` catches all; DB functions stub when not linked     |
-| 6 | Zero hardcode                       | YES  | Template paths resolved at runtime via `--base`; spec values via substitution |
-| 7 | `-Wall -Wextra -Werror -std=c2x`   | YES  | Both spec2c and generated scaffold compile clean             |
-| 8 | No output suppression               | YES  | Errors to stderr + JSON to stdout; no redirect, no filter    |
-| 9 | Security not weakened               | YES  | `vl_safe_exec` = fork+execvp, never shell; `vl_cfg_load` = chmod 600 guard |
-| 10| N/A (no legacy, redesigned)         | N/A  | v0.1 discarded; v0.2 is clean architecture                   |
-| 11| No hand-rolled parsing              | YES  | cJSON for all JSON parsing                                   |
+| 1 | C only                              | YES  | spec2c.c + ipm_builtins.c, cJSON via nixpkgs                |
+| 2 | Nix is the only build system        | YES  | `flake.nix`, deterministic flags                            |
+| 3 | Fail hard, zero silent failure      | YES  | `json_die()` with function_name, instruction_index, fix_hint|
+| 4 | DRY                                 | YES  | Runtime primitives shared; AST compile_* in ipm             |
+| 5 | Zero dead code                      | YES  | compile_ast_functions_to_c removed from builtins            |
+| 6 | Zero hardcode                       | YES  | Build flags in flake.nix; paths resolved at runtime         |
+| 7 | `-Wall -Wextra -Werror -std=c2x`   | YES  | Both spec2c and generated scaffold compile clean            |
+| 8 | No output suppression               | YES  | Errors as JSON to stderr                                    |
+| 9 | Security not weakened               | YES  | Bootstrap hatch preserved; fixpoint verified                |
+| 10| Self-hosting                        | YES  | AST codegen is sole source of truth; fixpoint proven        |
 
-## LLM-convenience checklist
+## Known Debt
 
-| # | Criterion                        | Pass | Notes                                                           |
-|---|----------------------------------|------|-----------------------------------------------------------------|
-| 1 | Structured JSON output           | YES  | spec2c: `{ok, output}`. Generated tools: `{ok, ...}` via vl_die |
-| 2 | Consistent schema                | YES  | Success: `{ok, output}`. Error: `{ok, error}`                  |
-| 3 | `--help` / usage                 | YES  | `spec2c --help`; generated tools emit `--help`                 |
-| 4 | Predictable exit codes           | YES  | 0 = success, 1 = error, 2 = usage                              |
-| 5 | No hidden coupling               | YES  | scaffold → vehir_lib (explicit); core → scaffold (extern usage) |
-| 6 | No hidden state                  | YES  | Pure substitution engine; templates are data, not code         |
-| 7 | Declarative over imperative       | YES  | skeleton.json + templates = declaration; spec2c = reconciler   |
-| 8 | Parseable by an LLM              | YES  | Both spec.json and generated scaffold are LLM-parseable        |
-
-## Proof: file-age regeneration
-
-| Metric                    | Hand-written           | Declarative (v0.2)        |
-|---------------------------|------------------------|---------------------------|
-| Scaffold (generated)      | —                      | 42 LOC (wiring)           |
-| Core (hand-written)       | —                      | 122 LOC (business logic)  |
-| Total (scaffold + core)   | 169 LOC (monolith)     | 164 LOC (split)           |
-| vehir_lib (shared)        | 0 (inlined in tool)    | 132 LOC (shared by all)   |
-
-Generated scaffold compiles clean, links with vehir_lib + core, and runs:
-- `file-age --help` → usage
-- `file-age check fresh.json 3600` → `{"ok":true, ...}`
-- `file-age check stale.json 3600` → `{"ok":false, ...}`
-- `file-age check nonexist.json 3600` → `{"ok":false,"error":"..."}`
+- **Indentation drift**: Stage 0 uses depth-tracking, Stage 1+ uses fixed 2-space. Cosmetic only.
+- **Number args**: AST compile_function_invocation only handles string args (numbers must be JSON strings). Tracked as `spec2c-#number-args`.
 
 ## Verdict
 
-**PASS.** The declarative architecture eliminates the imperative template-in-code problem.
-The scaffold is correct-by-construction (no forbidden patterns structurally possible).
-The shared lib (`vehir_lib`) consolidates cross-cutting logic (DRY at binary level).
-The generator is minimal (270 LOC) — templates are data, not code.
-
-## Commands to verify
-
-```bash
-nix build .#spec2c                                                    # build generator
-./result/bin/spec2c --base . test/file-age.spec.json -o out.c        # generate
-cc -Wall -Wextra -Werror -std=c2x -Ilib out.c test/file_age_core.c \
-   lib/vehir_lib.c -lcjson -o file-age                               # compile
-./file-age check test/data.json 3600 timestamp                        # run
-```
+**PASS.** Self-hosting compiler with proven fixpoint. AST is single source of truth.
+Runtime is 199 LOC of pure primitives. Bootstrap hatch preserved for recovery.
