@@ -1278,6 +1278,40 @@
             },
             {
               "instruction_type": "function_invocation",
+              "invocation_name": "create_hash_table",
+              "invocation_arguments": {},
+              "result_assignment_variable": "t_valstr",
+              "result_type": "subst_table"
+            },
+            {
+              "instruction_type": "function_invocation",
+              "invocation_name": "hash_table_insert",
+              "invocation_arguments": {
+                "table_handle": "t_valstr",
+                "entry_key": "\"ITEM\"",
+                "entry_value": "item"
+              }
+            },
+            {
+              "instruction_type": "function_invocation",
+              "invocation_name": "string_substitute",
+              "invocation_arguments": {
+                "template_str": "\"    const char *{{ITEM}}_valstr = {{ITEM}} ? {{ITEM}}->valuestring : \\\"\\\";\\n\"",
+                "table": "t_valstr"
+              },
+              "result_assignment_variable": "valstr_line",
+              "result_type": "string"
+            },
+            {
+              "instruction_type": "function_invocation",
+              "invocation_name": "append_to_buffer",
+              "invocation_arguments": {
+                "buf": "buf",
+                "str": "valstr_line"
+              }
+            },
+            {
+              "instruction_type": "function_invocation",
               "invocation_name": "compile_body",
               "invocation_arguments": {
                 "instructions": "body",

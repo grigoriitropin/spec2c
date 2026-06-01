@@ -394,6 +394,7 @@ static void compile_instructions(cJSON *instructions, FILE *out, int indent, con
                 fprintf(out, "for (int _i_%s = 0; _i_%s < cJSON_GetArraySize(%s); _i_%s++) {\n",
                         col, col, col, col);
                 fprintf(out, "  cJSON *%s = cJSON_GetArrayItem(%s, _i_%s);\n", item, col, col);
+                fprintf(out, "  const char *%s_valstr = %s ? %s->valuestring : \"\";\n", item, item, item);
                 compile_instructions(body, out, indent + 1, return_type);
                 fprintf(out, "%*c}\n", indent * 2, ' ');
             }
