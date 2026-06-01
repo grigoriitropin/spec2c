@@ -35,359 +35,12 @@
           "branch_on_success": [
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "create_string_buffer",
-              "invocation_arguments": {},
-              "result_assignment_variable": "hdr_buf",
-              "result_type": "string_buffer"
-            },
-            {
-              "instruction_type": "function_invocation",
-              "invocation_name": "create_hash_table",
-              "invocation_arguments": {},
-              "result_assignment_variable": "t_guard",
-              "result_type": "subst_table"
-            },
-            {
-              "instruction_type": "function_invocation",
-              "invocation_name": "hash_table_insert",
+              "invocation_name": "compile_ast_generate_header",
               "invocation_arguments": {
-                "table_handle": "t_guard",
-                "entry_key": "\"MOD\"",
-                "entry_value": "modname"
-              }
-            },
-            {
-              "instruction_type": "function_invocation",
-              "invocation_name": "string_substitute",
-              "invocation_arguments": {
-                "template_str": "\"/* Auto-generated from {{MOD}}.ipm */\\n#ifndef {{MOD}}_H\\n#define {{MOD}}_H\\n\\n#include \\\"ipm_builtins.h\\\"\\n\"",
-                "table": "t_guard"
+                "spec_json": "spec_json",
+                "modname": "modname"
               },
-              "result_assignment_variable": "guard_hdr",
-              "result_type": "string"
-            },
-            {
-              "instruction_type": "function_invocation",
-              "invocation_name": "append_to_buffer",
-              "invocation_arguments": {
-                "buf": "hdr_buf",
-                "str": "guard_hdr"
-              }
-            },
-            {
-              "instruction_type": "access_json_field",
-              "variable_name": "imports",
-              "variable_type": "json_array",
-              "source_object": "spec_json",
-              "field_name": "imports"
-            },
-            {
-              "instruction_type": "conditional_branch",
-              "condition_operation": "is_not_null",
-              "condition_target": "imports",
-              "branch_on_success": [
-                {
-                  "instruction_type": "iterate_over_collection",
-                  "collection_variable": "imports",
-                  "item_variable": "imp",
-                  "body_instructions": [
-                    {
-                      "instruction_type": "function_invocation",
-                      "invocation_name": "create_hash_table",
-                      "invocation_arguments": {},
-                      "result_assignment_variable": "t_imp",
-                      "result_type": "subst_table"
-                    },
-                    {
-                      "instruction_type": "function_invocation",
-                      "invocation_name": "hash_table_insert",
-                      "invocation_arguments": {
-                        "table_handle": "t_imp",
-                        "entry_key": "\"IMP\"",
-                        "entry_value": "imp_valstr"
-                      }
-                    },
-                    {
-                      "instruction_type": "function_invocation",
-                      "invocation_name": "string_substitute",
-                      "invocation_arguments": {
-                        "template_str": "\"#include \\\"{{IMP}}.h\\\"\\n\"",
-                        "table": "t_imp"
-                      },
-                      "result_assignment_variable": "imp_line",
-                      "result_type": "string"
-                    },
-                    {
-                      "instruction_type": "function_invocation",
-                      "invocation_name": "append_to_buffer",
-                      "invocation_arguments": {
-                        "buf": "hdr_buf",
-                        "str": "imp_line"
-                      }
-                    }
-                  ]
-                }
-              ],
-              "branch_on_failure": []
-            },
-            {
-              "instruction_type": "access_json_field",
-              "variable_name": "funcs_fwd",
-              "variable_type": "json_object",
-              "source_object": "spec_json",
-              "field_name": "function_definitions"
-            },
-            {
-              "instruction_type": "conditional_branch",
-              "condition_operation": "is_not_null",
-              "condition_target": "funcs_fwd",
-              "branch_on_success": [
-                {
-                  "instruction_type": "iterate_over_object_keys",
-                  "collection_variable": "funcs_fwd",
-                  "key_variable": "fn_name_fwd",
-                  "value_variable": "fn_spec_fwd",
-                  "body_instructions": [
-                    {
-                      "instruction_type": "access_json_field",
-                      "variable_name": "ret_fwd",
-                      "variable_type": "string",
-                      "source_object": "fn_spec_fwd",
-                      "field_name": "return_type"
-                    },
-                    {
-                      "instruction_type": "function_invocation",
-                      "invocation_name": "vartype_to_c",
-                      "invocation_arguments": {
-                        "t": "ret_fwd"
-                      },
-                      "result_assignment_variable": "ret_c_fwd",
-                      "result_type": "string"
-                    },
-                    {
-                      "instruction_type": "function_invocation",
-                      "invocation_name": "append_to_buffer",
-                      "invocation_arguments": {
-                        "buf": "hdr_buf",
-                        "str": "ret_c_fwd"
-                      }
-                    },
-                    {
-                      "instruction_type": "function_invocation",
-                      "invocation_name": "append_to_buffer",
-                      "invocation_arguments": {
-                        "buf": "hdr_buf",
-                        "str": "\" \""
-                      }
-                    },
-                    {
-                      "instruction_type": "function_invocation",
-                      "invocation_name": "append_to_buffer",
-                      "invocation_arguments": {
-                        "buf": "hdr_buf",
-                        "str": "fn_name_fwd"
-                      }
-                    },
-                    {
-                      "instruction_type": "function_invocation",
-                      "invocation_name": "append_to_buffer",
-                      "invocation_arguments": {
-                        "buf": "hdr_buf",
-                        "str": "\"(\""
-                      }
-                    },
-                    {
-                      "instruction_type": "access_json_field",
-                      "variable_name": "params_fwd",
-                      "variable_type": "json_array",
-                      "source_object": "fn_spec_fwd",
-                      "field_name": "parameter_definitions"
-                    },
-                    {
-                      "instruction_type": "conditional_branch",
-                      "condition_operation": "is_not_null",
-                      "condition_target": "params_fwd",
-                      "branch_on_success": [
-                        {
-                          "instruction_type": "function_invocation",
-                          "invocation_name": "create_hash_table",
-                          "invocation_arguments": {},
-                          "result_assignment_variable": "t_pflag",
-                          "result_type": "subst_table"
-                        },
-                        {
-                          "instruction_type": "function_invocation",
-                          "invocation_name": "hash_table_insert",
-                          "invocation_arguments": {
-                            "table_handle": "t_pflag",
-                            "entry_key": "\"first\"",
-                            "entry_value": "\"1\""
-                          }
-                        },
-                        {
-                          "instruction_type": "iterate_over_collection",
-                          "collection_variable": "params_fwd",
-                          "item_variable": "par_fwd",
-                          "body_instructions": [
-                            {
-                              "instruction_type": "access_json_field",
-                              "variable_name": "par_name",
-                              "variable_type": "string",
-                              "source_object": "par_fwd",
-                              "field_name": "parameter_name"
-                            },
-                            {
-                              "instruction_type": "access_json_field",
-                              "variable_name": "par_type",
-                              "variable_type": "string",
-                              "source_object": "par_fwd",
-                              "field_name": "parameter_type"
-                            },
-                            {
-                              "instruction_type": "function_invocation",
-                              "invocation_name": "vartype_to_c",
-                              "invocation_arguments": {
-                                "t": "par_type"
-                              },
-                              "result_assignment_variable": "par_ct",
-                              "result_type": "string"
-                            },
-                            {
-                              "instruction_type": "function_invocation",
-                              "invocation_name": "hash_table_lookup",
-                              "invocation_arguments": {
-                                "table": "t_pflag",
-                                "key": "\"first\""
-                              },
-                              "result_assignment_variable": "par_first",
-                              "result_type": "string"
-                            },
-                            {
-                              "instruction_type": "conditional_branch",
-                              "condition_operation": "string_equals",
-                              "condition_target": "par_first",
-                              "condition_value": "1",
-                              "branch_on_success": [
-                                {
-                                  "instruction_type": "function_invocation",
-                                  "invocation_name": "hash_table_insert",
-                                  "invocation_arguments": {
-                                    "table_handle": "t_pflag",
-                                    "entry_key": "\"first\"",
-                                    "entry_value": "\"0\""
-                                  }
-                                }
-                              ],
-                              "branch_on_failure": [
-                                {
-                                  "instruction_type": "function_invocation",
-                                  "invocation_name": "append_to_buffer",
-                                  "invocation_arguments": {
-                                    "buf": "hdr_buf",
-                                    "str": "\", \""
-                                  }
-                                }
-                              ]
-                            },
-                            {
-                              "instruction_type": "function_invocation",
-                              "invocation_name": "append_to_buffer",
-                              "invocation_arguments": {
-                                "buf": "hdr_buf",
-                                "str": "par_ct"
-                              }
-                            },
-                            {
-                              "instruction_type": "function_invocation",
-                              "invocation_name": "append_to_buffer",
-                              "invocation_arguments": {
-                                "buf": "hdr_buf",
-                                "str": "\" \""
-                              }
-                            },
-                            {
-                              "instruction_type": "function_invocation",
-                              "invocation_name": "append_to_buffer",
-                              "invocation_arguments": {
-                                "buf": "hdr_buf",
-                                "str": "par_name"
-                              }
-                            }
-                          ]
-                        }
-                      ],
-                      "branch_on_failure": []
-                    },
-                    {
-                      "instruction_type": "function_invocation",
-                      "invocation_name": "append_to_buffer",
-                      "invocation_arguments": {
-                        "buf": "hdr_buf",
-                        "str": "\");\\n\""
-                      }
-                    }
-                  ]
-                }
-              ],
-              "branch_on_failure": []
-            },
-            {
-              "instruction_type": "function_invocation",
-              "invocation_name": "append_to_buffer",
-              "invocation_arguments": {
-                "buf": "hdr_buf",
-                "str": "\"\\n\""
-              }
-            },
-            {
-              "instruction_type": "function_invocation",
-              "invocation_name": "create_hash_table",
-              "invocation_arguments": {},
-              "result_assignment_variable": "t_endguard",
-              "result_type": "subst_table"
-            },
-            {
-              "instruction_type": "function_invocation",
-              "invocation_name": "hash_table_insert",
-              "invocation_arguments": {
-                "table_handle": "t_endguard",
-                "entry_key": "\"MOD\"",
-                "entry_value": "modname"
-              }
-            },
-            {
-              "instruction_type": "function_invocation",
-              "invocation_name": "string_substitute",
-              "invocation_arguments": {
-                "template_str": "\"\\n#endif /* {{MOD}}_H */\\n\"",
-                "table": "t_endguard"
-              },
-              "result_assignment_variable": "end_guard",
-              "result_type": "string"
-            },
-            {
-              "instruction_type": "function_invocation",
-              "invocation_name": "append_to_buffer",
-              "invocation_arguments": {
-                "buf": "hdr_buf",
-                "str": "end_guard"
-              }
-            },
-            {
-              "instruction_type": "function_invocation",
-              "invocation_name": "create_hash_table",
-              "invocation_arguments": {},
-              "result_assignment_variable": "t_hdrpath",
-              "result_type": "subst_table"
-            },
-            {
-              "instruction_type": "function_invocation",
-              "invocation_name": "hash_table_insert",
-              "invocation_arguments": {
-                "table_handle": "t_hdrpath",
-                "entry_key": "\"MOD\"",
-                "entry_value": "modname"
-              }
+              "result_type": "void"
             },
             {
               "instruction_type": "function_invocation",
@@ -970,6 +623,378 @@
           "invocation_name": "free_string_buffer",
           "invocation_arguments": {
             "buf": "buf"
+          }
+        }
+      ]
+    },
+    "compile_ast_generate_header": {
+      "description": "Generate .h file: include guard, imports, forward declarations",
+      "return_type": "void",
+      "parameter_definitions": [
+        {
+          "parameter_name": "spec_json",
+          "parameter_type": "json_object"
+        },
+        {
+          "parameter_name": "modname",
+          "parameter_type": "string"
+        }
+      ],
+      "execution_instructions": [
+        {
+          "instruction_type": "function_invocation",
+          "invocation_name": "create_string_buffer",
+          "invocation_arguments": {},
+          "result_assignment_variable": "hdr_buf",
+          "result_type": "string_buffer"
+        },
+        {
+          "instruction_type": "function_invocation",
+          "invocation_name": "create_hash_table",
+          "invocation_arguments": {},
+          "result_assignment_variable": "t_guard",
+          "result_type": "subst_table"
+        },
+        {
+          "instruction_type": "function_invocation",
+          "invocation_name": "hash_table_insert",
+          "invocation_arguments": {
+            "table_handle": "t_guard",
+            "entry_key": "\"MOD\"",
+            "entry_value": "modname"
+          }
+        },
+        {
+          "instruction_type": "function_invocation",
+          "invocation_name": "string_substitute",
+          "invocation_arguments": {
+            "template_str": "\"/* Auto-generated from {{MOD}}.ipm */\\n#ifndef {{MOD}}_H\\n#define {{MOD}}_H\\n\\n#include \\\"ipm_builtins.h\\\"\\n\"",
+            "table": "t_guard"
+          },
+          "result_assignment_variable": "guard_hdr",
+          "result_type": "string"
+        },
+        {
+          "instruction_type": "function_invocation",
+          "invocation_name": "append_to_buffer",
+          "invocation_arguments": {
+            "buf": "hdr_buf",
+            "str": "guard_hdr"
+          }
+        },
+        {
+          "instruction_type": "access_json_field",
+          "variable_name": "imports",
+          "variable_type": "json_array",
+          "source_object": "spec_json",
+          "field_name": "imports"
+        },
+        {
+          "instruction_type": "conditional_branch",
+          "condition_operation": "is_not_null",
+          "condition_target": "imports",
+          "branch_on_success": [
+            {
+              "instruction_type": "iterate_over_collection",
+              "collection_variable": "imports",
+              "item_variable": "imp",
+              "body_instructions": [
+                {
+                  "instruction_type": "function_invocation",
+                  "invocation_name": "create_hash_table",
+                  "invocation_arguments": {},
+                  "result_assignment_variable": "t_imp",
+                  "result_type": "subst_table"
+                },
+                {
+                  "instruction_type": "function_invocation",
+                  "invocation_name": "hash_table_insert",
+                  "invocation_arguments": {
+                    "table_handle": "t_imp",
+                    "entry_key": "\"IMP\"",
+                    "entry_value": "imp_valstr"
+                  }
+                },
+                {
+                  "instruction_type": "function_invocation",
+                  "invocation_name": "string_substitute",
+                  "invocation_arguments": {
+                    "template_str": "\"#include \\\"{{IMP}}.h\\\"\\n\"",
+                    "table": "t_imp"
+                  },
+                  "result_assignment_variable": "imp_line",
+                  "result_type": "string"
+                },
+                {
+                  "instruction_type": "function_invocation",
+                  "invocation_name": "append_to_buffer",
+                  "invocation_arguments": {
+                    "buf": "hdr_buf",
+                    "str": "imp_line"
+                  }
+                }
+              ]
+            }
+          ],
+          "branch_on_failure": []
+        },
+        {
+          "instruction_type": "access_json_field",
+          "variable_name": "funcs_fwd",
+          "variable_type": "json_object",
+          "source_object": "spec_json",
+          "field_name": "function_definitions"
+        },
+        {
+          "instruction_type": "conditional_branch",
+          "condition_operation": "is_not_null",
+          "condition_target": "funcs_fwd",
+          "branch_on_success": [
+            {
+              "instruction_type": "iterate_over_object_keys",
+              "collection_variable": "funcs_fwd",
+              "key_variable": "fn_name_fwd",
+              "value_variable": "fn_spec_fwd",
+              "body_instructions": [
+                {
+                  "instruction_type": "access_json_field",
+                  "variable_name": "ret_fwd",
+                  "variable_type": "string",
+                  "source_object": "fn_spec_fwd",
+                  "field_name": "return_type"
+                },
+                {
+                  "instruction_type": "function_invocation",
+                  "invocation_name": "vartype_to_c",
+                  "invocation_arguments": {
+                    "t": "ret_fwd"
+                  },
+                  "result_assignment_variable": "ret_c_fwd",
+                  "result_type": "string"
+                },
+                {
+                  "instruction_type": "function_invocation",
+                  "invocation_name": "append_to_buffer",
+                  "invocation_arguments": {
+                    "buf": "hdr_buf",
+                    "str": "ret_c_fwd"
+                  }
+                },
+                {
+                  "instruction_type": "function_invocation",
+                  "invocation_name": "append_to_buffer",
+                  "invocation_arguments": {
+                    "buf": "hdr_buf",
+                    "str": "\" \""
+                  }
+                },
+                {
+                  "instruction_type": "function_invocation",
+                  "invocation_name": "append_to_buffer",
+                  "invocation_arguments": {
+                    "buf": "hdr_buf",
+                    "str": "fn_name_fwd"
+                  }
+                },
+                {
+                  "instruction_type": "function_invocation",
+                  "invocation_name": "append_to_buffer",
+                  "invocation_arguments": {
+                    "buf": "hdr_buf",
+                    "str": "\"(\""
+                  }
+                },
+                {
+                  "instruction_type": "access_json_field",
+                  "variable_name": "params_fwd",
+                  "variable_type": "json_array",
+                  "source_object": "fn_spec_fwd",
+                  "field_name": "parameter_definitions"
+                },
+                {
+                  "instruction_type": "conditional_branch",
+                  "condition_operation": "is_not_null",
+                  "condition_target": "params_fwd",
+                  "branch_on_success": [
+                    {
+                      "instruction_type": "function_invocation",
+                      "invocation_name": "create_hash_table",
+                      "invocation_arguments": {},
+                      "result_assignment_variable": "t_pflag",
+                      "result_type": "subst_table"
+                    },
+                    {
+                      "instruction_type": "function_invocation",
+                      "invocation_name": "hash_table_insert",
+                      "invocation_arguments": {
+                        "table_handle": "t_pflag",
+                        "entry_key": "\"first\"",
+                        "entry_value": "\"1\""
+                      }
+                    },
+                    {
+                      "instruction_type": "iterate_over_collection",
+                      "collection_variable": "params_fwd",
+                      "item_variable": "par_fwd",
+                      "body_instructions": [
+                        {
+                          "instruction_type": "access_json_field",
+                          "variable_name": "par_name",
+                          "variable_type": "string",
+                          "source_object": "par_fwd",
+                          "field_name": "parameter_name"
+                        },
+                        {
+                          "instruction_type": "access_json_field",
+                          "variable_name": "par_type",
+                          "variable_type": "string",
+                          "source_object": "par_fwd",
+                          "field_name": "parameter_type"
+                        },
+                        {
+                          "instruction_type": "function_invocation",
+                          "invocation_name": "vartype_to_c",
+                          "invocation_arguments": {
+                            "t": "par_type"
+                          },
+                          "result_assignment_variable": "par_ct",
+                          "result_type": "string"
+                        },
+                        {
+                          "instruction_type": "function_invocation",
+                          "invocation_name": "hash_table_lookup",
+                          "invocation_arguments": {
+                            "table": "t_pflag",
+                            "key": "\"first\""
+                          },
+                          "result_assignment_variable": "par_first",
+                          "result_type": "string"
+                        },
+                        {
+                          "instruction_type": "conditional_branch",
+                          "condition_operation": "string_equals",
+                          "condition_target": "par_first",
+                          "condition_value": "1",
+                          "branch_on_success": [
+                            {
+                              "instruction_type": "function_invocation",
+                              "invocation_name": "hash_table_insert",
+                              "invocation_arguments": {
+                                "table_handle": "t_pflag",
+                                "entry_key": "\"first\"",
+                                "entry_value": "\"0\""
+                              }
+                            }
+                          ],
+                          "branch_on_failure": [
+                            {
+                              "instruction_type": "function_invocation",
+                              "invocation_name": "append_to_buffer",
+                              "invocation_arguments": {
+                                "buf": "hdr_buf",
+                                "str": "\", \""
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "instruction_type": "function_invocation",
+                          "invocation_name": "append_to_buffer",
+                          "invocation_arguments": {
+                            "buf": "hdr_buf",
+                            "str": "par_ct"
+                          }
+                        },
+                        {
+                          "instruction_type": "function_invocation",
+                          "invocation_name": "append_to_buffer",
+                          "invocation_arguments": {
+                            "buf": "hdr_buf",
+                            "str": "\" \""
+                          }
+                        },
+                        {
+                          "instruction_type": "function_invocation",
+                          "invocation_name": "append_to_buffer",
+                          "invocation_arguments": {
+                            "buf": "hdr_buf",
+                            "str": "par_name"
+                          }
+                        }
+                      ]
+                    }
+                  ],
+                  "branch_on_failure": []
+                },
+                {
+                  "instruction_type": "function_invocation",
+                  "invocation_name": "append_to_buffer",
+                  "invocation_arguments": {
+                    "buf": "hdr_buf",
+                    "str": "\");\\n\""
+                  }
+                }
+              ]
+            }
+          ],
+          "branch_on_failure": []
+        },
+        {
+          "instruction_type": "function_invocation",
+          "invocation_name": "append_to_buffer",
+          "invocation_arguments": {
+            "buf": "hdr_buf",
+            "str": "\"\\n\""
+          }
+        },
+        {
+          "instruction_type": "function_invocation",
+          "invocation_name": "create_hash_table",
+          "invocation_arguments": {},
+          "result_assignment_variable": "t_endguard",
+          "result_type": "subst_table"
+        },
+        {
+          "instruction_type": "function_invocation",
+          "invocation_name": "hash_table_insert",
+          "invocation_arguments": {
+            "table_handle": "t_endguard",
+            "entry_key": "\"MOD\"",
+            "entry_value": "modname"
+          }
+        },
+        {
+          "instruction_type": "function_invocation",
+          "invocation_name": "string_substitute",
+          "invocation_arguments": {
+            "template_str": "\"\\n#endif /* {{MOD}}_H */\\n\"",
+            "table": "t_endguard"
+          },
+          "result_assignment_variable": "end_guard",
+          "result_type": "string"
+        },
+        {
+          "instruction_type": "function_invocation",
+          "invocation_name": "append_to_buffer",
+          "invocation_arguments": {
+            "buf": "hdr_buf",
+            "str": "end_guard"
+          }
+        },
+        {
+          "instruction_type": "function_invocation",
+          "invocation_name": "create_hash_table",
+          "invocation_arguments": {},
+          "result_assignment_variable": "t_hdrpath",
+          "result_type": "subst_table"
+        },
+        {
+          "instruction_type": "function_invocation",
+          "invocation_name": "hash_table_insert",
+          "invocation_arguments": {
+            "table_handle": "t_hdrpath",
+            "entry_key": "\"MOD\"",
+            "entry_value": "modname"
           }
         }
       ]
