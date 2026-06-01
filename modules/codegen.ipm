@@ -1306,7 +1306,7 @@
               "instruction_type": "function_invocation",
               "invocation_name": "append_to_buffer",
               "invocation_arguments": {
-                "buf": "buf",
+                "buf": "buffer",
                 "str": "valstr_line"
               }
             },
