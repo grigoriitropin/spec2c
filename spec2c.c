@@ -411,10 +411,36 @@ static void compile_functions_to_c(const ipm_spec_t *spec, FILE *out) {
     cJSON *funcs = cJSON_GetObjectItemCaseSensitive(spec->meta, "function_definitions");
     if (!funcs || !cJSON_IsObject(funcs)) return;
 
-    /* Inject standard C headers; cjson comes from template */
+    /* Inject standard C headers */
     fprintf(out, "#include <string.h>\n#include <stdio.h>\n#include <stdlib.h>\n#include \"ipm_builtins.h\"\n\n");
 
+    /* Forward-declare all functions to avoid ordering issues */
     cJSON *fn = funcs->child;
+    while (fn) {
+        const char *name = fn->string;
+        const char *ret = jstr(fn, "return_type");
+        const char *ret_c = "void";
+        if (ret) {
+            if (!strcmp(ret, "void")) ret_c = "void";
+            else if (!strcmp(ret, "int")) ret_c = "int";
+            else if (!strcmp(ret, "string") || !strcmp(ret, "char")) ret_c = "char *";
+            else if (!strcmp(ret, "json_object")) ret_c = "cJSON *";
+        }
+        fprintf(out, "static %s %s(", ret_c, name);
+        cJSON *params = cJSON_GetObjectItemCaseSensitive(fn, "parameter_definitions");
+        if (params && cJSON_IsArray(params)) {
+            for (int p = 0; p < cJSON_GetArraySize(params); p++) {
+                cJSON *par = cJSON_GetArrayItem(params, p);
+                const char *pn = jstr(par, "parameter_name");
+                const char *pt = jstr(par, "parameter_type");
+                if (p > 0) fprintf(out, ", ");
+                fprintf(out, "%s %s", vartype_to_c(pt), pn);
+            }
+        }
+        fprintf(out, ");\n");
+        fn = fn->next;
+    }
+    fprintf(out, "\n");
     while (fn) {
         const char *name = fn->string;
         const char *desc = jstr(fn, "description");
