@@ -527,7 +527,7 @@ static void generate_from_ipm(const ipm_spec_t *spec, const char *out_path) {
     int has_config = cfg && cJSON_IsArray(cfg) && cJSON_GetArraySize(cfg) > 0;
     ipm_add_subst(subs, &nsubs, "has_configuration", has_config ? "1" : "0");
 
-    ipm_add_subst(subs, &nsubs, "compiler_includes", "#include <cjson/cJSON.h>\n#include <string.h>");
+    ipm_add_subst(subs, &nsubs, "compiler_includes", "");  /* compile_functions_to_c handles includes */
     ipm_add_subst(subs, &nsubs, "compiler_function_implementations", "");
     ipm_add_subst(subs, &nsubs, "argument_parsing_logic", "if (argc < 2) print_usage_and_exit(argv[0]);");
     ipm_add_subst(subs, &nsubs, "pipeline_initialization", "fprintf(stderr, \"gen\\n\");");
@@ -536,14 +536,6 @@ static void generate_from_ipm(const ipm_spec_t *spec, const char *out_path) {
 
     /* Emit includes from the first template (provides cJSON, etc.) */
     cJSON *templates = cJSON_GetObjectItemCaseSensitive(spec->meta, "template_definitions");
-    if (templates && cJSON_IsObject(templates) && templates->child) {
-        cJSON *first = templates->child;
-        if (cJSON_IsString(first)) {
-            char *inc = subst_apply("{{compiler_includes}}", subs, nsubs);
-            fprintf(out_fp, "%s\n", inc);
-            free(inc);
-        }
-    }
 
     /* Phase 2a: compile AST functions to C */
     compile_functions_to_c(spec, out_fp);
