@@ -1,8 +1,10 @@
 {
   "package_name": "spec2c-stage-zero-compiler",
   "package_type": "tool",
-  "external_dependencies": ["yyjson-parsing", "filesystem-operations"],
-
+  "external_dependencies": [
+    "yyjson-parsing",
+    "filesystem-operations"
+  ],
   "built_in_functions": [
     "print_usage_and_exit",
     "resolve_specification_path",
@@ -13,26 +15,45 @@
     "parse_json_string",
     "load_environment_variable"
   ],
-
   "structural_limits": [
-    {"limit_name": "function_line_count", "maximum_value": 400, "counter_description": "SOUL §7: function exceeds maximum line count. Split into smaller functions."},
-    {"limit_name": "file_line_count", "maximum_value": 500, "counter_description": "SOUL §7: source file exceeds maximum line count. Split into smaller compilation units."},
-    {"limit_name": "function_count_per_file", "maximum_value": 10, "counter_description": "SOUL §7: too many function definitions in one file. Extract into separate modules."}
+    {
+      "limit_name": "function_line_count",
+      "maximum_value": 400,
+      "counter_description": "SOUL §7: function exceeds maximum line count. Split into smaller functions."
+    },
+    {
+      "limit_name": "file_line_count",
+      "maximum_value": 500,
+      "counter_description": "SOUL §7: source file exceeds maximum line count. Split into smaller compilation units."
+    },
+    {
+      "limit_name": "function_count_per_file",
+      "maximum_value": 10,
+      "counter_description": "SOUL §7: too many function definitions in one file. Extract into separate modules."
+    }
   ],
-
-  "configuration_keys": ["SPEC2C_TEMPLATE_DIRECTORY", "SPEC2C_OUTPUT_DIRECTORY"],
-
+  "configuration_keys": [
+    "SPEC2C_TEMPLATE_DIRECTORY",
+    "SPEC2C_OUTPUT_DIRECTORY"
+  ],
   "template_definitions": {
     "spec2c_main_c": "#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n\n{{compiler_includes}}\n\n{{compiler_function_implementations}}\n\nint main(int argc, char** argv) {\n    {{argument_parsing_logic}}\n    {{pipeline_initialization}}\n    {{pipeline_execution}}\n    return 0;\n}\n",
     "spec2c_usage_h": "void print_usage_and_exit(const char* program_name);\n\nvoid print_usage_and_exit(const char* program_name) {\n    fprintf(stderr,\n        \"Usage: %s [--base <directory>] [-o <output.c>] <specification.json>\\n\"\n        \"\\n\"\n        \"{{command_descriptions}}\"\n        \"\\n\"\n        \"Output: JSON {\\\"ok\\\":true\\\"}\"\n        \"Exit:   0 = success, 1 = error\\n\",\n        program_name);\n    exit(2);\n}"
   },
-
   "function_definitions": {
     "parse_command_line_arguments": {
       "description": "Parse CLI arguments into a structured argument context. Returns the specification file path. If --help or -h is detected, prints usage and exits.",
       "parameter_definitions": [
-        {"parameter_name": "argument_count", "parameter_type": "int", "description": "argc from main"},
-        {"parameter_name": "argument_values", "parameter_type": "json_array", "description": "argv from main as string array"}
+        {
+          "parameter_name": "argument_count",
+          "parameter_type": "int",
+          "description": "argc from main"
+        },
+        {
+          "parameter_name": "argument_values",
+          "parameter_type": "json_array",
+          "description": "argv from main as string array"
+        }
       ],
       "execution_instructions": [
         {
@@ -53,13 +74,19 @@
           "instruction_type": "conditional_branch",
           "condition_description": "Check if --help flag is present and print usage if so.",
           "condition_operation": "string_equals",
-          "condition_target": {"source": "argument_values[1]"},
+          "condition_target": {
+            "source": "argument_values[1]"
+          },
           "condition_value": "--help",
           "branch_on_success": [
             {
               "instruction_type": "function_invocation",
               "invocation_name": "print_usage_and_exit",
-              "invocation_arguments": {"program_name": {"source": "argument_values[0]"}},
+              "invocation_arguments": {
+                "program_name": {
+                  "source": "argument_values[0]"
+                }
+              },
               "result_assignment_variable": "usage_status"
             }
           ],
@@ -68,7 +95,10 @@
         {
           "instruction_type": "function_invocation",
           "invocation_name": "resolve_specification_path",
-          "invocation_arguments": {"argument_values": "argument_values", "argument_count": "argument_count"},
+          "invocation_arguments": {
+            "argument_values": "argument_values",
+            "argument_count": "argument_count"
+          },
           "result_assignment_variable": "specification_file_path"
         },
         {
@@ -78,15 +108,27 @@
             "output_artifact_path": "specification_file_path"
           }
         }
-      ]
+      ],
+      "return_type": "int"
     },
-
     "execute_pipeline": {
       "description": "Main compilation pipeline: read specification, parse JSON, compute substitution variables, iterate section definitions, apply template substitutions, emit generated C source.",
       "parameter_definitions": [
-        {"parameter_name": "specification_file_path", "parameter_type": "string", "description": "Path to the .ipm specification JSON file."},
-        {"parameter_name": "output_file_path", "parameter_type": "string", "description": "Path where generated C source is written."},
-        {"parameter_name": "template_directory", "parameter_type": "string", "description": "Directory containing C template files."}
+        {
+          "parameter_name": "specification_file_path",
+          "parameter_type": "string",
+          "description": "Path to the .ipm specification JSON file."
+        },
+        {
+          "parameter_name": "output_file_path",
+          "parameter_type": "string",
+          "description": "Path where generated C source is written."
+        },
+        {
+          "parameter_name": "template_directory",
+          "parameter_type": "string",
+          "description": "Directory containing C template files."
+        }
       ],
       "execution_instructions": [
         {
@@ -120,15 +162,23 @@
             {
               "instruction_type": "function_invocation",
               "invocation_name": "compute_substitution_variables",
-              "invocation_arguments": {"parsed_specification": {"source": "parsed_ast"}},
+              "invocation_arguments": {
+                "parsed_specification": {
+                  "source": "parsed_ast"
+                }
+              },
               "result_assignment_variable": "substitution_variables"
             },
             {
               "instruction_type": "function_invocation",
               "invocation_name": "iterate_and_substitute_templates",
               "invocation_arguments": {
-                "template_definitions": {"source": "parsed_ast.template_definitions"},
-                "substitution_variables": {"source": "substitution_variables"}
+                "template_definitions": {
+                  "source": "parsed_ast.template_definitions"
+                },
+                "substitution_variables": {
+                  "source": "substitution_variables"
+                }
               },
               "result_assignment_variable": "generated_c_source_code"
             },
@@ -137,7 +187,9 @@
               "invocation_name": "write_string_to_file",
               "invocation_arguments": {
                 "file_path": "output_file_path",
-                "content_to_write": {"source": "generated_c_source_code"}
+                "content_to_write": {
+                  "source": "generated_c_source_code"
+                }
               },
               "result_assignment_variable": "file_write_status"
             },
@@ -177,7 +229,8 @@
             }
           ]
         }
-      ]
+      ],
+      "return_type": "int"
     }
   }
 }

@@ -337,6 +337,17 @@ static void compile_instructions(cJSON *instructions, FILE *out, int indent) {
                 else fprintf(out, "return 0;");
                 fprintf(out, "\n");
             }
+        } else if (!strcmp(type, "iterate_over_collection")) {
+            const char *col = jstr(inst, "collection_variable");
+            const char *item = jstr(inst, "item_variable");
+            cJSON *body = cJSON_GetObjectItemCaseSensitive(inst, "body_instructions");
+            if (col && item && body) {
+                fprintf(out, "for (int _i_%s = 0; _i_%s < cJSON_GetArraySize(%s); _i_%s++) {\n",
+                        col, col, col, col);
+                fprintf(out, "  cJSON *%s = cJSON_GetArrayItem(%s, _i_%s);\n", item, col, col);
+                compile_instructions(body, out, indent + 1);
+                fprintf(out, "%*c}\n", indent * 2, ' ');
+            }
         } else if (!strcmp(type, "database_execute_parameterized")) {
             const char *sql = jstr(inst, "sql_query_string");
             fprintf(out, "/* DB exec: %s */\n", sql ? sql : "?");
@@ -356,9 +367,20 @@ static void compile_functions_to_c(const ipm_spec_t *spec, FILE *out) {
         cJSON *body  = cJSON_GetObjectItemCaseSensitive(fn, "execution_instructions");
 
         if (body && cJSON_IsArray(body)) {
+            const char *ret = jstr(fn, "return_type");
+            const char *ret_c = "void";
+            if (ret) {
+                if (!strcmp(ret, "void")) ret_c = "void";
+                else if (!strcmp(ret, "int")) ret_c = "int";
+                else if (!strcmp(ret, "double")) ret_c = "double";
+                else if (!strcmp(ret, "boolean")) ret_c = "int";
+                else if (!strcmp(ret, "string") || !strcmp(ret, "char")) ret_c = "char *";
+                else if (!strcmp(ret, "json_object")) ret_c = "cJSON *";
+                else if (!strcmp(ret, "json_array")) ret_c = "cJSON *";
+                else if (!strcmp(ret, "db_handle")) ret_c = "struct vehir_db *";
+            }
             fprintf(out, "/* %s: %s */\n", name, desc ? desc : "no description");
-            /* Emit function signature with return type from last instruction */
-            fprintf(out, "static int %s(", name);
+            fprintf(out, "static %s %s(", ret_c, name);
             if (params && cJSON_IsArray(params)) {
                 for (int p = 0; p < cJSON_GetArraySize(params); p++) {
                     cJSON *par = cJSON_GetArrayItem(params, p);
