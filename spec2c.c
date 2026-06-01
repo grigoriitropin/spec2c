@@ -418,8 +418,6 @@ int main(int argc, char *argv[]) {
         cJSON_Delete(r);
         cJSON_Delete(spec_json);
         free(spec_text);
-        free(skel_path);
-        free(skel_text);
         cJSON_Delete(skel);
         return 0;
     }
