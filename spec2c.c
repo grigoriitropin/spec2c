@@ -36,7 +36,7 @@ typedef struct {
 
 static const char *jstr(const cJSON *obj, const char *key) {
     const cJSON *v = cJSON_GetObjectItemCaseSensitive(obj, key);
-    if (!v || !cJSON_IsString(v)) return NULL;
+    if (!v || !cJSON_IsString(v)) return "";
     return v->valuestring;
 }
 
@@ -305,8 +305,8 @@ static void compile_instructions(cJSON *instructions, FILE *out, int indent, con
             const char *rv = jstr(inst, "result_assignment_variable");
             const char *rt = jstr(inst, "result_type"); /* optional type hint */
             cJSON *args = cJSON_GetObjectItemCaseSensitive(inst, "invocation_arguments");
-            if (fn) {
-                if (rv) {
+            if (fn[0]) {
+                if (rv[0]) {
                     const char *rc = "int";
                     if (rt) {
                         if (!strcmp(rt, "string") || !strcmp(rt, "char")) rc = "char *";
@@ -375,8 +375,8 @@ static void compile_instructions(cJSON *instructions, FILE *out, int indent, con
                 const char *ec = jstr(rp, "error_code");
                 const char *rv = jstr(rp, "value");
                 if (es && !strcmp(es, "failure")) {
-                    fprintf(out, "die(\"%s\");%s\n", ec ? ec : "unknown error", is_void ? "" : " return 1;");
-                } else if (rv) {
+                    fprintf(out, "die(\"%s\");%s\n", ec[0] ? ec : "unknown error", is_void ? "" : " return 1;");
+                } else if (rv[0]) {
                     fprintf(out, "return %s;\n", rv);
                 } else if (is_void) {
                     fprintf(out, "return;\n");
@@ -390,7 +390,7 @@ static void compile_instructions(cJSON *instructions, FILE *out, int indent, con
             const char *col = jstr(inst, "collection_variable");
             const char *item = jstr(inst, "item_variable");
             cJSON *body = cJSON_GetObjectItemCaseSensitive(inst, "body_instructions");
-            if (col && item && body) {
+            if (col[0] && item[0] && body) {
                 fprintf(out, "for (int _i_%s = 0; _i_%s < cJSON_GetArraySize(%s); _i_%s++) {\n",
                         col, col, col, col);
                 fprintf(out, "  cJSON *%s = cJSON_GetArrayItem(%s, _i_%s);\n", item, col, col);
@@ -402,7 +402,7 @@ static void compile_instructions(cJSON *instructions, FILE *out, int indent, con
             const char *key  = jstr(inst, "key_variable");
             const char *val  = jstr(inst, "value_variable");
             cJSON *body = cJSON_GetObjectItemCaseSensitive(inst, "body_instructions");
-            if (col && val && body) {
+            if (col[0] && val[0] && body) {
                 fprintf(out, "cJSON *%s = %s;\n", val, col);
                 fprintf(out, "cJSON_ArrayForEach(%s, %s) {\n", val, col);
                 if (key) fprintf(out, "  const char *%s = %s->string;\n", key, val);
@@ -415,7 +415,7 @@ static void compile_instructions(cJSON *instructions, FILE *out, int indent, con
             const char *vt = jstr(inst, "variable_type");
             const char *so = jstr(inst, "source_object");
             const char *fn = jstr(inst, "field_name");
-            if (vn && so && fn) {
+            if (vn[0] && so[0] && fn[0]) {
                 if (vt && (!strcmp(vt, "string") || !strcmp(vt, "char"))) {
                     /* string field — extract value directly */
                     fprintf(out, "const char *%s = cJSON_GetObjectItemCaseSensitive(%s,\"%s\") ? cJSON_GetObjectItemCaseSensitive(%s,\"%s\")->valuestring : \"\";\n",
@@ -446,7 +446,7 @@ static void compile_functions_to_c(const ipm_spec_t *spec, FILE *out) {
         const char *name = fn->string;
         const char *ret = jstr(fn, "return_type");
         const char *ret_c = "void";
-        if (ret) {
+        if (ret[0]) {
             if (!strcmp(ret, "void")) ret_c = "void";
             else if (!strcmp(ret, "int")) ret_c = "int";
             else if (!strcmp(ret, "double")) ret_c = "double";
@@ -484,7 +484,7 @@ static void compile_functions_to_c(const ipm_spec_t *spec, FILE *out) {
         if (body && cJSON_IsArray(body)) {
             const char *ret = jstr(fn, "return_type");
             const char *ret_c = "void";
-            if (ret) {
+            if (ret[0]) {
                 if (!strcmp(ret, "void")) ret_c = "void";
                 else if (!strcmp(ret, "int")) ret_c = "int";
                 else if (!strcmp(ret, "double")) ret_c = "double";
@@ -495,7 +495,7 @@ static void compile_functions_to_c(const ipm_spec_t *spec, FILE *out) {
                 else if (!strcmp(ret, "db_handle")) ret_c = "struct vehir_db *";
                 else if (!strcmp(ret, "subst_table")) ret_c = "subst_table *";
             }
-            fprintf(out, "/* %s: %s */\n", name, desc ? desc : "no description");
+            fprintf(out, "/* %s: %s */\n", name, desc[0] ? desc : "no description");
             fprintf(out, "static %s %s(", ret_c, name);
             if (params && cJSON_IsArray(params)) {
                 for (int p = 0; p < cJSON_GetArraySize(params); p++) {
