@@ -326,8 +326,9 @@ static void compile_instructions(cJSON *instructions, FILE *out, int indent, con
                     cJSON *arg = args->child; int first = 1;
                     while (arg) {
                         if (!first) fprintf(out, ", ");
-                        if (cJSON_IsString(arg)) fprintf(out, "%s", arg->valuestring);
-                        else fprintf(out, "/*arg*/"); 
+                        if (cJSON_IsString(arg)) fprintf(out, "\"%s\"", arg->valuestring);
+                        else if (cJSON_IsNumber(arg)) fprintf(out, "%d", arg->valueint);
+                        else fprintf(out, "%s", arg->valuestring);
                         first = 0;
                         arg = arg->next;
                     }
