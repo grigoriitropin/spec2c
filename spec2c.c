@@ -433,8 +433,13 @@ static void compile_functions_to_c(const ipm_spec_t *spec, FILE *out) {
         if (ret) {
             if (!strcmp(ret, "void")) ret_c = "void";
             else if (!strcmp(ret, "int")) ret_c = "int";
+            else if (!strcmp(ret, "double")) ret_c = "double";
+            else if (!strcmp(ret, "boolean")) ret_c = "int";
             else if (!strcmp(ret, "string") || !strcmp(ret, "char")) ret_c = "char *";
             else if (!strcmp(ret, "json_object")) ret_c = "cJSON *";
+            else if (!strcmp(ret, "json_array")) ret_c = "cJSON *";
+            else if (!strcmp(ret, "db_handle")) ret_c = "struct vehir_db *";
+            else if (!strcmp(ret, "subst_table")) ret_c = "subst_table *";
         }
         fprintf(out, "static %s %s(", ret_c, name);
         cJSON *params = cJSON_GetObjectItemCaseSensitive(fn, "parameter_definitions");
