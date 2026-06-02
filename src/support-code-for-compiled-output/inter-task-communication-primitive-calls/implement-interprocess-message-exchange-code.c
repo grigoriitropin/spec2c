@@ -15,7 +15,7 @@ static int ipc_depth = 0;
 #define IPC_MAX_DEPTH 4
 #define IPC_TIMEOUT   10
 
-cJSON* ipm_call_c(const char *tool, const char *arg) {
+cJSON* call_ipm_message_exchange(const char *tool, const char *arg) {
     if (!tool || ipc_depth >= IPC_MAX_DEPTH) return NULL;
 
     int pipefd[2];
