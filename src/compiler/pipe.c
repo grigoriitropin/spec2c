@@ -102,7 +102,7 @@ void generate_from_ipm(const ipm_spec_t *spec, const char *out_path, int is_libr
     }
 
     const char *modname = jstr(spec->meta, "module_name");
-    if (modname[0] && out_path && strcmp(out_path, "/dev/null")) {
+    if (modname[0] && out_path) {
         char hdr_path[4096];
         const char *slash = strrchr(out_path, '/');
         int dirlen = slash ? (int)(slash - out_path + 1) : 0;
