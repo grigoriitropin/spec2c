@@ -16,6 +16,7 @@ static int debug_trace = 0;
 #define MAX_INCLUDES 5
 #define MAX_FUNCTIONS_PER_FILE 10
 #define MAX_LINES_PER_FUNCTION 50
+#define MAX_LINE_LENGTH 120
 
 /* ── centralized error reporting ───────────────────────────────────── */
 typedef enum {
@@ -29,7 +30,8 @@ typedef enum {
     ERR_HEADER_INCLUDED_TOO_OFTEN,
     ERR_DEAD_CODE,
     ERR_MAIN_COUNT,
-    ERR_FLAG_NOT_IN_HELP
+    ERR_FLAG_NOT_IN_HELP,
+    ERR_LINE_TOO_DENSE
 } enforce_err_t;
 
 static void report_fatal_error_and_exit(const char *msg) {
@@ -61,8 +63,9 @@ static void report_violation_with_actionable_hint(enforce_err_t code, const char
         snprintf(buf, sizeof(buf), "SOUL §7: dead code — '%s' in %s never called\n  → remove unused function or add call site", a1, a2); break;
     case ERR_MAIN_COUNT:
         snprintf(buf, sizeof(buf), "SOUL §7: exactly one main() required, found %d\n  → keep exactly one entry point", v1); break;
-    case ERR_FLAG_NOT_IN_HELP:
-        snprintf(buf, sizeof(buf), "SOUL §7: CLI flag '%s' in %s not documented in help text\n  → add flag description to the --help output block", a1, a2); break;
+    case ERR_LINE_TOO_DENSE:
+        snprintf(buf, sizeof(buf), "SOUL §7: %s line %d is too dense — %d control tokens (; { ?) (max 3)\n  → split the line into multiple statements", a1, v1, v2); break;
+    }
     }
     report_fatal_error_and_exit(buf);
 }
@@ -118,8 +121,25 @@ static void check_single_file_for_violations(const char *sub, int is_c,
     FILE *f = fopen(sub, "r");
     if (f) {
         char line[1024];
-        int func_count = 0, func_lines = 0, in_func = 0; brace_state_t bstate; clear_brace_tracking_for_function(&bstate);
+        int func_count = 0, func_lines = 0, in_func = 0, file_line = 0;
+        brace_state_t bstate; clear_brace_tracking_for_function(&bstate);
         while (fgets(line, sizeof(line), f)) {
+            file_line++;
+            /* density check — count ; { ? per line, skip strings/comments/chars */
+            {   int in_str = 0, in_char = 0, in_comment = 0, tokens = 0;
+                for (const char *p = line; *p; p++) {
+                    if (in_comment) { if (*p == '*' && *(p+1) == '/') { in_comment = 0; p++; } continue; }
+                    if (!in_str && !in_char && *p == '/' && *(p+1) == '*') { in_comment = 1; p++; continue; }
+                    if (!in_str && !in_char && *p == '/' && *(p+1) == '/') break;
+                    if (*p == '\\' && *(p+1) != '\0') { p++; continue; }
+                    if (!in_char && *p == '"') in_str = !in_str;
+                    else if (!in_str && *p == '\'') in_char = !in_char;
+                    if (!in_str && !in_char && !in_comment)
+                        if (*p == ';' || *p == '{' || *p == '?') tokens++;
+                }
+                if (tokens > 3)
+                    report_violation_with_actionable_hint(ERR_LINE_TOO_DENSE, sub, file_line, tokens, NULL);
+            }
             if (!in_func) {
                 if (detect_function_definition_start_line(line)) {
                     func_count++;
