@@ -55,15 +55,6 @@ static int detect_function_definition_start_line(const char *line) {
         !strcmp(first, "fopen") || !strcmp(first, "fclose")) return 0;
     return 1;
 }
-static int detect_hardcoded_file_path_string(const char *line) {
-    if (strstr(line, "#include")) return 0;
-    const char *p = line;
-    while ((p = strstr(p, "\"/")) != NULL) {
-        p += 2;
-        if (*p == '/' || (*p >= 'a' && *p <= 'z')) return 1;
-    }
-    return 0;
-}
 static void pull_function_name_from_definition(const char *line, char *out, size_t sz) {
     const char *lp = strrchr(line, '(');
     if (!lp) { out[0] = 0; return; }

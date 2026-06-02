@@ -15,5 +15,6 @@ int  return_total_count_allowed_names(void);
 const char *get_allowed_name_from_whitelist(int index);
 int  check_for_banned_keyword_pattern(const char *line);
 void read_banned_patterns_from_file(const char *srcdir);
+int  detect_hardcoded_file_path_string(const char *line);
 
 #endif

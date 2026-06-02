@@ -197,3 +197,13 @@ int check_for_banned_keyword_pattern(const char *line) {
         if (strstr(line, banned_patterns[i])) return 1;
     return 0;
 }
+
+int detect_hardcoded_file_path_string(const char *line) {
+    if (strstr(line, "#include")) return 0;
+    const char *p = line;
+    while ((p = strstr(p, "\"/")) != NULL) {
+        p += 2;
+        if (*p == '/' || (*p >= 'a' && *p <= 'z')) return 1;
+    }
+    return 0;
+}
