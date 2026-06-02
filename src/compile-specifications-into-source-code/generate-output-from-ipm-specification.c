@@ -162,3 +162,10 @@ void handle_ipm_spec_emit_code(const ipm_spec_t *spec, const char *out_path, int
 
     if (out_fp != stdout) fclose(out_fp);
 }
+
+char *resolve_template_file_from_base(const char *base, const char *file) {
+    char *path = malloc(strlen(base) + strlen(file) + 2);
+    if (!path) report_fatal_error_and_exit("malloc");
+    sprintf(path, "%s/%s", base, file);
+    return path;
+}
