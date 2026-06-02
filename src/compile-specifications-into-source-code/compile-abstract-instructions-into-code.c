@@ -209,12 +209,13 @@ static const char *resolve_function_return_type_code(const char *ret) {
     return "void";
 }
 
-static void emit_function_body_into_output(cJSON *fn, FILE *out, int is_library, int has_modname) {
+static void emit_function_body_into_output(cJSON *fn, FILE *out, int is_library, int has_modname, const char *modname) {
     const char *name = fn->string;
     cJSON *params = cJSON_GetObjectItemCaseSensitive(fn, "parameter_definitions");
     cJSON *body  = cJSON_GetObjectItemCaseSensitive(fn, "execution_instructions");
     if (!body || !cJSON_IsArray(body)) return;
     const char *ret = extract_json_field_string_value(fn, "return_type");
+    if (modname && modname[0]) fprintf(out, "// @ipm:%s:%s\n", modname, name);
     fprintf(out, "%s%s %s(", is_library ? "" : (has_modname ? "" : "static "),
         resolve_function_return_type_code(ret), name);
     if (params && cJSON_IsArray(params)) {
@@ -263,7 +264,7 @@ void compile_every_function_into_code(const ipm_spec_t *spec, FILE *out, int is_
     }
     fn = funcs->child;
     while (fn) {
-        emit_function_body_into_output(fn, out, is_library, has_mod);
+        emit_function_body_into_output(fn, out, is_library, has_mod, modname);
         fn = fn->next;
     }
 }
