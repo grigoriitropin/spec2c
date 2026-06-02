@@ -155,6 +155,10 @@ static void check_single_file_for_violations(const char *sub, int is_c,
         }
         fclose(f);
     }
+    check_include_headers_for_file(sub, incs, inc_qty);
+}
+
+static void check_include_headers_for_file(const char *sub, inc_entry_t *incs, int *inc_qty) {
     FILE *f2 = fopen(sub, "r");
     if (f2) {
         char line[512];
