@@ -2,13 +2,7 @@
 // shared pattern scanning helpers for enforcement
 
 #include "verify-structural-source-code-rules.h"
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-
-static void report_fatal_error_and_exit(const char *msg) {
-    fprintf(stderr, "spec2c: %s\n", msg); exit(1);
-}
 
 void count_open_close_brace_pairs(const char *line, int *depth) {
     int in_str = 0, in_char = 0;
