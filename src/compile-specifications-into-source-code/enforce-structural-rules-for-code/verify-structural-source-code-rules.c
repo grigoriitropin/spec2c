@@ -310,6 +310,40 @@ void enforce_all_source_code_rules(const char *srcdir) {
     check_flags(srcdir);
 }
 
+static void scan_source_for_undocumented_flags(const char *srcdir) {
+    void check_flags(const char *dpath) {
+        DIR *dd = opendir(dpath); if (!dd) return;
+        struct dirent *de2;
+        while ((de2 = readdir(dd)) != NULL) {
+            if (de2->d_name[0] == '.') continue;
+            char sp[8192]; snprintf(sp, sizeof(sp), "%s/%s", dpath, de2->d_name);
+            struct stat sst;
+            if (stat(sp, &sst) != 0) continue;
+            if (S_ISDIR(sst.st_mode)) { check_flags(sp); continue; }
+            if (strcmp(de2->d_name + strlen(de2->d_name) - 2, ".c")) continue;
+            FILE *f4 = fopen(sp, "r"); if (!f4) continue;
+            char *content = malloc(65536); if (!content) { fclose(f4); continue; }
+            size_t cs = fread(content, 1, 65535, f4); fclose(f4);
+            if (cs < 10 || cs >= 65535) { free(content); continue; }
+            content[cs] = 0;
+            const char *p = content;
+            while ((p = strstr(p, "\"--")) != NULL) {
+                p += 2;
+                char flag[64]; int fi = 0;
+                while (*p && *p != '"' && fi < 63) flag[fi++] = *p++;
+                flag[fi] = 0;
+                if (fi == 0) continue;
+                if (!strstr(content, flag)) {
+                    free(content); report_violation_with_actionable_hint(ERR_FLAG_NOT_IN_HELP, flag, 0, 0, sp);
+                }
+            }
+            free(content);
+        }
+        closedir(dd);
+    }
+    check_flags(srcdir);
+}
+
 void display_current_source_structure_report(const char *srcdir) {
     DIR *d = opendir(srcdir);
     if (!d) { fprintf(stderr, "cannot open %s\n", srcdir); return; }

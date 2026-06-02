@@ -153,3 +153,4 @@ emit_ipm_component_header_file
 generate_auto_entry_point_code
 require_config_value_else_die
 verify_database_connection_still_alive
+scan_source_for_undocumented_flags
