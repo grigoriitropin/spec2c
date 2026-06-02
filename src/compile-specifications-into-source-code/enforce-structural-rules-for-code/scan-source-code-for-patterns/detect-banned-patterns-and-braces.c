@@ -53,7 +53,8 @@ int detect_hardcoded_file_path_string(const char *line) {
     const char *p = line;
     while ((p = strstr(p, "\"/")) != NULL) {
         p += 2;
-        if (*p == '/' || (*p >= 'a' && *p <= 'z')) return 1;
+        if (*p == '/') { p++; continue; } /* skip "//" */
+        if (*p >= 'a' && *p <= 'z') return 1;
     }
     return 0;
 }
