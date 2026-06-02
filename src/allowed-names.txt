@@ -119,3 +119,17 @@ write_bytes_into_file_path
 write_component_header_with_prototypes
 write_string_buffer_into_file
 write_text_string_into_file
+common-support-code-for-spec2c
+compile-specifications-into-source-code
+enforce-structural-rules-for-code
+filesystem-input-output-primitive-operations
+generate-agent-context-from-graph
+helper-standalone-executables-for-spec2c
+inter-task-communication-primitive-calls
+parse-and-generate-json-data
+parse-legacy-specification-file-format
+runtime-abstraction-layer-for-vehir
+scan-source-code-for-patterns
+shared-type-declarations-across-modules
+support-code-for-compiled-output
+verify-source-against-soul-patterns
