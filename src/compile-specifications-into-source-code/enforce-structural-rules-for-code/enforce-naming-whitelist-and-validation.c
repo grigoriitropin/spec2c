@@ -10,6 +10,36 @@ static void report_fatal_error_and_exit(const char *msg) {
     fprintf(stderr, "spec2c: %s\n", msg); exit(1);
 }
 
+static const char *banned_type_words[] = {
+    "service","server","daemon","library","tool","binary",
+    "package","module","system","utility","application",
+    "program","process","worker",NULL
+};
+
+static const char *soful =
+    "\n"
+    "   ── SOUL.md §10 Naming (immutable) ───────────────────────────\n"
+    "   A name is the primary documentation. It must make clear\n"
+    "   what the thing does.\n"
+    "\n"
+    "   • Exactly 5 words, hyphen-separated. No more, no less.\n"
+    "   • No type words. Banned: service, server, daemon, library,\n"
+    "     tool, binary, package, module, system, utility,\n"
+    "     application, program, process, worker.\n"
+    "   • Describes WHAT it does, not what it is or how it is built.\n"
+    "   • English only. Full words over abbreviations.\n"
+    "   • Self-documenting. Among several similar tools, the\n"
+    "     primary one's name reflects that — the user should not\n"
+    "     have to guess which to run.\n"
+    "   ──────────────────────────────────────────────────────────";
+
+static const char *dir_note_text =
+    "\n"
+    "   A directory name must describe ONLY the files directly\n"
+    "   inside this specific directory — not its subdirectories,\n"
+    "   not its parent directories. The name must accurately\n"
+    "   reflect the contents of this directory alone.";
+
 /* ── naming whitelist ──────────────────────────────────────────────── */
 static struct { char name[128]; } allowed[512];
 static int allowed_qty;
