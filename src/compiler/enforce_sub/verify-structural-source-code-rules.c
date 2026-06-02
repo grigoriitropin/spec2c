@@ -18,27 +18,27 @@
 #define MAX_FUNCTIONS_PER_FILE 10
 #define MAX_LINES_PER_FUNCTION 50
 
-static void die(const char *msg) { fprintf(stderr, "spec2c: %s\n", msg); exit(1); }
+static void report_fatal_error_and_exit(const char *msg) { fprintf(stderr, "spec2c: %s\n", msg); exit(1); }
 
-static int count_lines(const char *path) {
+static int count_lines_within_source_file(const char *path) {
     FILE *f = fopen(path, "r"); if (!f) return -1;
     int lines = 0, ch; while ((ch = fgetc(f)) != EOF) if (ch == '\n') lines++;
     fclose(f); return lines;
 }
 
-static int is_c_or_h(const char *name) {
+static int check_filename_extension_c_or_h(const char *name) {
     size_t nl = strlen(name);
     return nl > 2 && (!strcmp(name + nl - 2, ".c") || !strcmp(name + nl - 2, ".h"));
 }
 
-static int is_func_start(const char *line) {
+static int detect_function_definition_start_line(const char *line) {
     while (*line == ' ' || *line == '\t') return 0;
     if (*line == '/' || *line == '*' || *line == '#' || *line == '\0' || *line == '\n') return 0;
     if (strstr(line, "typedef") || strstr(line, "struct") || strstr(line, "enum")) return 0;
     return strrchr(line, '{') != NULL;
 }
 
-static int has_banned(const char *line) {
+static int check_for_banned_keyword_pattern(const char *line) {
     if (strstr(line, "goto ") || strstr(line, "goto\t") ||
         strstr(line, "setjmp(") || strstr(line, "longjmp("))
         return 1;
@@ -49,7 +49,7 @@ static int has_banned(const char *line) {
     return 0;
 }
 
-static int has_hardcoded_path(const char *line) {
+static int detect_hardcoded_file_path_string(const char *line) {
     if (strstr(line, "#include")) return 0;
     const char *p = line;
     while ((p = strstr(p, "\"/")) != NULL) {
@@ -59,7 +59,7 @@ static int has_hardcoded_path(const char *line) {
     return 0;
 }
 
-static void extract_func_name(const char *line, char *out, size_t sz) {
+static void pull_function_name_from_definition(const char *line, char *out, size_t sz) {
     const char *lp = strrchr(line, '(');
     if (!lp) { out[0] = 0; return; }
     while (lp > line && (*(lp-1) == ' ' || *(lp-1) == '\t' || *(lp-1) == '*')) lp--;
@@ -70,14 +70,14 @@ static void extract_func_name(const char *line, char *out, size_t sz) {
     memcpy(out, start, len); out[len] = 0;
 }
 
-static int is_allowed_include(const char *hdr) {
+static int match_header_against_include_whitelist(const char *hdr) {
     const char *ok[] = {
         "stdio.h","stdlib.h","string.h","errno.h","unistd.h","fcntl.h",
         "sys/stat.h","sys/types.h","sys/wait.h","sys/socket.h","sys/un.h",
         "dirent.h","regex.h","stdint.h","stddef.h","stdbool.h","time.h",
         "cjson/cJSON.h","netinet/in.h",
-        "ipm_builtins.h","verify-structural-source-code-rules.h","common_h/common.h","enforce_sub/enforce.h",
-        "../common_h/common.h","vehir_lib.h","ipm_json.h","header.h", NULL
+        "runtime-for-generated-ipm-code.h","verify-structural-source-code-rules.h","common_h/share-type-definitions-across-files.h","enforce_sub/verify-structural-source-code-rules.h",
+        "../common_h/share-type-definitions-across-files.h","vehir_lib.h","ipm_json.h","header.h", NULL
     };
     for (int i = 0; ok[i]; i++) if (!strcmp(hdr, ok[i])) return 1;
     return 0;
@@ -87,10 +87,10 @@ static int is_allowed_include(const char *hdr) {
 static struct { char name[128]; } allowed[512];
 static int allowed_qty = 0;
 
-static void load_allowed(const char *srcdir) {
+static void load_allowed_names_from_text_file(const char *srcdir) {
     char path[4096]; snprintf(path, sizeof(path), "%s/allowed-names.txt", srcdir);
     FILE *f = fopen(path, "r");
-    if (!f) die("cannot open allowed-names.txt");
+    if (!f) report_fatal_error_and_exit("cannot open allowed-names.txt");
     char line[256];
     while (fgets(line, sizeof(line), f) && allowed_qty < 512) {
         size_t len = strlen(line);
@@ -100,13 +100,13 @@ static void load_allowed(const char *srcdir) {
     fclose(f);
 }
 
-static int is_allowed(const char *name) {
+static int check_name_against_allowed_whitelist(const char *name) {
     for (int i = 0; i < allowed_qty; i++)
         if (!strcmp(allowed[i].name, name)) return 1;
     return 0;
 }
 
-static void check_name(const char *what, const char *name, const char *fp) {
+static void validate_name_against_soul_rules(const char *what, const char *name, const char *fp) {
     const char *banned_type[] = {
         "service","server","daemon","library","tool","binary",
         "package","module","system","utility","application",
@@ -132,7 +132,7 @@ static void check_name(const char *what, const char *name, const char *fp) {
             snprintf(eb, sizeof(eb),
                 "SOUL §10: word '%s' in %s '%s' at %s is too short (min 3 chars).\n%s",
                 tok, what, name, fp, soful);
-            die(eb);
+            report_fatal_error_and_exit(eb);
         }
         for (int i = 0; banned_type[i]; i++)
             if (!strcmp(tok, banned_type[i])) {
@@ -140,7 +140,7 @@ static void check_name(const char *what, const char *name, const char *fp) {
                 snprintf(eb, sizeof(eb),
                     "SOUL §10: word '%s' in %s '%s' at %s is a banned type word.\n%s",
                     tok, what, name, fp, soful);
-                die(eb);
+                report_fatal_error_and_exit(eb);
             }
         tok = strtok(NULL, &sep);
     }
@@ -149,21 +149,21 @@ static void check_name(const char *what, const char *name, const char *fp) {
         snprintf(eb, sizeof(eb),
             "SOUL §10: %s '%s' at %s has %d words — exactly 5 required (%s-separated).\n%s",
             what, name, fp, words, is_file ? "hyphen" : "underscore", soful);
-        die(eb);
+        report_fatal_error_and_exit(eb);
     }
-    if (!is_allowed(name)) {
+    if (!check_name_against_allowed_whitelist(name)) {
         char eb[2048];
         snprintf(eb, sizeof(eb),
             "SOUL §10: %s '%s' at %s — not in allowed-names.txt.\n%s",
             what, name, fp, soful);
-        die(eb);
+        report_fatal_error_and_exit(eb);
     }
 }
 
-void enforce_structural_limits(const char *srcdir) {
-    load_allowed(srcdir);
+void enforce_all_source_code_rules(const char *srcdir) {
+    load_allowed_names_from_text_file(srcdir);
     DIR *d = opendir(srcdir);
-    if (!d) die("cannot open source directory");
+    if (!d) report_fatal_error_and_exit("cannot open source directory");
 
     struct { char name[64]; int count; } incs[128]; int inc_qty = 0;
     struct { char name[128]; char file[256]; } fns[512]; int fn_qty = 0;
@@ -180,20 +180,20 @@ void enforce_structural_limits(const char *srcdir) {
         if (sd) {
             struct dirent *se;
             while ((se = readdir(sd)) != NULL) {
-                if (!is_c_or_h(se->d_name)) continue;
+                if (!check_filename_extension_c_or_h(se->d_name)) continue;
                 file_cnt++;
                 char fp[8192]; snprintf(fp, sizeof(fp), "%s/%s", sub, se->d_name);
 
                 char fname[256]; snprintf(fname, sizeof(fname), "%s", se->d_name);
                 char *dot = strrchr(fname, '.'); if (dot) *dot = 0;
-                check_name("file", fname, fp);
+                validate_name_against_soul_rules("file", fname, fp);
 
                 int is_c = !strcmp(se->d_name + strlen(se->d_name) - 2, ".c");
                 if (is_c) {
-                    int lines = count_lines(fp);
+                    int lines = count_lines_within_source_file(fp);
                     if (lines > MAX_LINES_PER_FILE) {
                         char buf[512]; snprintf(buf, sizeof(buf), "SOUL §7: %s has %d lines (max %d)", fp, lines, MAX_LINES_PER_FILE);
-                        die(buf);
+                        report_fatal_error_and_exit(buf);
                     }
                 }
 
@@ -203,16 +203,17 @@ void enforce_structural_limits(const char *srcdir) {
                     int func_count = 0, func_lines = 0, in_func = 0, func_start = 0;
                     while (fgets(line, sizeof(line), f)) {
                         if (!in_func) {
-                            if (is_func_start(line)) {
+                            if (detect_function_definition_start_line(line)) {
                                 func_count++;
                                 if (func_count > MAX_FUNCTIONS_PER_FILE) {
                                     char buf[512]; snprintf(buf, sizeof(buf), "SOUL §7: %s has %d functions (max %d)", fp, func_count, MAX_FUNCTIONS_PER_FILE);
-                                    fclose(f); die(buf);
+                                    fclose(f); report_fatal_error_and_exit(buf);
                                 }
                                 if (fn_qty < 512) {
-                                    extract_func_name(line, fns[fn_qty].name, 128);
+                                    pull_function_name_from_definition(line, fns[fn_qty].name, 128);
                                     snprintf(fns[fn_qty].file, 256, "%s", fp);
-                                    check_name("function", fns[fn_qty].name, fp);
+                                    if (strcmp(fns[fn_qty].name, "main"))
+                                        validate_name_against_soul_rules("function", fns[fn_qty].name, fp);
                                     fn_qty++;
                                 }
                                 in_func = 1; func_lines = 1; func_start = 1;
@@ -226,18 +227,18 @@ void enforce_structural_limits(const char *srcdir) {
                             if (*s == '}') {
                                 if (func_lines > MAX_LINES_PER_FUNCTION) {
                                     char buf[512]; snprintf(buf, sizeof(buf), "SOUL §7: %s func#%d is %d lines (max %d)", fp, func_count, func_lines, MAX_LINES_PER_FUNCTION);
-                                    fclose(f); die(buf);
+                                    fclose(f); report_fatal_error_and_exit(buf);
                                 }
                                 in_func = 0;
                             }
                         }
-                        if (is_c && has_banned(line)) {
+                        if (is_c && check_for_banned_keyword_pattern(line)) {
                             char buf[512]; snprintf(buf, sizeof(buf), "SOUL §3§7: %s uses banned pattern (goto/setjmp/longjmp/output-suppression)", fp);
-                            fclose(f); die(buf);
+                            fclose(f); report_fatal_error_and_exit(buf);
                         }
-                        if (is_c && has_hardcoded_path(line)) {
+                        if (is_c && detect_hardcoded_file_path_string(line)) {
                             char buf[512]; snprintf(buf, sizeof(buf), "SOUL §7: %s has hardcoded absolute path", fp);
-                            fclose(f); die(buf);
+                            fclose(f); report_fatal_error_and_exit(buf);
                         }
                     }
                     fclose(f);
@@ -250,13 +251,13 @@ void enforce_structural_limits(const char *srcdir) {
                         char hdr[64] = {0};
                         if (sscanf(line, " #include <%63[^>]>", hdr) == 1 ||
                             sscanf(line, " #include \"%63[^\"]\"", hdr) == 1) {
-                            if (!is_allowed_include(hdr)) {
+                            if (!match_header_against_include_whitelist(hdr)) {
                                 char buf[512]; snprintf(buf, sizeof(buf), "SOUL §7: header '%s' not in whitelist", hdr);
-                                fclose(f2); die(buf);
+                                fclose(f2); report_fatal_error_and_exit(buf);
                             }
                             int found = 0;
                             for (int i = 0; i < inc_qty; i++)
-                                if (!strcmp(incs[i].name, hdr)) { if (++incs[i].count > MAX_INCLUDES) { char buf[512]; snprintf(buf, sizeof(buf), "SOUL §7: header '%s' included %d times (max %d)", hdr, incs[i].count, MAX_INCLUDES); fclose(f2); die(buf); } found = 1; break; }
+                                if (!strcmp(incs[i].name, hdr)) { if (++incs[i].count > MAX_INCLUDES) { char buf[512]; snprintf(buf, sizeof(buf), "SOUL §7: header '%s' included %d times (max %d)", hdr, incs[i].count, MAX_INCLUDES); fclose(f2); report_fatal_error_and_exit(buf); } found = 1; break; }
                             if (!found && inc_qty < 128) { snprintf(incs[inc_qty].name, 64, "%s", hdr); incs[inc_qty].count = 1; inc_qty++; }
                         }
                     }
@@ -267,7 +268,7 @@ void enforce_structural_limits(const char *srcdir) {
         }
         if (file_cnt > MAX_FILES_PER_DIR) {
             char buf[512]; snprintf(buf, sizeof(buf), "SOUL §7: %s has %d .c/.h files (max %d)", sub, file_cnt, MAX_FILES_PER_DIR);
-            die(buf);
+            report_fatal_error_and_exit(buf);
         }
     }
     closedir(d);
@@ -277,13 +278,14 @@ void enforce_structural_limits(const char *srcdir) {
         int called = 0;
         d = opendir(srcdir);
         while ((de = readdir(d)) != NULL && !called) {
-            if (de->d_name[0] == '.') continue;
+        if (de->d_name[0] == '.') continue;
+        if (!strcmp(de->d_name, "test") || !strcmp(de->d_name, "tests")) continue;
             char sub[4096]; snprintf(sub, sizeof(sub), "%s/%s", srcdir, de->d_name);
             struct stat st2; if (stat(sub, &st2) != 0 || !S_ISDIR(st2.st_mode)) continue;
             DIR *sd2 = opendir(sub); if (!sd2) continue;
             struct dirent *se2;
             while ((se2 = readdir(sd2)) != NULL && !called) {
-                if (!is_c_or_h(se2->d_name)) continue;
+                if (!check_filename_extension_c_or_h(se2->d_name)) continue;
                 char fp2[8192]; snprintf(fp2, sizeof(fp2), "%s/%s", sub, se2->d_name);
                 FILE *f3 = fopen(fp2, "r"); if (!f3) continue;
                 char line[1024];
@@ -296,11 +298,11 @@ void enforce_structural_limits(const char *srcdir) {
             closedir(sd2);
         }
         closedir(d);
-        if (!called) { char buf[512]; snprintf(buf, sizeof(buf), "SOUL §7: dead code — '%s' in %s is never called", fns[i].name, fns[i].file); die(buf); }
+        if (!called) { char buf[512]; snprintf(buf, sizeof(buf), "SOUL §7: dead code — '%s' in %s is never called", fns[i].name, fns[i].file); report_fatal_error_and_exit(buf); }
     }
 }
 
-void print_source_structure(const char *srcdir) {
+void display_source_structure_report(const char *srcdir) {
     DIR *d = opendir(srcdir);
     if (!d) { fprintf(stderr, "cannot open %s\n", srcdir); return; }
     struct dirent *de;
@@ -311,14 +313,14 @@ void print_source_structure(const char *srcdir) {
         DIR *sd = opendir(sub); if (!sd) continue;
         struct dirent *se;
         while ((se = readdir(sd)) != NULL) {
-            if (!is_c_or_h(se->d_name)) continue;
+            if (!check_filename_extension_c_or_h(se->d_name)) continue;
             char fp[8192]; snprintf(fp, sizeof(fp), "%s/%s", sub, se->d_name);
-            printf("%s: %d lines\n", fp, count_lines(fp));
+            printf("%s: %d lines\n", fp, count_lines_within_source_file(fp));
             FILE *f = fopen(fp, "r");
             if (f) {
                 char line[1024];
                 while (fgets(line, sizeof(line), f))
-                    if (is_func_start(line)) { char fn[128]; extract_func_name(line, fn, 128); printf("  func: %s\n", fn); }
+                    if (detect_function_definition_start_line(line)) { char fn[128]; pull_function_name_from_definition(line, fn, 128); printf("  func: %s\n", fn); }
                 fclose(f);
             }
         }

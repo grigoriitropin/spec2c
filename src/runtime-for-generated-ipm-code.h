@@ -67,7 +67,7 @@ int get_arg_count(void);
 char* get_arg_value(int index);
 
 /* Safe exec wrappers (replace system/popen) */
-int   safe_exec(char *const argv[]);
+int   launch_program_with_argument_array(char *const argv[]);
 FILE *safe_popen_read(char *const argv[], pid_t *out_pid);
 int   safe_pclose(FILE *fp, pid_t pid);
 

@@ -26,18 +26,18 @@ typedef struct {
 } spec_t;
 typedef struct { cJSON *meta; const char *name, *type, *desc; } ipm_spec_t;
 
-const char *jstr(const cJSON *obj, const char *key);
-_Noreturn void die(const char *msg);
-char *name_to_ident(const char *name);
-char *read_file(const char *path);
-void ipm_add_subst(subst_t *subs, int *n, const char *k, const char *v);
-void compile_instructions(cJSON *instructions, FILE *out, int indent, const char *return_type);
-void compile_functions_to_c(const ipm_spec_t *spec, FILE *out, int is_library);
-void generate_header(const ipm_spec_t *spec, const char *hdr_path);
-void generate_from_ipm(const ipm_spec_t *spec, const char *out_path, int is_library);
-void parse_spec_from_cjson(cJSON *root, spec_t *s);
-void compute_substs(const spec_t *s, subst_t *subs, int *nsubs);
-char *subst_apply(const char *tmpl, const subst_t *subs, int nsubs);
-char *resolve_template(const char *base, const char *file);
+const char *extract_json_field_string_value(const cJSON *obj, const char *key);
+_Noreturn void report_fatal_error_and_exit(const char *msg);
+char *convert_hyphen_name_into_underscore(const char *name);
+char *read_entire_file_into_memory(const char *path);
+void append_key_value_into_substitution(subst_t *subs, int *n, const char *k, const char *v);
+void generate_code_from_ast_instructions(cJSON *instructions, FILE *out, int indent, const char *return_type);
+void compile_every_function_into_code(const ipm_spec_t *spec, FILE *out, int is_library);
+void write_component_header_with_prototypes(const ipm_spec_t *spec, const char *hdr_path);
+void handle_ipm_spec_emit_code(const ipm_spec_t *spec, const char *out_path, int is_library);
+void parse_legacy_object_format_json(cJSON *root, spec_t *s);
+void create_substitution_table_for_spec(const spec_t *s, subst_t *subs, int *nsubs);
+char *apply_substitution_against_text_data(const char *tmpl, const subst_t *subs, int nsubs);
+char *resolve_template_file_from_base(const char *base, const char *file);
 
 #endif

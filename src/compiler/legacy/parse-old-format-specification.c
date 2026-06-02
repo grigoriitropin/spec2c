@@ -3,31 +3,31 @@
 
 #include "../common_h/share-type-definitions-across-files.h"
 
-void parse_spec_from_cjson(cJSON *root, spec_t *s) {
+void parse_legacy_object_format_json(cJSON *root, spec_t *s) {
     memset(s, 0, sizeof(*s));
     cJSON *j = cJSON_GetObjectItemCaseSensitive(root, "name");
-    if (!cJSON_IsString(j) || !j->valuestring[0]) die("spec missing \"name\"");
+    if (!cJSON_IsString(j) || !j->valuestring[0]) report_fatal_error_and_exit("spec missing \"name\"");
     s->name = strdup(j->valuestring);
-    if (!s->name) die("strdup failed");
-    s->ident = name_to_ident(s->name);
-    if (!s->ident) die("strdup failed");
+    if (!s->name) report_fatal_error_and_exit("strdup failed");
+    s->ident = convert_hyphen_name_into_underscore(s->name);
+    if (!s->ident) report_fatal_error_and_exit("strdup failed");
     j = cJSON_GetObjectItemCaseSensitive(root, "description");
     s->description = (cJSON_IsString(j) && j->valuestring[0])
         ? strdup(j->valuestring) : strdup("No description");
-    if (!s->description) die("strdup failed");
+    if (!s->description) report_fatal_error_and_exit("strdup failed");
     cJSON *core = cJSON_GetObjectItemCaseSensitive(root, "core");
     if (core && cJSON_IsObject(core)) {
         j = cJSON_GetObjectItemCaseSensitive(core, "function");
         if (cJSON_IsString(j) && j->valuestring[0]) {
             s->core_function = strdup(j->valuestring);
-            if (!s->core_function) die("strdup failed");
+            if (!s->core_function) report_fatal_error_and_exit("strdup failed");
         }
     }
     if (!s->core_function) {
         char buf[256];
         snprintf(buf, sizeof(buf), "%s_run", s->ident ? s->ident : s->name);
         s->core_function = strdup(buf);
-        if (!s->core_function) die("strdup failed");
+        if (!s->core_function) report_fatal_error_and_exit("strdup failed");
     }
     cJSON *cmds = cJSON_GetObjectItemCaseSensitive(root, "commands");
     if (cmds && cJSON_IsObject(cmds) && cJSON_GetArraySize(cmds) > 0)
@@ -42,7 +42,7 @@ void parse_spec_from_cjson(cJSON *root, spec_t *s) {
                 if (cJSON_IsString(k)) total += strlen(k->valuestring) + 1;
             }
             s->config_keys_str = malloc(total + 1);
-            if (!s->config_keys_str) die("malloc");
+            if (!s->config_keys_str) report_fatal_error_and_exit("malloc");
             s->config_keys_str[0] = '\0';
             for (int i = 0; i < s->nconfig_keys; i++) {
                 cJSON *k = cJSON_GetArrayItem(ckeys, i);
@@ -57,7 +57,7 @@ void parse_spec_from_cjson(cJSON *root, spec_t *s) {
     cJSON_Delete(root);
 }
 
-void compute_substs(const spec_t *s, subst_t *subs, int *nsubs) {
+void create_substitution_table_for_spec(const spec_t *s, subst_t *subs, int *nsubs) {
     *nsubs = 0;
 #define ADD(k, fmt, ...) do { \
     subs[*nsubs].key = k; \
@@ -108,10 +108,10 @@ void compute_substs(const spec_t *s, subst_t *subs, int *nsubs) {
 #undef ADD
 }
 
-char *subst_apply(const char *tmpl, const subst_t *subs, int nsubs) {
+char *apply_substitution_against_text_data(const char *tmpl, const subst_t *subs, int nsubs) {
     size_t len = strlen(tmpl);
     char *out = malloc(len * 2 + 4096);
-    if (!out) die("malloc");
+    if (!out) report_fatal_error_and_exit("malloc");
     size_t pos = 0;
     const char *p = tmpl;
     while (*p) {

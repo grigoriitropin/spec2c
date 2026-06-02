@@ -249,7 +249,7 @@ char *get_arg_value(int index) {
 }
 
 /* ── safe exec wrappers (replace system/popen) ──────────────────────── */
-int safe_exec(char *const argv[]) {
+int launch_program_with_argument_array(char *const argv[]) {
     pid_t pid = fork();
     if (pid < 0) return -1;
     if (pid == 0) { execvp(argv[0], argv); _exit(127); }

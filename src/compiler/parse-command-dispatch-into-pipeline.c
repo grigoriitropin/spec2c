@@ -3,13 +3,13 @@
 
 #include "common_h/share-type-definitions-across-files.h"
 
-const char *jstr(const cJSON *obj, const char *key) {
+const char *extract_json_field_string_value(const cJSON *obj, const char *key) {
     const cJSON *v = cJSON_GetObjectItemCaseSensitive(obj, key);
     if (!v || !cJSON_IsString(v)) return "";
     return v->valuestring;
 }
 
-_Noreturn void die(const char *msg) {
+_Noreturn void report_fatal_error_and_exit(const char *msg) {
     cJSON *r = cJSON_CreateObject();
     if (!r) { fprintf(stderr, "spec2c: FATAL: cJSON alloc failed\n"); exit(1); }
     cJSON_AddBoolToObject(r, "ok", 0);
@@ -21,7 +21,7 @@ _Noreturn void die(const char *msg) {
     exit(1);
 }
 
-char *name_to_ident(const char *name) {
+char *convert_hyphen_name_into_underscore(const char *name) {
     char *s = strdup(name);
     if (!s) return NULL;
     for (char *p = s; *p; p++)
@@ -29,19 +29,19 @@ char *name_to_ident(const char *name) {
     return s;
 }
 
-char *read_file(const char *path) {
+char *read_entire_file_into_memory(const char *path) {
     FILE *f;
     if (strcmp(path, "-") == 0) f = stdin;
-    else { f = fopen(path, "r"); if (!f) die("cannot open file"); }
+    else { f = fopen(path, "r"); if (!f) report_fatal_error_and_exit("cannot open file"); }
     size_t cap = 8192, len = 0;
     char *buf = malloc(cap);
-    if (!buf) die("malloc failed");
+    if (!buf) report_fatal_error_and_exit("malloc failed");
     size_t n;
     while ((n = fread(buf + len, 1, cap - len - 1, f)) > 0) {
         len += n;
-        if (len + 1 >= cap) { cap *= 2; char *t = realloc(buf, cap); if (!t) { free(buf); die("realloc"); } buf = t; }
+        if (len + 1 >= cap) { cap *= 2; char *t = realloc(buf, cap); if (!t) { free(buf); report_fatal_error_and_exit("realloc"); } buf = t; }
     }
-    if (ferror(f)) { free(buf); die("read error"); }
+    if (ferror(f)) { free(buf); report_fatal_error_and_exit("read error"); }
     buf[len] = '\0';
     if (f != stdin) fclose(f);
     return buf;
@@ -49,7 +49,7 @@ char *read_file(const char *path) {
 
 int main(int argc, char *argv[]) {
     #ifdef SPEC2C_SRC_DIR
-    enforce_structural_limits(SPEC2C_SRC_DIR);
+    enforce_all_source_code_rules(SPEC2C_SRC_DIR);
     #endif
 
     const char *spec_path = NULL;
@@ -79,13 +79,13 @@ int main(int argc, char *argv[]) {
             #ifdef SPEC2C_SRC_DIR
             char path[4096];
             snprintf(path, sizeof(path), "%s/allowed-names.txt", SPEC2C_SRC_DIR);
-            char *txt = read_file(path);
+            char *txt = read_entire_file_into_memory(path);
             if (txt) { printf("%s", txt); free(txt); }
             #endif
             return 0;
         } else if (strcmp(argv[i], "--show-structure") == 0) {
             #ifdef SPEC2C_SRC_DIR
-            print_source_structure(SPEC2C_SRC_DIR);
+            display_source_structure_report(SPEC2C_SRC_DIR);
             #endif
             return 0;
         } else if (strcmp(argv[i], "--library") == 0) {
@@ -95,26 +95,26 @@ int main(int argc, char *argv[]) {
             if (i + 1 < argc && argv[i+1][0] != '-') {
                 spec_path = argv[++i];
             } else {
-                die("missing file argument for --check");
+                report_fatal_error_and_exit("missing file argument for --check");
             }
         } else if (strcmp(argv[i], "--spec") == 0) {
-            if (++i >= argc) die("missing argument for --spec");
+            if (++i >= argc) report_fatal_error_and_exit("missing argument for --spec");
             check_spec = argv[i];
         } else if (strcmp(argv[i], "-o") == 0) {
-            if (++i >= argc) die("missing argument for -o");
+            if (++i >= argc) report_fatal_error_and_exit("missing argument for -o");
             out_path = argv[i];
         } else if (strcmp(argv[i], "--base") == 0) {
-            if (++i >= argc) die("missing argument for --base");
+            if (++i >= argc) report_fatal_error_and_exit("missing argument for --base");
             base_dir = argv[i];
         } else if (!spec_path) {
             spec_path = argv[i];
         } else {
-            die("unexpected argument");
+            report_fatal_error_and_exit("unexpected argument");
         }
     }
 
     if (check_mode) {
-        if (!spec_path) die("file argument required for --check");
+        if (!spec_path) report_fatal_error_and_exit("file argument required for --check");
         if (!base_dir) base_dir = ".";
         char pat[4096];
         snprintf(pat, sizeof(pat), "%s/soul-patterns.json", base_dir);
@@ -130,15 +130,15 @@ int main(int argc, char *argv[]) {
             args[ai++] = (char*)check_spec;
         }
         args[ai] = NULL;
-        return safe_exec(args);
+        return launch_program_with_argument_array(args);
     }
 
-    if (!spec_path) die("spec file required");
+    if (!spec_path) report_fatal_error_and_exit("spec file required");
     if (!base_dir) base_dir = ".";
 
-    char *spec_text = read_file(spec_path);
+    char *spec_text = read_entire_file_into_memory(spec_path);
     cJSON *spec_json = cJSON_Parse(spec_text);
-    if (!spec_json) die("JSON parse error in spec file");
+    if (!spec_json) report_fatal_error_and_exit("JSON parse error in spec file");
 
     if (spec_text) {
         int file_lines = 0;
@@ -148,7 +148,7 @@ int main(int argc, char *argv[]) {
         if (limits && cJSON_IsArray(limits)) {
             for (int li = 0; li < cJSON_GetArraySize(limits); li++) {
                 cJSON *l = cJSON_GetArrayItem(limits, li);
-                const char *ln = jstr(l, "limit_name");
+                const char *ln = extract_json_field_string_value(l, "limit_name");
                 int mv = cJSON_IsNumber(cJSON_GetObjectItemCaseSensitive(l, "maximum_value"))
                     ? cJSON_GetObjectItemCaseSensitive(l, "maximum_value")->valueint : 0;
                 if (!strcmp(ln, "file_line_count") && mv) max_file_lines = mv;
@@ -159,7 +159,7 @@ int main(int argc, char *argv[]) {
         if (file_lines > max_file_lines) {
             char buf[256];
             snprintf(buf, sizeof(buf), "file too long: %d lines (max %d)", file_lines, max_file_lines);
-            die(buf);
+            report_fatal_error_and_exit(buf);
         }
         cJSON *funcs = cJSON_GetObjectItemCaseSensitive(spec_json, "function_definitions");
         if (funcs && cJSON_IsObject(funcs)) {
@@ -167,7 +167,7 @@ int main(int argc, char *argv[]) {
             if (nfuncs > max_funcs) {
                 char buf[256];
                 snprintf(buf, sizeof(buf), "too many functions: %d (max %d)", nfuncs, max_funcs);
-                die(buf);
+                report_fatal_error_and_exit(buf);
             }
             cJSON *fn = funcs->child;
             while (fn) {
@@ -178,7 +178,7 @@ int main(int argc, char *argv[]) {
                     char buf[256];
                     snprintf(buf, sizeof(buf), "function '%s' too long: %d top-level instructions (max %d)",
                              fn->string, instrs, max_func_lines);
-                    die(buf);
+                    report_fatal_error_and_exit(buf);
                 }
                 fn = fn->next;
             }
@@ -193,7 +193,7 @@ int main(int argc, char *argv[]) {
         cJSON *tp = cJSON_GetObjectItemCaseSensitive(spec_json, "package_type");
         ipm.type = (tp && cJSON_IsString(tp)) ? tp->valuestring : "tool";
         ipm.desc = "generated by spec2c from .ipm specification";
-        generate_from_ipm(&ipm, out_path, is_library);
+        handle_ipm_spec_emit_code(&ipm, out_path, is_library);
         cJSON *r = cJSON_CreateObject();
         cJSON_AddBoolToObject(r, "ok", 1);
         cJSON_AddStringToObject(r, "output", out_path ? out_path : "(stdout)");
@@ -206,30 +206,30 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
-    char *skel_path = resolve_template(base_dir, "skeleton.json");
-    char *skel_text = read_file(skel_path);
+    char *skel_path = resolve_template_file_from_base(base_dir, "skeleton.json");
+    char *skel_text = read_entire_file_into_memory(skel_path);
     free(skel_path);
     cJSON *skel = cJSON_Parse(skel_text);
     free(skel_text);
-    if (!skel) die("JSON parse error in skeleton.json");
+    if (!skel) report_fatal_error_and_exit("JSON parse error in skeleton.json");
 
     spec_t spec;
-    parse_spec_from_cjson(spec_json, &spec);
+    parse_legacy_object_format_json(spec_json, &spec);
     free(spec_text);
 
     subst_t subs[SUBST_MAX];
     int nsubs = 0;
-    compute_substs(&spec, subs, &nsubs);
+    create_substitution_table_for_spec(&spec, subs, &nsubs);
     int has_config = spec.nconfig_keys > 0;
     int has_db = spec.has_db;
 
     cJSON *sections = cJSON_GetObjectItemCaseSensitive(skel, "sections");
-    if (!cJSON_IsArray(sections)) die("skeleton.json: missing \"sections\" array");
+    if (!cJSON_IsArray(sections)) report_fatal_error_and_exit("skeleton.json: missing \"sections\" array");
 
     FILE *out = stdout;
     if (out_path) {
         out = fopen(out_path, "w");
-        if (!out) die("cannot open output file");
+        if (!out) report_fatal_error_and_exit("cannot open output file");
     }
 
     for (int i = 0; i < cJSON_GetArraySize(sections); i++) {
@@ -244,10 +244,10 @@ int main(int argc, char *argv[]) {
         if (!include) continue;
         cJSON *file = cJSON_GetObjectItemCaseSensitive(sec, "file");
         if (!cJSON_IsString(file)) continue;
-        char *tpath = resolve_template(base_dir, file->valuestring);
-        char *tmpl = read_file(tpath);
+        char *tpath = resolve_template_file_from_base(base_dir, file->valuestring);
+        char *tmpl = read_entire_file_into_memory(tpath);
         free(tpath);
-        char *result = subst_apply(tmpl, subs, nsubs);
+        char *result = apply_substitution_against_text_data(tmpl, subs, nsubs);
         free(tmpl);
         fputs(result, out);
         free(result);

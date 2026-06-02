@@ -3,13 +3,13 @@
 
 #include "common_h/share-type-definitions-across-files.h"
 
-void generate_header(const ipm_spec_t *spec, const char *hdr_path) {
+void write_component_header_with_prototypes(const ipm_spec_t *spec, const char *hdr_path) {
     cJSON *funcs = cJSON_GetObjectItemCaseSensitive(spec->meta, "function_definitions");
-    const char *modname = jstr(spec->meta, "module_name");
+    const char *modname = extract_json_field_string_value(spec->meta, "module_name");
     if (!modname[0] || !hdr_path) return;
 
     FILE *hdr = fopen(hdr_path, "w");
-    if (!hdr) die("cannot open header file");
+    if (!hdr) report_fatal_error_and_exit("cannot open header file");
 
     char guard[256];
     snprintf(guard, sizeof(guard), "%s_H", modname);
@@ -33,7 +33,7 @@ void generate_header(const ipm_spec_t *spec, const char *hdr_path) {
         cJSON *fn = funcs->child;
         while (fn) {
             const char *name = fn->string;
-            const char *ret = jstr(fn, "return_type");
+            const char *ret = extract_json_field_string_value(fn, "return_type");
             const char *ret_c = "void";
             if (ret[0]) {
                 if (!strcmp(ret, "void")) ret_c = "void";
@@ -49,8 +49,8 @@ void generate_header(const ipm_spec_t *spec, const char *hdr_path) {
             if (params && cJSON_IsArray(params)) {
                 for (int p = 0; p < cJSON_GetArraySize(params); p++) {
                     cJSON *par = cJSON_GetArrayItem(params, p);
-                    const char *pn = jstr(par, "parameter_name");
-                    const char *pt = jstr(par, "parameter_type");
+                    const char *pn = extract_json_field_string_value(par, "parameter_name");
+                    const char *pt = extract_json_field_string_value(par, "parameter_type");
                     if (p > 0) fprintf(hdr, ", ");
                     fprintf(hdr, "%s %s", vartype_to_c(pt), pn);
                 }
@@ -63,7 +63,7 @@ void generate_header(const ipm_spec_t *spec, const char *hdr_path) {
     fclose(hdr);
 }
 
-void generate_from_ipm(const ipm_spec_t *spec, const char *out_path, int is_library) {
+void handle_ipm_spec_emit_code(const ipm_spec_t *spec, const char *out_path, int is_library) {
     if (is_library && out_path) {
         char hdr_path[4096];
         size_t olen = strlen(out_path);
@@ -83,13 +83,13 @@ void generate_from_ipm(const ipm_spec_t *spec, const char *out_path, int is_libr
                 cJSON *fn = funcs->child;
                 while (fn) {
                     const char *name = fn->string;
-                    fprintf(hdr, "%s %s(", vartype_to_c(jstr(fn, "return_type")), name);
+                    fprintf(hdr, "%s %s(", vartype_to_c(extract_json_field_string_value(fn, "return_type")), name);
                     cJSON *params = cJSON_GetObjectItemCaseSensitive(fn, "parameter_definitions");
                     if (params && cJSON_IsArray(params)) {
                         for (int p = 0; p < cJSON_GetArraySize(params); p++) {
                             cJSON *par = cJSON_GetArrayItem(params, p);
                             if (p > 0) fprintf(hdr, ", ");
-                            fprintf(hdr, "%s %s", vartype_to_c(jstr(par, "parameter_type")), jstr(par, "parameter_name"));
+                            fprintf(hdr, "%s %s", vartype_to_c(extract_json_field_string_value(par, "parameter_type")), extract_json_field_string_value(par, "parameter_name"));
                         }
                     }
                     fprintf(hdr, ");\n");
@@ -101,17 +101,17 @@ void generate_from_ipm(const ipm_spec_t *spec, const char *out_path, int is_libr
         }
     }
 
-    const char *modname = jstr(spec->meta, "module_name");
+    const char *modname = extract_json_field_string_value(spec->meta, "module_name");
     if (modname[0] && out_path) {
         char hdr_path[4096];
         const char *slash = strrchr(out_path, '/');
         int dirlen = slash ? (int)(slash - out_path + 1) : 0;
         snprintf(hdr_path, sizeof(hdr_path), "%.*s%s.h", dirlen, out_path, modname);
-        generate_header(spec, hdr_path);
+        write_component_header_with_prototypes(spec, hdr_path);
     }
 
     FILE *out_fp = out_path ? fopen(out_path, "w") : stdout;
-    if (!out_fp) die("cannot open output file");
+    if (!out_fp) report_fatal_error_and_exit("cannot open output file");
 
     if (modname[0]) {
         fprintf(out_fp, "#include <string.h>\n#include <stdio.h>\n#include <stdlib.h>\n#include <cjson/cJSON.h>\n");
@@ -119,24 +119,24 @@ void generate_from_ipm(const ipm_spec_t *spec, const char *out_path, int is_libr
     }
 
     subst_t subs[SUBST_MAX]; int nsubs = 0;
-    ipm_add_subst(subs, &nsubs, "package_name", spec->name);
-    ipm_add_subst(subs, &nsubs, "package_type", spec->type);
-    ipm_add_subst(subs, &nsubs, "package_description", spec->desc ? spec->desc : "No description");
+    append_key_value_into_substitution(subs, &nsubs, "package_name", spec->name);
+    append_key_value_into_substitution(subs, &nsubs, "package_type", spec->type);
+    append_key_value_into_substitution(subs, &nsubs, "package_description", spec->desc ? spec->desc : "No description");
     cJSON *cfg = cJSON_GetObjectItemCaseSensitive(spec->meta, "configuration_keys");
     int has_config = cfg && cJSON_IsArray(cfg) && cJSON_GetArraySize(cfg) > 0;
-    ipm_add_subst(subs, &nsubs, "has_configuration", has_config ? "1" : "0");
-    ipm_add_subst(subs, &nsubs, "compiler_includes", "");
-    ipm_add_subst(subs, &nsubs, "compiler_function_implementations", "");
-    ipm_add_subst(subs, &nsubs, "argument_parsing_logic", "if (argc < 2) print_usage_and_exit(argv[0]);");
-    ipm_add_subst(subs, &nsubs, "pipeline_initialization", "fprintf(stderr, \"gen\\n\");");
-    ipm_add_subst(subs, &nsubs, "pipeline_execution", "fprintf(stderr, \"done\\n\");");
-    ipm_add_subst(subs, &nsubs, "ipm_metadata_header", "/* IPM Generated Code — DO NOT EDIT */");
+    append_key_value_into_substitution(subs, &nsubs, "has_configuration", has_config ? "1" : "0");
+    append_key_value_into_substitution(subs, &nsubs, "compiler_includes", "");
+    append_key_value_into_substitution(subs, &nsubs, "compiler_function_implementations", "");
+    append_key_value_into_substitution(subs, &nsubs, "argument_parsing_logic", "if (argc < 2) print_usage_and_exit(argv[0]);");
+    append_key_value_into_substitution(subs, &nsubs, "pipeline_initialization", "fprintf(stderr, \"gen\\n\");");
+    append_key_value_into_substitution(subs, &nsubs, "pipeline_execution", "fprintf(stderr, \"done\\n\");");
+    append_key_value_into_substitution(subs, &nsubs, "ipm_metadata_header", "/* IPM Generated Code — DO NOT EDIT */");
 
     cJSON *templates = cJSON_GetObjectItemCaseSensitive(spec->meta, "template_definitions");
     if (templates && cJSON_IsObject(templates) && templates->child)
-        die("spec uses template_definitions — raw C passthrough forbidden. All code must be generated from function_definitions (AST instructions).");
+        report_fatal_error_and_exit("spec uses template_definitions — raw C passthrough forbidden. All code must be generated from function_definitions (AST instructions).");
 
-    compile_functions_to_c(spec, out_fp, is_library);
+    compile_every_function_into_code(spec, out_fp, is_library);
 
     if (!is_library) {
         cJSON *func_defs = cJSON_GetObjectItemCaseSensitive(spec->meta, "function_definitions");
@@ -157,9 +157,9 @@ void generate_from_ipm(const ipm_spec_t *spec, const char *out_path, int is_libr
     if (out_path) fclose(out_fp);
 }
 
-char *resolve_template(const char *base, const char *file) {
+char *resolve_template_file_from_base(const char *base, const char *file) {
     char *path = malloc(strlen(base) + strlen(file) + 2);
-    if (!path) die("malloc");
+    if (!path) report_fatal_error_and_exit("malloc");
     sprintf(path, "%s/%s", base, file);
     return path;
 }
