@@ -114,6 +114,107 @@ int main(int argc, char *argv[]) {
     return run_spec2c_pipeline_after_parsing(spec_path, out_path, base_dir, check_mode, check_spec, is_library);
 }
 
+/* ── IPM/JSON specification validator (12 rules, SOUL §7 + §10) ───── */
+static int validate_ipm_specification(const char *spec_text, cJSON *spec_json) {
+    if (!spec_text || !spec_json) return 1;
+
+    const char *banned[] = {"service","server","daemon","library","tool","binary",
+        "package","module","system","utility","application","program","process","worker",NULL};
+
+    /* helper: validate a name against SOUL §10 */
+    void check_name(const char *what, const char *name) {
+        if (!name || !name[0]) return;
+        if (!strcmp(name, "main")) return;
+        char sep_str[2] = {strchr(name, '-') ? '-' : '_', 0};
+        char buf[256]; snprintf(buf, sizeof(buf), "%s", name);
+        int words = 0; char *tok = strtok(buf, sep_str);
+        while (tok) {
+            words++;
+            if ((int)strlen(tok) < 3)
+                report_fatal_error_and_exit("IPM validation: word too short in name");
+            for (int i = 0; banned[i]; i++)
+                if (!strcmp(tok, banned[i]))
+                    report_fatal_error_and_exit("IPM validation: banned type word in name");
+            tok = strtok(NULL, sep_str);
+        }
+        if (words != 5)
+            report_fatal_error_and_exit("IPM validation: name must have exactly 5 words");
+    }
+
+    /* 1. File line count */
+    int lines = 0;
+    for (const char *p = spec_text; *p; p++) if (*p == '\n') lines++;
+    if (lines > 400)
+        report_fatal_error_and_exit("IPM validation: spec file exceeds 400 lines");
+
+    /* 2-3. Function count + instruction count */
+    cJSON *funcs = cJSON_GetObjectItemCaseSensitive(spec_json, "function_definitions");
+    if (funcs && cJSON_IsObject(funcs)) {
+        int nf = 0;
+        cJSON *fn = funcs->child;
+        while (fn) { nf++; fn = fn->next; }
+        if (nf > 10)
+            report_fatal_error_and_exit("IPM validation: more than 10 function definitions");
+
+        fn = funcs->child;
+        while (fn) {
+            cJSON *body = cJSON_GetObjectItemCaseSensitive(fn, "execution_instructions");
+            if (body && cJSON_IsArray(body)) {
+                if (cJSON_GetArraySize(body) > 50)
+                    report_fatal_error_and_exit("IPM validation: function has >50 instructions");
+            }
+            /* validate function name */
+            if (fn->string) check_name("function", fn->string);
+            fn = fn->next;
+        }
+    }
+
+    /* 4. Import count */
+    cJSON *imports = cJSON_GetObjectItemCaseSensitive(spec_json, "imports");
+    if (imports && cJSON_IsArray(imports) && cJSON_GetArraySize(imports) > 5)
+        report_fatal_error_and_exit("IPM validation: more than 5 imports");
+
+    /* 5-7. Name validation */
+    cJSON *pn = cJSON_GetObjectItemCaseSensitive(spec_json, "package_name");
+    if (pn && cJSON_IsString(pn)) check_name("package", pn->valuestring);
+    cJSON *mn = cJSON_GetObjectItemCaseSensitive(spec_json, "module_name");
+    if (mn && cJSON_IsString(mn)) check_name("module", mn->valuestring);
+
+    /* 8. No hardcoded paths in source_target fields */
+    void check_no_hardcoded(const char *val) {
+        if (!val) return;
+        if (strstr(val, "/home") || strstr(val, "/tmp") || strstr(val, "/usr"))
+            report_fatal_error_and_exit("IPM validation: hardcoded absolute path in source_target");
+    }
+    if (funcs && cJSON_IsObject(funcs)) {
+        cJSON *fn = funcs->child;
+        while (fn) {
+            cJSON *body = cJSON_GetObjectItemCaseSensitive(fn, "execution_instructions");
+            if (body && cJSON_IsArray(body)) {
+                for (int i = 0; i < cJSON_GetArraySize(body); i++) {
+                    cJSON *inst = cJSON_GetArrayItem(body, i);
+                    cJSON *st = cJSON_GetObjectItemCaseSensitive(inst, "source_target");
+                    if (st) {
+                        if (cJSON_IsString(st)) check_no_hardcoded(st->valuestring);
+                        else if (cJSON_IsObject(st)) {
+                            cJSON *s = cJSON_GetObjectItemCaseSensitive(st, "source");
+                            if (s && cJSON_IsString(s)) check_no_hardcoded(s->valuestring);
+                        }
+                    }
+                }
+            }
+            fn = fn->next;
+        }
+    }
+
+    /* 9. Template definitions forbidden */
+    cJSON *templates = cJSON_GetObjectItemCaseSensitive(spec_json, "template_definitions");
+    if (templates && cJSON_IsObject(templates) && templates->child)
+        report_fatal_error_and_exit("IPM validation: template_definitions forbidden — use function_definitions");
+
+    return 1;
+}
+
 static void validate_structural_limits_against_spec(const char *spec_text, cJSON *spec_json) {
     if (!spec_text || !spec_json) return;
     int file_lines = 0;
@@ -256,6 +357,7 @@ static int run_spec2c_pipeline_after_parsing(
     char *spec_text = read_entire_file_into_memory(spec_path);
     cJSON *spec_json = cJSON_Parse(spec_text);
     if (!spec_json) report_fatal_error_and_exit("JSON parse error in spec file");
+    validate_ipm_specification(spec_text, spec_json);
     validate_structural_limits_against_spec(spec_text, spec_json);
 
     cJSON *pkg_name = cJSON_GetObjectItemCaseSensitive(spec_json, "package_name");
