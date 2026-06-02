@@ -75,7 +75,7 @@ static void check_single_file_for_violations(const char *sub, int is_c,
     FILE *f = fopen(sub, "r");
     if (f) {
         char line[1024];
-        int func_count = 0, func_lines = 0, in_func = 0, func_start = 0, depth = 0;
+        int func_count = 0, func_lines = 0, in_func = 0, func_start = 0; brace_state_t bstate; count_open_close_brace_pairs_reset(&bstate);
         while (fgets(line, sizeof(line), f)) {
             if (!in_func) {
                 if (detect_function_definition_start_line(line)) {
@@ -94,21 +94,21 @@ static void check_single_file_for_violations(const char *sub, int is_c,
                         }
                     }
                     in_func = 1; func_lines = 1; func_start = 1;
-                    depth = 0; count_open_close_brace_pairs(line, &depth);
-                    if (depth <= 0) { in_func = 0; }
+                    count_open_close_brace_pairs_reset(&bstate); count_open_close_brace_pairs(line, &bstate);
+                    if (bstate.depth <= 0) { in_func = 0; }
                     continue;
                 }
             }
             if (in_func) {
                 func_lines++;
                 if (func_start) { func_start = 0; continue; }
-                count_open_close_brace_pairs(line, &depth);
-                if (depth <= 0) {
+                count_open_close_brace_pairs(line, &bstate);
+                if (bstate.depth <= 0) {
                     if (func_lines > MAX_LINES_PER_FUNCTION) {
                         char buf[8448]; snprintf(buf, sizeof(buf), "SOUL §7: %s func#%d is %d lines (max %d)", sub, func_count, func_lines, MAX_LINES_PER_FUNCTION);
                         fclose(f); report_fatal_error_and_exit(buf);
                     }
-                    in_func = 0; depth = 0;
+                    in_func = 0;
                 }
             }
             if (is_c && check_for_banned_keyword_pattern(line)) {
@@ -249,7 +249,8 @@ void display_current_source_structure_report(const char *srcdir) {
         FILE *f = fopen(sub, "r");
         if (f) {
             char line[1024];
-            int in_func = 0, func_lines = 0, func_start = 0, depth = 0;
+            int in_func = 0, func_lines = 0, func_start = 0;
+            brace_state_t bstate; count_open_close_brace_pairs_reset(&bstate);
             char func_name[128] = {0};
             while (fgets(line, sizeof(line), f)) {
                 if (!in_func) {
@@ -257,16 +258,16 @@ void display_current_source_structure_report(const char *srcdir) {
                         pull_function_name_from_definition(line, func_name, 128);
                         if (!func_name[0]) continue;
                         in_func = 1; func_lines = 1; func_start = 1;
-                        depth = 0; count_open_close_brace_pairs(line, &depth);
-                        if (depth <= 0) { printf("  func: %s (%dL)\n", func_name, func_lines); in_func = 0; depth = 0; }
+                        count_open_close_brace_pairs_reset(&bstate); count_open_close_brace_pairs(line, &bstate);
+                        if (bstate.depth <= 0) { printf("  func: %s (%dL)\n", func_name, func_lines); in_func = 0; }
                         continue;
                     }
                 }
                 if (in_func) {
                     func_lines++;
                     if (func_start) { func_start = 0; continue; }
-                    count_open_close_brace_pairs(line, &depth);
-                    if (depth <= 0) { printf("  func: %s (%dL)\n", func_name, func_lines); in_func = 0; depth = 0; }
+                    count_open_close_brace_pairs(line, &bstate);
+                    if (bstate.depth <= 0) { printf("  func: %s (%dL)\n", func_name, func_lines); in_func = 0; }
                 }
             }
             fclose(f);

@@ -4,16 +4,33 @@
 #include "verify-structural-source-code-rules.h"
 #include <string.h>
 
-void count_open_close_brace_pairs(const char *line, int *depth) {
-    int in_str = 0, in_char = 0;
+typedef struct {
+    int depth;
+    int in_str;
+    int in_char;
+    int in_comment;
+} brace_state_t;
+
+void count_open_close_brace_pairs_reset(brace_state_t *state) {
+    memset(state, 0, sizeof(*state));
+}
+
+void count_open_close_brace_pairs(const char *line, brace_state_t *state) {
     for (const char *p = line; *p; p++) {
-        if (!in_str && !in_char && *p == '/' && *(p+1) == '/') break;
+        if (state->in_comment) {
+            if (*p == '*' && *(p+1) == '/') { state->in_comment = 0; p++; }
+            continue;
+        }
+        if (!state->in_str && !state->in_char && *p == '/' && *(p+1) == '*') {
+            state->in_comment = 1; p++; continue;
+        }
+        if (!state->in_str && !state->in_char && *p == '/' && *(p+1) == '/') break;
         if (*p == '\\' && *(p+1) != '\0') { p++; continue; }
-        if (!in_char && *p == '"') in_str = !in_str;
-        else if (!in_str && *p == '\'') in_char = !in_char;
-        if (!in_str && !in_char) {
-            if (*p == '{') (*depth)++;
-            else if (*p == '}') (*depth)--;
+        if (!state->in_char && *p == '"') state->in_str = !state->in_str;
+        else if (!state->in_str && *p == '\'') state->in_char = !state->in_char;
+        if (!state->in_str && !state->in_char && !state->in_comment) {
+            if (*p == '{') state->depth++;
+            else if (*p == '}') state->depth--;
         }
     }
 }
