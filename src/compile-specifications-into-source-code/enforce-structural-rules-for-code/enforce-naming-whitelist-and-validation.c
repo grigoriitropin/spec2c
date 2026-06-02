@@ -39,6 +39,7 @@ int match_header_against_include_whitelist(const char *hdr) {
         "dirent.h","regex.h","signal.h","stdint.h","stddef.h","stdbool.h","time.h",
         "cjson/cJSON.h","netinet/in.h",
         "runtime-for-generated-ipm-code.h",
+        "ipm_builtins.h",
         "verify-structural-source-code-rules.h",
         "shared-type-declarations-across-modules/share-type-definitions-across-files.h",
         "../shared-type-declarations-across-modules/share-type-definitions-across-files.h",
