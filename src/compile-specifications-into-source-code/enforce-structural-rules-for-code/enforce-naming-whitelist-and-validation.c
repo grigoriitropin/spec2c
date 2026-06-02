@@ -147,7 +147,10 @@ void read_allowed_names_from_file(const char *srcdir) {
         while (len > 0 && (line[len-1] == '\n' || line[len-1] == '\r')) line[--len] = 0;
         if (len > 0) {
             if (line[0] == '#') continue;
-            if (strcmp(line, "main") && !validate_single_whitelist_entry_name(line)) {
+            if (strcmp(line, "main") && strcmp(line, "while") &&
+                strcmp(line, "for") && strcmp(line, "if") &&
+                strcmp(line, "switch") &&
+                !validate_single_whitelist_entry_name(line)) {
                 char eb[2048];
                 snprintf(eb, sizeof(eb),
                     "SOUL §10: whitelist entry '%s' is invalid.\n"
