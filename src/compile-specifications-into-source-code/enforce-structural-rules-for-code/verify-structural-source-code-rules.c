@@ -17,8 +17,51 @@ static int debug_trace = 0;
 #define MAX_FUNCTIONS_PER_FILE 10
 #define MAX_LINES_PER_FUNCTION 50
 
+/* ── centralized error reporting ───────────────────────────────────── */
+typedef enum {
+    ERR_FILE_TOO_LONG,
+    ERR_TOO_MANY_FUNCTIONS,
+    ERR_FUNCTION_TOO_LONG,
+    ERR_TOO_MANY_FILES_IN_DIR,
+    ERR_BANNED_PATTERN,
+    ERR_HARDCODED_PATH,
+    ERR_HEADER_NOT_IN_WHITELIST,
+    ERR_HEADER_INCLUDED_TOO_OFTEN,
+    ERR_DEAD_CODE,
+    ERR_MAIN_COUNT
+} enforce_err_t;
+
 static void report_fatal_error_and_exit(const char *msg) {
     fprintf(stderr, "spec2c: %s\n", msg); exit(1);
+}
+
+static void report_enforcement_error(enforce_err_t code, const char *a1,
+    int v1, int v2, const char *a2)
+{
+    char buf[8448];
+    switch (code) {
+    case ERR_FILE_TOO_LONG:
+        snprintf(buf, sizeof(buf), "SOUL §7: %s has %d lines (max %d)\n  → split this file into smaller files", a1, v1, v2); break;
+    case ERR_TOO_MANY_FUNCTIONS:
+        snprintf(buf, sizeof(buf), "SOUL §7: %s has %d functions (max %d)\n  → extract functions into a new .c file", a1, v1, v2); break;
+    case ERR_FUNCTION_TOO_LONG:
+        snprintf(buf, sizeof(buf), "SOUL §7: %s func#%d is %d lines (max %d)\n  → split into smaller helper functions", a1, v1, v2, MAX_LINES_PER_FUNCTION); break;
+    case ERR_TOO_MANY_FILES_IN_DIR:
+        snprintf(buf, sizeof(buf), "SOUL §7: %s has %d files (max %d)\n  → create a subdirectory and move files there", a1, v1, v2); break;
+    case ERR_BANNED_PATTERN:
+        snprintf(buf, sizeof(buf), "SOUL §7: %s uses banned pattern\n  → remove goto/setjmp/longjmp/output-suppression", a1); break;
+    case ERR_HARDCODED_PATH:
+        snprintf(buf, sizeof(buf), "SOUL §7: %s has hardcoded path\n  → resolve paths at runtime, never hardcode", a1); break;
+    case ERR_HEADER_NOT_IN_WHITELIST:
+        snprintf(buf, sizeof(buf), "SOUL §7: header '%s' in %s not in whitelist\n  → add to ok[] in enforce-naming-whitelist-and-validation.c", a1, a2); break;
+    case ERR_HEADER_INCLUDED_TOO_OFTEN:
+        snprintf(buf, sizeof(buf), "SOUL §7: header '%s' included %d times (max %d)\n  → consolidate includes", a1, v1, v2); break;
+    case ERR_DEAD_CODE:
+        snprintf(buf, sizeof(buf), "SOUL §7: dead code — '%s' in %s never called\n  → remove unused function or add call site", a1, a2); break;
+    case ERR_MAIN_COUNT:
+        snprintf(buf, sizeof(buf), "SOUL §7: exactly one main() required, found %d\n  → keep exactly one entry point", v1); break;
+    }
+    report_fatal_error_and_exit(buf);
 }
 static int count_lines_within_source_file(const char *path) {
     FILE *f = fopen(path, "r"); if (!f) return -1;
@@ -66,8 +109,7 @@ static void check_single_file_for_violations(const char *sub, int is_c,
     if (is_c) {
         int lines = count_lines_within_source_file(sub);
         if (lines > MAX_LINES_PER_FILE) {
-            char buf[8448]; snprintf(buf, sizeof(buf), "SOUL §7: %s has %d lines (max %d)", sub, lines, MAX_LINES_PER_FILE);
-            report_fatal_error_and_exit(buf);
+            report_enforcement_error(ERR_FILE_TOO_LONG, sub, lines, MAX_LINES_PER_FILE, NULL);
         }
     }
     FILE *f = fopen(sub, "r");
@@ -79,8 +121,7 @@ static void check_single_file_for_violations(const char *sub, int is_c,
                 if (detect_function_definition_start_line(line)) {
                     func_count++;
                     if (func_count > MAX_FUNCTIONS_PER_FILE) {
-                        char buf[8448]; snprintf(buf, sizeof(buf), "SOUL §7: %s has %d functions (max %d)", sub, func_count, MAX_FUNCTIONS_PER_FILE);
-                        fclose(f); report_fatal_error_and_exit(buf);
+                        fclose(f); report_enforcement_error(ERR_TOO_MANY_FUNCTIONS, sub, func_count, MAX_FUNCTIONS_PER_FILE, NULL);
                     }
                     if (*fn_qty < 512) {
                         pull_function_name_from_definition(line, fns[*fn_qty].name, 128);
@@ -109,19 +150,16 @@ static void check_single_file_for_violations(const char *sub, int is_c,
                         sub, func_lines, bstate.depth, line);
                 if (bstate.depth <= 0) {
                     if (func_lines > MAX_LINES_PER_FUNCTION) {
-                        char buf[8448]; snprintf(buf, sizeof(buf), "SOUL §7: %s func#%d is %d lines (max %d)", sub, func_count, func_lines, MAX_LINES_PER_FUNCTION);
-                        fclose(f); report_fatal_error_and_exit(buf);
+                        fclose(f); report_enforcement_error(ERR_FUNCTION_TOO_LONG, sub, func_count, func_lines, NULL);
                     }
                     in_func = 0;
                 }
             }
             if (is_c && check_for_banned_keyword_pattern(line)) {
-                char buf[8448]; snprintf(buf, sizeof(buf), "SOUL §7: %s uses banned pattern", sub);
-                fclose(f); report_fatal_error_and_exit(buf);
+                fclose(f); report_enforcement_error(ERR_BANNED_PATTERN, sub, 0, 0, NULL);
             }
             if (is_c && detect_hardcoded_file_path_string(line)) {
-                char buf[8448]; snprintf(buf, sizeof(buf), "SOUL §7: %s has hardcoded absolute path", sub);
-                fclose(f); report_fatal_error_and_exit(buf);
+                fclose(f); report_enforcement_error(ERR_HARDCODED_PATH, sub, 0, 0, NULL);
             }
         }
         fclose(f);
@@ -139,16 +177,14 @@ static void check_include_headers_for_file(const char *sub, inc_entry_t *incs, i
             else if (sscanf(line, " #include \"%127[^\"]\"", hdr) == 1) is_angle = 0;
             else continue;
             if (!match_header_against_include_whitelist(hdr)) {
-                char buf[8448]; snprintf(buf, sizeof(buf), "SOUL §7: header '%s' not in whitelist", hdr);
-                fclose(f2); report_fatal_error_and_exit(buf);
+                fclose(f2); report_enforcement_error(ERR_HEADER_NOT_IN_WHITELIST, hdr, 0, 0, sub);
             }
             if (!is_angle) {
                 int found = 0;
                 for (int i = 0; i < *inc_qty; i++)
                     if (!strcmp(incs[i].name, hdr)) {
                         if (++incs[i].count > MAX_INCLUDES) {
-                            char buf[8448]; snprintf(buf, sizeof(buf), "SOUL §7: header '%s' included %d times (max %d)", hdr, incs[i].count, MAX_INCLUDES);
-                            fclose(f2); report_fatal_error_and_exit(buf);
+                            fclose(f2); report_enforcement_error(ERR_HEADER_INCLUDED_TOO_OFTEN, hdr, incs[i].count, MAX_INCLUDES, NULL);
                         }
                         found = 1; break;
                     }
@@ -187,8 +223,7 @@ static void search_for_unused_function_code(fn_entry_t *fns, int fn_qty, const c
         }
         search_calls(srcdir);
         if (!called) {
-            char buf[8448]; snprintf(buf, sizeof(buf), "SOUL §7: dead code — '%s' in %s never called", fns[i].name, fns[i].file);
-            report_fatal_error_and_exit(buf);
+            report_enforcement_error(ERR_DEAD_CODE, fns[i].name, 0, 0, fns[i].file);
         }
     }
 }
@@ -223,8 +258,7 @@ void enforce_all_source_code_rules(const char *srcdir) {
         }
         closedir(d);
         if (file_cnt > MAX_FILES_PER_DIR) {
-            char buf[8448]; snprintf(buf, sizeof(buf), "SOUL §7: %s has %d .c/.h files (max %d)", dirpath, file_cnt, MAX_FILES_PER_DIR);
-            report_fatal_error_and_exit(buf);
+            report_enforcement_error(ERR_TOO_MANY_FILES_IN_DIR, dirpath, file_cnt, MAX_FILES_PER_DIR, NULL);
         }
     }
     scan_dir(srcdir);
@@ -233,8 +267,7 @@ void enforce_all_source_code_rules(const char *srcdir) {
     for (int i = 0; i < fn_qty; i++)
         if (!strcmp(fns[i].name, "main")) main_count++;
     if (main_count != 1) {
-        char buf[8448]; snprintf(buf, sizeof(buf), "SOUL §7: exactly one main() required, found %d", main_count);
-        report_fatal_error_and_exit(buf);
+        report_enforcement_error(ERR_MAIN_COUNT, NULL, main_count, 0, NULL);
     }
 }
 
