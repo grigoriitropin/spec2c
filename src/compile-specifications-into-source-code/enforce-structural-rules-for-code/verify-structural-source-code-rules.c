@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
 // enforce.c — structural enforcement for spec2c compiler source
-
 #include "verify-structural-source-code-rules.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,16 +7,13 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <unistd.h>
-
 static int debug_trace = 0;
-
 #define MAX_FILES_PER_DIR 3
 #define MAX_LINES_PER_FILE 400
 #define MAX_INCLUDES 5
 #define MAX_FUNCTIONS_PER_FILE 10
 #define MAX_LINES_PER_FUNCTION 50
 #define MAX_LINE_LENGTH 120
-
 /* ── centralized error reporting ───────────────────────────────────── */
 typedef enum {
     ERR_FILE_TOO_LONG,
@@ -33,11 +29,9 @@ typedef enum {
     ERR_FLAG_NOT_IN_HELP,
     ERR_LINE_TOO_DENSE
 } enforce_err_t;
-
 static void report_fatal_error_and_exit(const char *msg) {
     fprintf(stderr, "spec2c: %s\n", msg); exit(1);
 }
-
 static void report_violation_with_actionable_hint(enforce_err_t code, const char *a1,
     int v1, int v2, const char *a2)
 {
@@ -103,7 +97,6 @@ static int detect_function_definition_start_line(const char *line) {
     if (match_name_against_stdlib_list(first)) return 0;
     return 1;
 }
-
 /* ── shared state types ────────────────────────────────────────────── */
 typedef struct {
     char name[128];
