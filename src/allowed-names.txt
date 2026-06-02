@@ -156,3 +156,4 @@ scan-source-code-for-patterns
 detect-banned-patterns-and-braces
 clear_brace_tracking_for_function
 parse_spec2c_command_line_arguments
+emit_function_prototypes_into_header

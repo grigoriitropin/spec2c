@@ -3,6 +3,38 @@
 
 #include "shared-type-declarations-across-modules/share-type-definitions-across-files.h"
 
+static void emit_function_prototypes_into_header(FILE *hdr, cJSON *funcs) {
+    if (!funcs || !cJSON_IsObject(funcs)) return;
+    cJSON *fn = funcs->child;
+    while (fn) {
+        const char *name = fn->string;
+        const char *ret = extract_json_field_string_value(fn, "return_type");
+        const char *ret_c = "void";
+        if (ret[0]) {
+            if (!strcmp(ret, "void")) ret_c = "void";
+            else if (!strcmp(ret, "int")) ret_c = "int";
+            else if (!strcmp(ret, "string") || !strcmp(ret, "char")) ret_c = "char *";
+            else if (!strcmp(ret, "json_object")) ret_c = "cJSON *";
+            else if (!strcmp(ret, "json_array")) ret_c = "cJSON *";
+            else if (!strcmp(ret, "subst_table")) ret_c = "subst_table *";
+            else if (!strcmp(ret, "string_buffer")) ret_c = "string_buffer *";
+        }
+        fprintf(hdr, "%s %s(", ret_c, name);
+        cJSON *params = cJSON_GetObjectItemCaseSensitive(fn, "parameter_definitions");
+        if (params && cJSON_IsArray(params)) {
+            for (int p = 0; p < cJSON_GetArraySize(params); p++) {
+                cJSON *par = cJSON_GetArrayItem(params, p);
+                const char *pn = extract_json_field_string_value(par, "parameter_name");
+                const char *pt = extract_json_field_string_value(par, "parameter_type");
+                if (p > 0) fprintf(hdr, ", ");
+                fprintf(hdr, "%s %s", resolve_spec_type_into_target_lang(pt), pn);
+            }
+        }
+        fprintf(hdr, ");\n");
+        fn = fn->next;
+    }
+}
+
 void write_component_header_with_prototypes(const ipm_spec_t *spec, const char *hdr_path) {
     cJSON *funcs = cJSON_GetObjectItemCaseSensitive(spec->meta, "function_definitions");
     const char *modname = extract_json_field_string_value(spec->meta, "module_name");
@@ -29,36 +61,8 @@ void write_component_header_with_prototypes(const ipm_spec_t *spec, const char *
     }
     fprintf(hdr, "\n");
 
-    if (funcs && cJSON_IsObject(funcs)) {
-        cJSON *fn = funcs->child;
-        while (fn) {
-            const char *name = fn->string;
-            const char *ret = extract_json_field_string_value(fn, "return_type");
-            const char *ret_c = "void";
-            if (ret[0]) {
-                if (!strcmp(ret, "void")) ret_c = "void";
-                else if (!strcmp(ret, "int")) ret_c = "int";
-                else if (!strcmp(ret, "string") || !strcmp(ret, "char")) ret_c = "char *";
-                else if (!strcmp(ret, "json_object")) ret_c = "cJSON *";
-                else if (!strcmp(ret, "json_array")) ret_c = "cJSON *";
-                else if (!strcmp(ret, "subst_table")) ret_c = "subst_table *";
-                else if (!strcmp(ret, "string_buffer")) ret_c = "string_buffer *";
-            }
-            fprintf(hdr, "%s %s(", ret_c, name);
-            cJSON *params = cJSON_GetObjectItemCaseSensitive(fn, "parameter_definitions");
-            if (params && cJSON_IsArray(params)) {
-                for (int p = 0; p < cJSON_GetArraySize(params); p++) {
-                    cJSON *par = cJSON_GetArrayItem(params, p);
-                    const char *pn = extract_json_field_string_value(par, "parameter_name");
-                    const char *pt = extract_json_field_string_value(par, "parameter_type");
-                    if (p > 0) fprintf(hdr, ", ");
-                    fprintf(hdr, "%s %s", resolve_spec_type_into_target_lang(pt), pn);
-                }
-            }
-            fprintf(hdr, ");\n");
-            fn = fn->next;
-        }
-    }
+    emit_function_prototypes_into_header(hdr, funcs);
+
     fprintf(hdr, "\n#endif /* %s_H */\n", guard);
     fclose(hdr);
 }

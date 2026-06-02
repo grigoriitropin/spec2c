@@ -9,6 +9,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+static int debug_trace = 0;
+
 #define MAX_FILES_PER_DIR 3
 #define MAX_LINES_PER_FILE 400
 #define MAX_INCLUDES 3
@@ -95,6 +97,9 @@ static void check_single_file_for_violations(const char *sub, int is_c,
                     }
                     in_func = 1; func_lines = 1; func_start = 1;
                     clear_brace_tracking_for_function(&bstate); count_open_close_brace_pairs(line, &bstate);
+                    if (debug_trace)
+                        fprintf(stderr, "\n── %s FUNC#%d [d=%d] %s",
+                            sub, func_count, bstate.depth, line);
                     if (bstate.depth <= 0) { in_func = 0; }
                     continue;
                 }
@@ -103,6 +108,9 @@ static void check_single_file_for_violations(const char *sub, int is_c,
                 func_lines++;
                 if (func_start) { func_start = 0; continue; }
                 count_open_close_brace_pairs(line, &bstate);
+                if (debug_trace)
+                    fprintf(stderr, "  %s:%d [d=%d] %s",
+                        sub, func_lines, bstate.depth, line);
                 if (bstate.depth <= 0) {
                     if (func_lines > MAX_LINES_PER_FUNCTION) {
                         char buf[8448]; snprintf(buf, sizeof(buf), "SOUL §7: %s func#%d is %d lines (max %d)", sub, func_count, func_lines, MAX_LINES_PER_FUNCTION);
@@ -277,7 +285,13 @@ void display_current_source_structure_report(const char *srcdir) {
 }
 
 int main(int argc, char **argv) {
-    const char *src_dir = (argc > 1) ? argv[1] : "./src";
+    const char *src_dir = "./src";
+    for (int i = 1; i < argc; i++) {
+        if (!strcmp(argv[i], "--debug"))
+            debug_trace = 1;
+        else
+            src_dir = argv[i];
+    }
     enforce_all_source_code_rules(src_dir);
     return 0;
 }
