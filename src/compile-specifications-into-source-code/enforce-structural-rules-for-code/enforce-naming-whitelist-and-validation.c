@@ -70,7 +70,7 @@ static int skip_name_validation_for_keywords(const char *name) {
            !strcmp(name, "if") || !strcmp(name, "switch");
 }
 
-static int match_name_against_stdlib_list(const char *name) {
+int match_name_against_stdlib_list(const char *name) {
     const char *lib[] = {
         "strstr","strncmp","strcmp","strlen","sscanf","snprintf",
         "printf","fprintf","sprintf","malloc","realloc","free",
