@@ -140,7 +140,32 @@ void generate_code_from_ast_instructions(cJSON *instructions, FILE *out, int ind
             if (cJSON_IsString(st)) src = st->valuestring;
             else if (st) { cJSON *s2 = cJSON_GetObjectItemCaseSensitive(st, "source"); if (cJSON_IsString(s2)) src = s2->valuestring; }
             if (vn && vt && op) {
-                fprintf(out, "%s %s = %s(%s);\n", resolve_spec_type_into_lang(vt), vn, op, src);
+                cJSON *arr_sz = cJSON_GetObjectItemCaseSensitive(inst, "array_size");
+                cJSON *fields  = cJSON_GetObjectItemCaseSensitive(inst, "struct_fields");
+                int array_size = (arr_sz && cJSON_IsNumber(arr_sz)) ? arr_sz->valueint : 0;
+
+                if (array_size > 1 && fields && cJSON_IsArray(fields)) {
+                    cJSON *field;
+                    cJSON_ArrayForEach(field, fields) {
+                        if (!cJSON_IsString(field)) continue;
+                        char fn[64] = {0}, ft[64] = {0};
+                        if (sscanf(field->valuestring, "%63[^:]:%63s", fn, ft) == 2) {
+                            fprintf(out, "%s %s_%s[%d];\n",
+                                resolve_spec_type_into_lang(ft), vn, fn, array_size);
+                        }
+                    }
+                    fprintf(out, "%s(%s", op, src ? src : "");
+                    cJSON_ArrayForEach(field, fields) {
+                        if (!cJSON_IsString(field)) continue;
+                        char fn[64] = {0}, ft[64] = {0};
+                        if (sscanf(field->valuestring, "%63[^:]:%63s", fn, ft) == 2)
+                            fprintf(out, ", %s_%s", vn, fn);
+                    }
+                    fprintf(out, ", %d);\n", array_size);
+                } else {
+                    fprintf(out, "%s %s = %s(%s);\n",
+                        resolve_spec_type_into_lang(vt), vn, op, src);
+                }
             }
         } else if (!strcmp(type, "function_invocation")) {
             emit_function_invocation_code_block(inst, out, indent);
