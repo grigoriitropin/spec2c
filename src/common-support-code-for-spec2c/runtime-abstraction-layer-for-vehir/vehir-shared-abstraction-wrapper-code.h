@@ -38,7 +38,7 @@ typedef struct vehir_db_result vehir_db_result;
 // --- DB helpers ---
 
 // Call vehir_fatal_error_and_exit if db handle is null or has error.
-void check_database_connection_is_alive(const char *tool, vehir_db *db);
+void verify_database_connection_still_alive(const char *tool, vehir_db *db);
 
 // Run a parameterised query, return result as cJSON {nrows, ncols, columns, rows}.
 // Calls vehir_fatal_error_and_exit on error.

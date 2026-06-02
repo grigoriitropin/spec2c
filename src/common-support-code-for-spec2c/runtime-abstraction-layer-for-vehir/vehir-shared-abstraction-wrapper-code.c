@@ -96,7 +96,7 @@ char *require_config_value_else_die(const char *tool, const char *path, const ch
 
 #ifndef VEHIR_HAS_DB
 
-void check_database_connection_is_alive(const char *tool, vehir_db *db) {
+void verify_database_connection_still_alive(const char *tool, vehir_db *db) {
     (void)db;
     vehir_fatal_error_and_exit(tool, "DB support not compiled in (link vehir_lib_db.c)");
 }
