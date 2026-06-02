@@ -47,14 +47,10 @@ char *read_entire_file_into_memory(const char *path) {
     return buf;
 }
 
-int main(int argc, char *argv[]) {
-    const char *spec_path = NULL;
-    const char *out_path = NULL;
-    const char *base_dir = NULL;
-    int check_mode = 0;
-    const char *check_spec = NULL;
-    int is_library = 0;
-
+static void parse_command_line_arguments(int argc, char *argv[],
+    const char **spec_path, const char **out_path, const char **base_dir,
+    int *check_mode, const char **check_spec, int *is_library)
+{
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
             fprintf(stderr,
@@ -70,35 +66,43 @@ int main(int argc, char *argv[]) {
                 "  --library      Generate .c + .h library (no main)\n"
                 "  --list-names   Print all allowed names\n"
                 "  --show-structure  Print file and function structure\n");
-            return 0;
+            exit(0);
         } else if (strcmp(argv[i], "--list-names") == 0) {
-            return 0;
+            exit(0);
         } else if (strcmp(argv[i], "--show-structure") == 0) {
-            return 0;
+            exit(0);
         } else if (strcmp(argv[i], "--library") == 0) {
-            is_library = 1;
+            *is_library = 1;
         } else if (strcmp(argv[i], "--check") == 0) {
-            check_mode = 1;
+            *check_mode = 1;
             if (i + 1 < argc && argv[i+1][0] != '-') {
-                spec_path = argv[++i];
+                *spec_path = argv[++i];
             } else {
                 report_fatal_error_and_exit("missing file argument for --check");
             }
         } else if (strcmp(argv[i], "--spec") == 0) {
             if (++i >= argc) report_fatal_error_and_exit("missing argument for --spec");
-            check_spec = argv[i];
+            *check_spec = argv[i];
         } else if (strcmp(argv[i], "-o") == 0) {
             if (++i >= argc) report_fatal_error_and_exit("missing argument for -o");
-            out_path = argv[i];
+            *out_path = argv[i];
         } else if (strcmp(argv[i], "--base") == 0) {
             if (++i >= argc) report_fatal_error_and_exit("missing argument for --base");
-            base_dir = argv[i];
-        } else if (!spec_path) {
-            spec_path = argv[i];
+            *base_dir = argv[i];
+        } else if (!*spec_path) {
+            *spec_path = argv[i];
         } else {
             report_fatal_error_and_exit("unexpected argument");
         }
     }
+}
+
+int main(int argc, char *argv[]) {
+    const char *spec_path = NULL, *out_path = NULL, *base_dir = NULL;
+    const char *check_spec = NULL;
+    int check_mode = 0, is_library = 0;
+    parse_command_line_arguments(argc, argv, &spec_path, &out_path, &base_dir,
+                                 &check_mode, &check_spec, &is_library);
     return run_spec2c_pipeline_after_parsing(spec_path, out_path, base_dir, check_mode, check_spec, is_library);
 }
 
