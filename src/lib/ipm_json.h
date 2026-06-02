@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // ipm_json.h — constrained JSON reader + cjson-compatible builder
-#ifndef IPM_JSON_H
-#define IPM_JSON_H
+#ifndef IPM_CJSON_COMPAT_H
+#define IPM_CJSON_COMPAT_H
 #include <stdint.h>
 #include <stddef.h>
 
