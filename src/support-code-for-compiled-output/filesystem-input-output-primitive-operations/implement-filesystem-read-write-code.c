@@ -45,8 +45,8 @@ int count_newlines_within_text_string(const char *text) {
     return n;
 }
 
-/* file_read_bytes(path) → heap-allocated string of entire file content, or NULL on error */
-char* file_read_bytes(const char *path) {
+/* read_file_bytes_into_buffer(path) → heap-allocated string of entire file content, or NULL on error */
+char* read_file_bytes_into_buffer(const char *path) {
     if (!path) return NULL;
     FILE *f = fopen(path, "rb");
     if (!f) return NULL;
