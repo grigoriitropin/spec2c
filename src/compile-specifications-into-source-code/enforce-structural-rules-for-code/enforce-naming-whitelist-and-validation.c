@@ -191,13 +191,3 @@ void read_banned_patterns_from_file(const char *srcdir) {
     }
     fclose(f);
 }
-
-int detect_hardcoded_file_path_string(const char *line) {
-    if (strstr(line, "#include")) return 0;
-    const char *p = line;
-    while ((p = strstr(p, "\"/")) != NULL) {
-        p += 2;
-        if (*p == '/' || (*p >= 'a' && *p <= 'z')) return 1;
-    }
-    return 0;
-}

@@ -14,8 +14,11 @@ void read_allowed_names_from_file(const char *srcdir);
 int  return_total_count_allowed_names(void);
 const char *get_allowed_name_from_whitelist(int index);
 void read_banned_patterns_from_file(const char *srcdir);
-int  detect_hardcoded_file_path_string(const char *line);
 extern int banned_patterns_count;
 extern char banned_patterns[32][64];
+void count_open_close_brace_pairs(const char *line, int *depth);
+void pull_function_name_from_definition(const char *line, char *out, size_t sz);
+int  check_for_banned_keyword_pattern(const char *line);
+int  detect_hardcoded_file_path_string(const char *line);
 
 #endif

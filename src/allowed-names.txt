@@ -152,3 +152,5 @@ check_include_headers_for_file
 search_for_unused_function_code
 call_ipm_message_exchange_code
 call_ipm_message_exchange_code
+scan-source-code-for-patterns
+detect-banned-patterns-and-braces

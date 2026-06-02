@@ -45,6 +45,7 @@
           cc ${builtins.toString cflags} ${builtins.toString enforce_inc} \
             ${S}/enforce-structural-rules-for-code/verify-structural-source-code-rules.c \
             ${S}/enforce-structural-rules-for-code/enforce-naming-whitelist-and-validation.c \
+            ${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns/detect-banned-patterns-and-braces.c \
             ${builtins.toString runtime_src} \
             -o s2c-enforce -lcjson
           runHook postBuild
@@ -71,6 +72,7 @@
           cc ${builtins.toString cflags} ${builtins.toString enforce_inc} \
             ${S}/enforce-structural-rules-for-code/verify-structural-source-code-rules.c \
             ${S}/enforce-structural-rules-for-code/enforce-naming-whitelist-and-validation.c \
+            ${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns/detect-banned-patterns-and-braces.c \
             ${builtins.toString runtime_src} \
             -o s2c_enforce -lcjson
 
