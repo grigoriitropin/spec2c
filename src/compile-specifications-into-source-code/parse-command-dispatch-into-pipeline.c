@@ -137,6 +137,7 @@ static void check_ipm_name_against_soul(const char *name) {
 }
 
 /* ── IPM/JSON specification validator (12 rules, SOUL §7 + §10) ───── */
+static void validate_ipm_source_for_hardcoded(cJSON *spec_json);
 static int enforce_ipm_specification_validation_rules(const char *spec_text, cJSON *spec_json) {
     if (!spec_text || !spec_json) return 1;
 
