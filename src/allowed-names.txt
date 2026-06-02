@@ -150,4 +150,5 @@ count_open_close_brace_pairs
 check_single_file_for_violations
 check_include_headers_for_file
 search_for_unused_function_code
-call_ipm_message_exchange
+call_ipm_message_exchange_code
+call_ipm_message_exchange_code
