@@ -70,6 +70,20 @@ static int skip_name_validation_for_keywords(const char *name) {
            !strcmp(name, "if") || !strcmp(name, "switch");
 }
 
+static int match_name_against_stdlib_list(const char *name) {
+    const char *lib[] = {
+        "strstr","strncmp","strcmp","strlen","sscanf","snprintf",
+        "printf","fprintf","sprintf","malloc","realloc","free",
+        "fopen","fclose","fread","fgets","fputs","fflush",
+        "memcpy","memset","strdup","strtok","strrchr","strchr",
+        "calloc","exit",NULL
+    };
+    if (!strncmp(name, "cJSON_", 6)) return 1;
+    for (int i = 0; lib[i]; i++)
+        if (!strcmp(name, lib[i])) return 1;
+    return 0;
+}
+
 static int check_name_against_allowed_whitelist(const char *name) {
     if (skip_name_validation_for_keywords(name)) return 1;
     for (int i = 0; i < allowed_qty; i++)

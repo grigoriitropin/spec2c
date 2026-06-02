@@ -50,13 +50,7 @@ static int detect_function_definition_start_line(const char *line) {
     memcpy(first, id_start, id_len);
     if (!strcmp(first, "if") || !strcmp(first, "for") || !strcmp(first, "while") ||
         !strcmp(first, "switch") || !strcmp(first, "return")) return 0;
-    if (!strncmp(first, "cJSON_", 6)) return 0;
-    if (!strcmp(first, "strstr") || !strcmp(first, "strncmp") || !strcmp(first, "strcmp") ||
-        !strcmp(first, "strlen") || !strcmp(first, "sscanf") || !strcmp(first, "snprintf") ||
-        !strcmp(first, "printf") || !strcmp(first, "fprintf") || !strcmp(first, "sprintf") ||
-        !strcmp(first, "malloc") || !strcmp(first, "realloc") || !strcmp(first, "free") ||
-        !strcmp(first, "fopen") || !strcmp(first, "fclose") ||
-        !strcmp(first, "calloc") || !strcmp(first, "memset")) return 0;
+    if (match_name_against_stdlib_list(first)) return 0;
     return 1;
 }
 
