@@ -234,7 +234,7 @@ void write_conformance_report_into_output(const deviation_list_t *dl, const char
 
 int main(int argc, char *argv[])") != NULL);
     int has_help = (strstr(file_content, "--help") != NULL);
-    int has_vl_die = (strstr(file_content, "vl_die(") != NULL);
+    int has_vl_die = (strstr(file_content, "vehir_fatal_error_and_exit(") != NULL);
     int has_system = (strstr(file_content, "system(") != NULL);
     int has_popen = (strstr(file_content, "popen(") != NULL);
 
@@ -275,6 +275,6 @@ int main(int argc, char *argv[])") != NULL);
 
     if (!has_vl_die)
         append_deviation_into_report_list(dl, "scaffold-marker", "missing-vl-die", SEV_WARNING, 0, 0, "",
-               "No vl_die() usage — scaffold should use vl_die() for structured errors",
-               "Replace bare exit()/fprintf+exit with vl_die()", -1);
+               "No vehir_fatal_error_and_exit() usage — scaffold should use vehir_fatal_error_and_exit() for structured errors",
+               "Replace bare exit()/fprintf+exit with vehir_fatal_error_and_exit()", -1);
 }

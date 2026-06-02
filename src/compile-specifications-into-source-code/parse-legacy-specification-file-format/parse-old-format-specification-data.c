@@ -70,7 +70,7 @@ void create_substitution_table_for_spec(const spec_t *s, subst_t *subs, int *nsu
     ADD("core_function", "%s", s->core_function);
     if (s->nconfig_keys > 0) {
         ADD("config_opt", " [--config <path>]");
-        ADD("config_init", "    char *config_path = NULL;\n    int arg_off = 1;\n    if (argc > 2 && strcmp(argv[1], \"--config\") == 0) {\n        config_path = strdup(argv[2]);\n        if (!config_path) vl_die(\"%s\", \"strdup failed\");\n        arg_off = 3;\n    } else {\n        config_path = resolve_default_config_file_path();\n        if (!config_path) vl_die(\"%s\", \"cannot resolve config path\");\n    }\n", s->name, s->name);
+        ADD("config_init", "    char *config_path = NULL;\n    int arg_off = 1;\n    if (argc > 2 && strcmp(argv[1], \"--config\") == 0) {\n        config_path = strdup(argv[2]);\n        if (!config_path) vehir_fatal_error_and_exit(\"%s\", \"strdup failed\");\n        arg_off = 3;\n    } else {\n        config_path = resolve_default_config_file_path();\n        if (!config_path) vehir_fatal_error_and_exit(\"%s\", \"cannot resolve config path\");\n    }\n", s->name, s->name);
         ADD("config_cleanup", "    free(config_path);\n");
         ADD("config_usage_block", "        \"\\n\"\n        \"Config: ~/.config/vehir/env (override with --config <path>)\\n\"\n        \"  Required keys: %s\\n\"\n        \"  File must be chmod 600 (owner-only). Tokens never touch process env.\\n\"\n", s->config_keys_str ? s->config_keys_str : "");
     } else if (s->has_commands) {

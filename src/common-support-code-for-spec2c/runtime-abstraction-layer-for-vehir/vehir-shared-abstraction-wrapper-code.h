@@ -13,7 +13,7 @@ _Noreturn void usage(const char *prog);
 // --- error output ---
 
 // Print JSON error to stdout, message to stderr, exit(1).
-_Noreturn void vl_die(const char *tool, const char *error);
+_Noreturn void vehir_fatal_error_and_exit(const char *tool, const char *error);
 
 // --- config (broker KEY=VALUE files) ---
 
@@ -25,7 +25,7 @@ char *resolve_default_config_file_path(void);
 // Refuses group/other-readable files (prints warning, returns NULL).
 char *load_vehir_configuration_from_file(const char *tool, const char *path, const char *key);
 
-// Like load_vehir_configuration_from_file but calls vl_die on failure.
+// Like load_vehir_configuration_from_file but calls vehir_fatal_error_and_exit on failure.
 char *require_config_value_or_die(const char *tool, const char *path, const char *key);
 
 // --- DB types (opaque; real definitions in db.h) ---
@@ -37,12 +37,12 @@ typedef struct vehir_db_result vehir_db_result;
 
 // --- DB helpers ---
 
-// Call vl_die if db handle is null or has error.
+// Call vehir_fatal_error_and_exit if db handle is null or has error.
 void check_database_connection_is_alive(const char *tool, vehir_db *db);
 
 // Run a parameterised query, return result as cJSON {nrows, ncols, columns, rows}.
-// Calls vl_die on error.
-cJSON *vl_db_query_json(const char *tool, vehir_db *db,
+// Calls vehir_fatal_error_and_exit on error.
+cJSON *query_database_and_return_json(const char *tool, vehir_db *db,
                          const char *sql,
                          const char *const *params, int nparams);
 

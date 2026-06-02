@@ -115,7 +115,7 @@ static void check_single_file_for_violations(const char *sub, int is_c,
     FILE *f = fopen(sub, "r");
     if (f) {
         char line[1024];
-        int func_count = 0, func_lines = 0, in_func = 0, func_start = 0; brace_state_t bstate; clear_brace_tracking_for_function(&bstate);
+        int func_count = 0, func_lines = 0, in_func = 0; brace_state_t bstate; clear_brace_tracking_for_function(&bstate);
         while (fgets(line, sizeof(line), f)) {
             if (!in_func) {
                 if (detect_function_definition_start_line(line)) {
@@ -132,7 +132,7 @@ static void check_single_file_for_violations(const char *sub, int is_c,
                             (*fn_qty)++;
                         }
                     }
-                    in_func = 1; func_lines = 1; func_start = 1;
+                    in_func = 1; func_lines = 1;
                     clear_brace_tracking_for_function(&bstate); count_open_close_brace_pairs(line, &bstate);
                     if (debug_trace)
                         fprintf(stderr, "\n── %s FUNC#%d [d=%d] %s",
@@ -143,7 +143,6 @@ static void check_single_file_for_violations(const char *sub, int is_c,
             }
             if (in_func) {
                 func_lines++;
-                if (func_start) { func_start = 0; continue; }
                 count_open_close_brace_pairs(line, &bstate);
                 if (debug_trace)
                     fprintf(stderr, "  %s:%d [d=%d] %s",
@@ -286,7 +285,7 @@ void display_current_source_structure_report(const char *srcdir) {
         FILE *f = fopen(sub, "r");
         if (f) {
             char line[1024];
-            int in_func = 0, func_lines = 0, func_start = 0;
+            int in_func = 0, func_lines = 0;
             brace_state_t bstate; clear_brace_tracking_for_function(&bstate);
             char func_name[128] = {0};
             while (fgets(line, sizeof(line), f)) {
@@ -294,7 +293,7 @@ void display_current_source_structure_report(const char *srcdir) {
                     if (detect_function_definition_start_line(line)) {
                         pull_function_name_from_definition(line, func_name, 128);
                         if (!func_name[0]) continue;
-                        in_func = 1; func_lines = 1; func_start = 1;
+                        in_func = 1; func_lines = 1;
                         clear_brace_tracking_for_function(&bstate); count_open_close_brace_pairs(line, &bstate);
                         if (bstate.depth <= 0) { printf("  func: %s (%dL)\n", func_name, func_lines); in_func = 0; }
                         continue;
@@ -302,7 +301,6 @@ void display_current_source_structure_report(const char *srcdir) {
                 }
                 if (in_func) {
                     func_lines++;
-                    if (func_start) { func_start = 0; continue; }
                     count_open_close_brace_pairs(line, &bstate);
                     if (bstate.depth <= 0) { printf("  func: %s (%dL)\n", func_name, func_lines); in_func = 0; }
                 }

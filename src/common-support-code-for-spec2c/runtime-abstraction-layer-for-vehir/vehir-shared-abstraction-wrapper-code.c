@@ -14,7 +14,7 @@
 
 // -------- error output --------
 
-_Noreturn void vl_die(const char *tool, const char *error) {
+_Noreturn void vehir_fatal_error_and_exit(const char *tool, const char *error) {
     cJSON *root = cJSON_CreateObject();
     if (!root) {
         fprintf(stderr, "%s: FATAL: cJSON alloc failed\n", tool);
@@ -87,7 +87,7 @@ char *require_config_value_or_die(const char *tool, const char *path, const char
     if (!val) {
         char msg[384];
         snprintf(msg, sizeof(msg), "key %s not found in config %s", key, path);
-        vl_die(tool, msg);
+        vehir_fatal_error_and_exit(tool, msg);
     }
     return val;
 }
@@ -98,14 +98,14 @@ char *require_config_value_or_die(const char *tool, const char *path, const char
 
 void check_database_connection_is_alive(const char *tool, vehir_db *db) {
     (void)db;
-    vl_die(tool, "DB support not compiled in (link vehir_lib_db.c)");
+    vehir_fatal_error_and_exit(tool, "DB support not compiled in (link vehir_lib_db.c)");
 }
 
-cJSON *vl_db_query_json(const char *tool, vehir_db *db,
+cJSON *query_database_and_return_json(const char *tool, vehir_db *db,
                          const char *sql,
                          const char *const *params, int nparams) {
     (void)db; (void)sql; (void)params; (void)nparams;
-    vl_die(tool, "DB support not compiled in (link vehir_lib_db.c)");
+    vehir_fatal_error_and_exit(tool, "DB support not compiled in (link vehir_lib_db.c)");
     return NULL;
 }
 
