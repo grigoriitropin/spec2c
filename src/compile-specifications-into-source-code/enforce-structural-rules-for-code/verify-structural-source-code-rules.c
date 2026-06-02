@@ -91,9 +91,12 @@ static void count_open_close_brace_pairs(const char *line, int *depth) {
     }
 }
 
-static void check_single_file_for_violations(const char *sub, const char *fname, int is_c,
-    struct { char name[128]; char file[256]; } *fns, int *fn_qty,
-    struct { char name[64]; int count; } *incs, int *inc_qty)
+/* ── shared state types ────────────────────────────────────────────── */
+typedef struct { char name[128]; char file[256]; } fn_entry_t;
+typedef struct { char name[64]; int count; } inc_entry_t;
+
+static void check_single_file_for_violations(const char *sub, int is_c,
+    fn_entry_t *fns, int *fn_qty, inc_entry_t *incs, int *inc_qty)
 {
     if (is_c) {
         int lines = count_lines_within_source_file(sub);
@@ -188,8 +191,8 @@ void enforce_all_source_code_rules(const char *srcdir) {
     read_allowed_names_from_file(srcdir);
     read_banned_patterns_from_file(srcdir);
 
-    struct { char name[128]; char file[256]; } fns[512]; int fn_qty = 0;
-    struct { char name[64]; int count; } incs[128]; int inc_qty = 0;
+    fn_entry_t fns[512]; int fn_qty = 0;
+    inc_entry_t incs[128]; int inc_qty = 0;
 
     void scan_dir(const char *dirpath) {
         DIR *d = opendir(dirpath); if (!d) return;
@@ -210,7 +213,7 @@ void enforce_all_source_code_rules(const char *srcdir) {
             char *dot = strrchr(fname, '.'); if (dot) *dot = 0;
             validate_name_against_soul_rules("file", fname, sub);
             int is_c = !strcmp(de->d_name + strlen(de->d_name) - 2, ".c");
-            check_single_file_for_violations(sub, fname, is_c, fns, &fn_qty, incs, &inc_qty);
+            check_single_file_for_violations(sub, is_c, fns, &fn_qty, incs, &inc_qty);
         }
         closedir(d);
         if (file_cnt > MAX_FILES_PER_DIR) {
