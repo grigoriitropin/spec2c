@@ -140,7 +140,3 @@ write_component_header_with_prototypes
 write_string_buffer_into_file
 write_text_string_into_file
 resolve_spec_type_into_lang
-while
-for
-if
-switch
