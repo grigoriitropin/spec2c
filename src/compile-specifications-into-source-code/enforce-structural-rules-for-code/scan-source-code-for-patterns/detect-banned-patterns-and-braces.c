@@ -111,6 +111,7 @@ static void validate_single_ipm_name_value(const char *name, const char *what, c
 void verify_ipm_names_across_sources(const char *srcdir) {
     void scan_ipm(const char *dpath) {
         DIR *dd = opendir(dpath); if (!dd) return;
+        int ipm_cnt = 0;
         struct dirent *de2;
         while ((de2 = readdir(dd)) != NULL) {
             if (de2->d_name[0] == '.') continue;
@@ -119,6 +120,13 @@ void verify_ipm_names_across_sources(const char *srcdir) {
             if (S_ISDIR(sst.st_mode)) { scan_ipm(sp); continue; }
             size_t nl = strlen(de2->d_name);
             if (nl <= 5 || strcmp(de2->d_name + nl - 4, ".ipm")) continue;
+            ipm_cnt++;
+
+            /* validate .ipm file name (5 hyphen words) */
+            char fname[256]; snprintf(fname, sizeof(fname), "%s", de2->d_name);
+            fname[nl - 4] = 0; /* strip .ipm */
+            validate_single_ipm_name_value(fname, "file", sp);
+
             FILE *f = fopen(sp, "r"); if (!f) continue;
             fseek(f, 0, SEEK_END); long sz = ftell(f); fseek(f, 0, SEEK_SET);
             if (sz <= 0 || sz > 65536) { fclose(f); continue; }
@@ -139,6 +147,11 @@ void verify_ipm_names_across_sources(const char *srcdir) {
             cJSON_Delete(root);
         }
         closedir(dd);
+        if (ipm_cnt > 3) {
+            char msg[512]; snprintf(msg, sizeof(msg),
+                "SOUL §7: %s has %d .ipm files (max 3)\n  → create a subdirectory and move .ipm files there", dpath, ipm_cnt);
+            fprintf(stderr, "spec2c: %s\n", msg); exit(1);
+        }
     }
     scan_ipm(srcdir);
 }
