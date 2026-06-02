@@ -123,6 +123,10 @@ Available to all AST functions (defined in `src/ipm_builtins.c`):
 | `vartype_to_c` | Map IPM type to C type |
 | `json_die` | Structured JSON error + exit |
 | `compile_body` | Compile array of instructions (AST function) |
+| `file_read_bytes` | Read entire file to heap string (binary-safe) |
+| `file_write_bytes` | Overwrite file with string content |
+| `file_rename` | Atomically rename file (returns 0 on success) |
+| `file_unlink` | Delete a file (returns 0 on success) |
 
 ## Type System
 
