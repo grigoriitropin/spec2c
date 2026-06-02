@@ -122,7 +122,11 @@ char *execute_ast_grep_with_pattern(const char *sg_cmd, const char *file_path, c
         if (len + 1 >= cap) {
                     cap *= 2;
                     char *t = realloc(buf, cap);
-                    if (!t) { free(buf); close_pipe_await_child_finish(p, pid); return NULL; }
+                    if (!t) {
+                    free(buf);
+                    close_pipe_await_child_finish(p, pid);
+                    return NULL;
+                }
                     buf = t;
                 }
     }
