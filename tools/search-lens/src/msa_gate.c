@@ -20,7 +20,6 @@ static FILE *safe_popen_read(char *const argv[], pid_t *out_pid) {
     if (pid == 0) {
         close(pfd[0]);
         dup2(pfd[1], STDOUT_FILENO);
-        close(STDERR_FILENO);
         execvp(argv[0], argv);
         _exit(127);
     }
