@@ -159,3 +159,4 @@ write_conformance_report_into_output
 write_raw_bytes_into_file
 write_string_buffer_into_file
 write_text_string_into_file
+allocate_and_init_hash_table
