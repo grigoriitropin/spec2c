@@ -19,31 +19,63 @@
     {
       "limit_name": "function_line_count",
       "maximum_value": 400,
-      "counter_description": "SOUL §7: function exceeds maximum line count. Split into smaller functions."
+      "counter_description": "SOUL \u00a77: function exceeds maximum line count. Split into smaller functions."
     },
     {
       "limit_name": "file_line_count",
       "maximum_value": 500,
-      "counter_description": "SOUL §7: source file exceeds maximum line count. Split into smaller compilation units."
+      "counter_description": "SOUL \u00a77: source file exceeds maximum line count. Split into smaller compilation units."
     },
     {
       "limit_name": "function_count_per_file",
       "maximum_value": 10,
-      "counter_description": "SOUL §7: too many function definitions in one file. Extract into separate modules."
+      "counter_description": "SOUL \u00a77: too many function definitions in one file. Extract into separate modules."
     }
   ],
   "configuration_keys": [
     "SPEC2C_TEMPLATE_DIRECTORY",
     "SPEC2C_OUTPUT_DIRECTORY"
   ],
-  "template_definitions": {
-    "spec2c_main_c": "int main(int argc, char **argv) {\n    if (argc < 3) {\n        fprintf(stderr, \"Usage: %s <input.ipm> <output.c>\\n\", argv[0]);\n        return 1;\n    }\n    return execute_pipeline(argv[1], argv[2]);\n}\n",
-    "spec2c_usage_h": "void print_usage_and_exit(const char *prog) {\n    fprintf(stderr, \"Usage: %s <input.ipm> <output.c>\\n\", prog);\n    exit(2);\n}\n"
-  },
   "module_name": "spec2c",
   "imports": [
     "pipeline",
     "compile_ast",
     "codegen"
-  ]
+  ],
+  "function_definitions": {
+    "spec2c_main": {
+      "description": "Entry point \u2014 calls execute_pipeline with CLI args",
+      "return_type": "int",
+      "parameter_definitions": [],
+      "execution_instructions": [
+        {
+          "instruction_type": "variable_declaration",
+          "variable_name": "infile",
+          "variable_type": "string",
+          "assignment_operation": "get_arg_value",
+          "source_target": {
+            "source": "1"
+          }
+        },
+        {
+          "instruction_type": "variable_declaration",
+          "variable_name": "outfile",
+          "variable_type": "string",
+          "assignment_operation": "get_arg_value",
+          "source_target": {
+            "source": "2"
+          }
+        },
+        {
+          "instruction_type": "function_invocation",
+          "invocation_name": "execute_pipeline",
+          "invocation_arguments": {
+            "input_file": "infile",
+            "output_file": "outfile"
+          },
+          "result_type": "int"
+        }
+      ]
+    }
+  }
 }

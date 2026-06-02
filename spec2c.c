@@ -685,6 +685,10 @@ static void generate_from_ipm(const ipm_spec_t *spec, const char *out_path, int 
         fprintf(out_fp, "int main(int argc, char **argv) {\n");
         fprintf(out_fp, "    g_argc = argc;\n");
         fprintf(out_fp, "    g_argv = argv;\n");
+        fprintf(out_fp, "    if (argc < 3) {\n");
+        fprintf(out_fp, "        fprintf(stderr, \"Usage: %%s <input.ipm> <output.c>\\n\", argv[0]);\n");
+        fprintf(out_fp, "        return 1;\n");
+        fprintf(out_fp, "    }\n");
         fprintf(out_fp, "    return %s();\n", entry);
         fprintf(out_fp, "}\n");
     }
