@@ -130,8 +130,18 @@ static int validate_single_whitelist_entry_name(const char *line) {
     snprintf(buf_u, sizeof(buf_u), "%s", line);
     int wh = 0, wu = 0, sh_h = 0, sh_u = 0;
     char *t;
-    t = strtok(buf_h, "-"); while (t) { wh++; if ((int)strlen(t) < 3) sh_h++; t = strtok(NULL, "-"); }
-    t = strtok(buf_u, "_"); while (t) { wu++; if ((int)strlen(t) < 3) sh_u++; t = strtok(NULL, "_"); }
+    t = strtok(buf_h, "-");
+    while (t) {
+        wh++;
+        if ((int)strlen(t) < 3) sh_h++;
+        t = strtok(NULL, "-");
+    }
+    t = strtok(buf_u, "_");
+    while (t) {
+        wu++;
+        if ((int)strlen(t) < 3) sh_u++;
+        t = strtok(NULL, "_");
+    }
     int ok = (wh == 5 && sh_h == 0) || (wu == 5 && sh_u == 0);
     if (ok) {
         const char *banned[] = {"service","server","daemon","library","tool","binary",

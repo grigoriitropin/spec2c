@@ -57,7 +57,12 @@ char *read_entire_text_into_memory(const char *path) {
     size_t n;
     while ((n = fread(buf + len, 1, cap - len - 1, f)) > 0) {
         len += n;
-        if (len + 1 >= cap) { cap *= 2; char *t = realloc(buf, cap); if (!t) { free(buf); terminate_with_error_message_output("realloc"); } buf = t; }
+        if (len + 1 >= cap) {
+                cap *= 2;
+                char *t = realloc(buf, cap);
+                if (!t) { free(buf); terminate_with_error_message_output("realloc"); }
+                buf = t;
+            }
     }
     if (ferror(f)) { free(buf); terminate_with_error_message_output("read error"); }
     buf[len] = '\0';
@@ -114,7 +119,12 @@ char *execute_ast_grep_with_pattern(const char *sg_cmd, const char *file_path, c
     size_t n;
     while ((n = fread(buf + len, 1, cap - len - 1, p)) > 0) {
         len += n;
-        if (len + 1 >= cap) { cap *= 2; char *t = realloc(buf, cap); if (!t) { free(buf); close_pipe_await_child_finish(p, pid); return NULL; } buf = t; }
+        if (len + 1 >= cap) {
+                    cap *= 2;
+                    char *t = realloc(buf, cap);
+                    if (!t) { free(buf); close_pipe_await_child_finish(p, pid); return NULL; }
+                    buf = t;
+                }
     }
     buf[len] = '\0';
     close_pipe_await_child_finish(p, pid);

@@ -16,7 +16,11 @@ static int launch_command_capture_stdout_output(char *const argv[], char **out) 
     int pipefd[2];
     if (pipe(pipefd) < 0) return -1;
     pid_t pid = fork();
-    if (pid < 0) { close(pipefd[0]); close(pipefd[1]); return -1; }
+    if (pid < 0) {
+        close(pipefd[0]);
+        close(pipefd[1]);
+        return -1;
+    }
     if (pid == 0) {
         close(pipefd[0]);
         dup2(pipefd[1], STDOUT_FILENO);
@@ -35,7 +39,11 @@ static int launch_command_capture_stdout_output(char *const argv[], char **out) 
         if (len + 1 >= cap) {
             cap *= 2;
             char *t = realloc(buf, cap);
-            if (!t) { free(buf); close(pipefd[0]); return -1; }
+            if (!t) {
+                free(buf);
+                close(pipefd[0]);
+                return -1;
+            }
             buf = t;
         }
     }

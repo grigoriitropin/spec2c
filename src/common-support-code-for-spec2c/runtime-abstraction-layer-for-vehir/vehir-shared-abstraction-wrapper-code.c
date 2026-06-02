@@ -104,7 +104,10 @@ void verify_database_connection_still_alive(const char *tool, vehir_db *db) {
 cJSON *query_database_and_return_json(const char *tool, vehir_db *db,
                          const char *sql,
                          const char *const *params, int nparams) {
-    (void)db; (void)sql; (void)params; (void)nparams;
+    (void)db;
+    (void)sql;
+    (void)params;
+    (void)nparams;
     vehir_fatal_error_and_exit(tool, "DB support not compiled in (link vehir_lib_db.c)");
     return NULL;
 }

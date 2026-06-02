@@ -135,8 +135,18 @@ static void check_single_file_for_violations(const char *sub, int is_c,
             /* density check — count ; { ? per line, skip strings/comments/chars */
             {   int in_str = 0, in_char = 0, in_comment = 0, tokens = 0;
                 for (const char *p = line; *p; p++) {
-                    if (in_comment) { if (*p == '*' && *(p+1) == '/') { in_comment = 0; p++; } continue; }
-                    if (!in_str && !in_char && *p == '/' && *(p+1) == '*') { in_comment = 1; p++; continue; }
+                    if (in_comment) {
+                        if (*p == '*' && *(p+1) == '/') {
+                            in_comment = 0;
+                            p++;
+                        }
+                        continue;
+                    }
+                    if (!in_str && !in_char && *p == '/' && *(p+1) == '*') {
+                        in_comment = 1;
+                        p++;
+                        continue;
+                    }
                     if (!in_str && !in_char && *p == '/' && *(p+1) == '/') break;
                     if (*p == '\\' && *(p+1) != '\0') { p++; continue; }
                     if (!in_char && *p == '"') in_str = !in_str;
@@ -320,7 +330,8 @@ static void scan_source_for_undocumented_flags(const char *srcdir) {
             if (S_ISDIR(sst.st_mode)) { check_flags(sp); continue; }
             if (strcmp(de2->d_name + strlen(de2->d_name) - 2, ".c")) continue;
             FILE *f4 = fopen(sp, "r"); if (!f4) continue;
-            char *content = malloc(65536); if (!content) { fclose(f4); continue; }
+            char *content = malloc(65536);
+            if (!content) { fclose(f4); continue; }
             size_t cs = fread(content, 1, 65535, f4); fclose(f4);
             if (cs < 10 || cs >= 65535) { free(content); continue; }
             content[cs] = 0;

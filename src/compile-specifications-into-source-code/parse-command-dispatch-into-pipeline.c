@@ -39,7 +39,12 @@ char *read_entire_file_into_memory(const char *path) {
     size_t n;
     while ((n = fread(buf + len, 1, cap - len - 1, f)) > 0) {
         len += n;
-        if (len + 1 >= cap) { cap *= 2; char *t = realloc(buf, cap); if (!t) { free(buf); report_fatal_error_and_exit("realloc"); } buf = t; }
+        if (len + 1 >= cap) {
+                cap *= 2;
+                char *t = realloc(buf, cap);
+                if (!t) { free(buf); report_fatal_error_and_exit("realloc"); }
+                buf = t;
+            }
     }
     if (ferror(f)) { free(buf); report_fatal_error_and_exit("read error"); }
     buf[len] = '\0';

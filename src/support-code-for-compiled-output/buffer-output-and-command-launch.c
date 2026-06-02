@@ -47,7 +47,11 @@ FILE *execute_command_capture_stdout_pipe(char *const argv[], pid_t *out_pid) {
     int pfd[2];
     if (pipe(pfd) < 0) return NULL;
     pid_t pid = fork();
-    if (pid < 0) { close(pfd[0]); close(pfd[1]); return NULL; }
+    if (pid < 0) {
+        close(pfd[0]);
+        close(pfd[1]);
+        return NULL;
+    }
     if (pid == 0) {
         close(pfd[0]);
         dup2(pfd[1], STDOUT_FILENO);

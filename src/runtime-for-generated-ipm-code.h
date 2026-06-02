@@ -41,7 +41,11 @@ int          hash_table_count_all_entries(const subst_table *table);
 string apply_substitution_against_raw_text(const char *template_str, const subst_table *table);
 
 /* String buffer (append-to-memory, flush once — deterministic codegen) */
-typedef struct { char *data; size_t len; size_t cap; } string_buffer;
+typedef struct {
+    char *data;
+    size_t len;
+    size_t cap;
+} string_buffer;
 string_buffer* create_empty_growable_string_buffer(void);
 void append_text_into_string_buffer(string_buffer *buf, const char *str);
 void write_string_buffer_into_file(string_buffer *buf, const char *path);

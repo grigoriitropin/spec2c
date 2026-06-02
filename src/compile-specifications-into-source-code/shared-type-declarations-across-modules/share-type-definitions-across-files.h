@@ -17,13 +17,19 @@
 #define SUBST_MAX 32
 #define VAL_SZ   4096
 
-typedef struct { const char *key; char val[VAL_SZ]; } subst_t;
+typedef struct {
+    const char *key;
+    char val[VAL_SZ];
+} subst_t;
 typedef struct {
     const char *name, *ident, *description, *core_function;
     int nconfig_keys, has_commands, has_db;
     char *config_keys_str;
 } spec_t;
-typedef struct { cJSON *meta; const char *name, *type, *desc; } ipm_spec_t;
+typedef struct {
+    cJSON *meta;
+    const char *name, *type, *desc;
+} ipm_spec_t;
 
 const char *extract_json_field_string_value(const cJSON *obj, const char *key);
 _Noreturn void report_fatal_error_and_exit(const char *msg);
