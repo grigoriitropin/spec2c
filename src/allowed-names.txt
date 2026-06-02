@@ -134,3 +134,4 @@ write_bytes_into_file_path
 write_component_header_with_prototypes
 write_string_buffer_into_file
 write_text_string_into_file
+find_ast_grep_executable_path
