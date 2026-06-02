@@ -105,8 +105,16 @@ static void emit_ipm_component_header_file(const ipm_spec_t *spec, const char *o
 
 static void generate_auto_entry_point_code(FILE *out_fp, const ipm_spec_t *spec) {
     cJSON *func_defs = cJSON_GetObjectItemCaseSensitive(spec->meta, "function_definitions");
-    const char *entry = "main";
-    if (func_defs && func_defs->child) entry = func_defs->child->string;
+    if (!func_defs || !cJSON_IsObject(func_defs)) return;
+
+    /* Skip if function_definitions already contains a "main" */
+    cJSON *fn = func_defs->child;
+    while (fn) {
+        if (fn->string && !strcmp(fn->string, "main")) return;
+        fn = fn->next;
+    }
+
+    const char *entry = func_defs->child ? func_defs->child->string : "main";
     fprintf(out_fp, "\n/* Auto-generated entry point */\n");
     fprintf(out_fp, "int main(int argc, char **argv) {\n");
     fprintf(out_fp, "    g_argc = argc;\n    g_argv = argv;\n");
