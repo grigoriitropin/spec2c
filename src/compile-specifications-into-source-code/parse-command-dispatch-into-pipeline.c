@@ -125,15 +125,27 @@ static void check_ipm_name_against_soul(const char *name) {
     int words = 0; char *tok = strtok(buf, sep_str);
     while (tok) {
         words++;
-        if ((int)strlen(tok) < 3)
-            report_fatal_error_and_exit("IPM validation: word too short in name");
+        if ((int)strlen(tok) < 3) {
+            char msg[512]; snprintf(msg, sizeof(msg),
+                "IPM validation: word '%s' in '%s' is too short (min 3 chars)\n"
+                "  → rename using full English words, no abbreviations", tok, name);
+            report_fatal_error_and_exit(msg);
+        }
         for (int i = 0; banned[i]; i++)
-            if (!strcmp(tok, banned[i]))
-                report_fatal_error_and_exit("IPM validation: banned type word in name");
+            if (!strcmp(tok, banned[i])) {
+                char msg[512]; snprintf(msg, sizeof(msg),
+                    "IPM validation: '%s' in '%s' is a banned type word\n"
+                    "  → replace with a word that describes WHAT it does, not WHAT it is", tok, name);
+                report_fatal_error_and_exit(msg);
+            }
         tok = strtok(NULL, sep_str);
     }
-    if (words != 5)
-        report_fatal_error_and_exit("IPM validation: name must have exactly 5 words");
+    if (words != 5) {
+        char msg[512]; snprintf(msg, sizeof(msg),
+            "IPM validation: '%s' has %d words (need exactly 5)\n"
+            "  → rename using 5 hyphen-separated words describing what it does", name, words);
+        report_fatal_error_and_exit(msg);
+    }
 }
 
 /* ── IPM/JSON specification validator (12 rules, SOUL §7 + §10) ───── */
@@ -145,7 +157,7 @@ static int enforce_ipm_specification_validation_rules(const char *spec_text, cJS
     int lines = 0;
     for (const char *p = spec_text; *p; p++) if (*p == '\n') lines++;
     if (lines > 400)
-        report_fatal_error_and_exit("IPM validation: spec file exceeds 400 lines");
+        report_fatal_error_and_exit("IPM validation: spec file exceeds 400 lines\n  → split the function_definitions across multiple .ipm files");
 
     /* 2-3. Function count + instruction count */
     cJSON *funcs = cJSON_GetObjectItemCaseSensitive(spec_json, "function_definitions");
@@ -154,14 +166,14 @@ static int enforce_ipm_specification_validation_rules(const char *spec_text, cJS
         cJSON *fn = funcs->child;
         while (fn) { nf++; fn = fn->next; }
         if (nf > 10)
-            report_fatal_error_and_exit("IPM validation: more than 10 function definitions");
+            report_fatal_error_and_exit("IPM validation: more than 10 function definitions\n  → split into multiple .ipm files or modules");
 
         fn = funcs->child;
         while (fn) {
             cJSON *body = cJSON_GetObjectItemCaseSensitive(fn, "execution_instructions");
             if (body && cJSON_IsArray(body)) {
                 if (cJSON_GetArraySize(body) > 50)
-                    report_fatal_error_and_exit("IPM validation: function has >50 instructions");
+                    report_fatal_error_and_exit("IPM validation: function has >50 instructions\n  → extract sub-logic into separate functions");
             }
             /* validate function name */
             if (fn->string) check_ipm_name_against_soul(fn->string);
@@ -172,7 +184,7 @@ static int enforce_ipm_specification_validation_rules(const char *spec_text, cJS
     /* 4. Import count */
     cJSON *imports = cJSON_GetObjectItemCaseSensitive(spec_json, "imports");
     if (imports && cJSON_IsArray(imports) && cJSON_GetArraySize(imports) > 5)
-        report_fatal_error_and_exit("IPM validation: more than 5 imports");
+        report_fatal_error_and_exit("IPM validation: more than 5 imports\n  → consolidate or use fewer external dependencies");
 
     /* 5-7. Name validation */
     cJSON *pn = cJSON_GetObjectItemCaseSensitive(spec_json, "package_name");
@@ -190,7 +202,7 @@ static void validate_ipm_source_for_hardcoded(cJSON *spec_json) {
     void check_val(const char *val) {
         if (!val) return;
         if (strstr(val, "/" "home") || strstr(val, "/" "tmp") || strstr(val, "/" "usr"))
-            report_fatal_error_and_exit("IPM validation: hardcoded absolute path in source_target");
+            report_fatal_error_and_exit("IPM validation: hardcoded absolute path in source_target\n  → use relative paths, never /home, /tmp, or /usr");
     }
     cJSON *funcs = cJSON_GetObjectItemCaseSensitive(spec_json, "function_definitions");
     if (!funcs || !cJSON_IsObject(funcs)) return;
