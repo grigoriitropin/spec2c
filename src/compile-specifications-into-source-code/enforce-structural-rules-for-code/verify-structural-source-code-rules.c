@@ -95,6 +95,8 @@ static void count_open_close_brace_pairs(const char *line, int *depth) {
 typedef struct { char name[128]; char file[256]; } fn_entry_t;
 typedef struct { char name[64]; int count; } inc_entry_t;
 
+static void check_include_headers_for_file(const char *sub, inc_entry_t *incs, int *inc_qty);
+
 static void check_single_file_for_violations(const char *sub, int is_c,
     fn_entry_t *fns, int *fn_qty, inc_entry_t *incs, int *inc_qty)
 {
