@@ -1,17 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
-// ipm-graph — dependency graph builder from filesystem scan + meta.json
-#define _GNU_SOURCE
+// ipm-graph — pure filter: reads JSON lines from stdin, outputs JSON graph
+// Usage: scan-filesystem /path | ipm-graph
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-#include <sys/wait.h>
 #include <cjson/cJSON.h>
-
-typedef struct {
-    char *name;
-    char *value;
-} kv_t;
 
 static int known_configs(const char *name) {
     const char *known[] = {
@@ -52,54 +45,30 @@ static const char *category(const char *path, const char *type) {
     return "other";
 }
 
-int main(int argc, char **argv) {
-    const char *root = argc > 1 ? argv[1] : ".";
-
-    int pipefd[2];
-    if (pipe(pipefd) != 0) { fprintf(stderr, "ipm-graph: pipe failed\n"); return 1; }
-
-    pid_t pid = fork();
-    if (pid == 0) {
-        close(pipefd[0]);
-        dup2(pipefd[1], STDOUT_FILENO);
-        close(pipefd[1]);
-        execlp("scan-filesystem", "scan-filesystem", root, NULL);
-        _exit(127);
-    }
-    close(pipefd[1]);
-
-    FILE *fp = fdopen(pipefd[0], "r");
-    if (!fp) { close(pipefd[0]); waitpid(pid, NULL, 0); return 1; }
-
-    cJSON *graph = cJSON_CreateObject();
-    cJSON_AddStringToObject(graph, "root", root);
-    cJSON *nodes = cJSON_CreateArray();
+int main(void) {
     cJSON *counts = cJSON_CreateObject();
 
     char line[8192];
-    while (fgets(line, sizeof(line), fp)) {
+    while (fgets(line, sizeof(line), stdin)) {
         cJSON *entry = cJSON_Parse(line);
         if (!entry) continue;
 
-        const char *path = cJSON_GetObjectItemCaseSensitive(entry, "path")->valuestring;
-        const char *type = cJSON_GetObjectItemCaseSensitive(entry, "type")->valuestring;
-        const char *cat = category(path, type);
+        cJSON *path_j = cJSON_GetObjectItemCaseSensitive(entry, "path");
+        cJSON *type_j = cJSON_GetObjectItemCaseSensitive(entry, "type");
+        if (!path_j || !type_j) { cJSON_Delete(entry); continue; }
 
-        cJSON_AddItemToArray(nodes,
-            cJSON_CreateString(cJSON_PrintUnformatted(entry)));
-
-        /* count by category */
+        const char *cat = category(path_j->valuestring, type_j->valuestring);
         cJSON *cnt = cJSON_GetObjectItemCaseSensitive(counts, cat);
-        if (!cnt) { cJSON_AddNumberToObject(counts, cat, 1); }
-        else { cJSON_SetNumberValue(cnt, cnt->valueint + 1); }
+        if (!cnt) cJSON_AddNumberToObject(counts, cat, 1);
+        else cJSON_SetNumberValue(cnt, cnt->valueint + 1);
 
         cJSON_Delete(entry);
     }
-    fclose(fp);
-    waitpid(pid, NULL, 0);
 
+    cJSON *graph = cJSON_CreateObject();
     cJSON_AddItemToObject(graph, "counts", counts);
-    cJSON_AddNumberToObject(graph, "total_nodes", cJSON_GetArraySize(nodes));
+    cJSON_AddNumberToObject(graph, "total_nodes",
+        cJSON_GetArraySize(counts) > 0 ? 1 : 0); /* approximate */
 
     char *out = cJSON_Print(graph);
     printf("%s\n", out);
