@@ -146,3 +146,4 @@ validate_structural_limits_against_spec
 handle_ipm_spec_code_generation
 handle_ipm_spec_code_generation
 emit_skeleton_sections_into_output
+count_open_close_brace_pairs

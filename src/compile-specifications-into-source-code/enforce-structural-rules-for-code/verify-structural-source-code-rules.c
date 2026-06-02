@@ -77,7 +77,7 @@ static void pull_function_name_from_definition(const char *line, char *out, size
 }
 
 /* ── brace counter (string-aware) ─────────────────────────────────── */
-static void count_braces(const char *line, int *depth) {
+static void count_open_close_brace_pairs(const char *line, int *depth) {
     int in_str = 0, in_char = 0;
     for (const char *p = line; *p; p++) {
         if (!in_str && !in_char && *p == '/' && *(p+1) == '/') break;
@@ -148,7 +148,7 @@ void enforce_all_source_code_rules(const char *srcdir) {
                                 }
                             }
                             in_func = 1; func_lines = 1; func_start = 1;
-                            depth = 0; count_braces(line, &depth);
+                            depth = 0; count_open_close_brace_pairs(line, &depth);
                             if (depth <= 0) { in_func = 0; }
                             continue;
                         }
@@ -156,7 +156,7 @@ void enforce_all_source_code_rules(const char *srcdir) {
                     if (in_func) {
                         func_lines++;
                         if (func_start) { func_start = 0; continue; }
-                        count_braces(line, &depth);
+                        count_open_close_brace_pairs(line, &depth);
                         if (depth <= 0) {
                             if (func_lines > MAX_LINES_PER_FUNCTION) {
                                 char buf[8448]; snprintf(buf, sizeof(buf), "SOUL §7: %s func#%d is %d lines (max %d)", sub, func_count, func_lines, MAX_LINES_PER_FUNCTION);
@@ -277,7 +277,7 @@ void display_current_source_structure_report(const char *srcdir) {
                         pull_function_name_from_definition(line, func_name, 128);
                         if (!func_name[0]) continue;
                         in_func = 1; func_lines = 1; func_start = 1;
-                        depth = 0; count_braces(line, &depth);
+                        depth = 0; count_open_close_brace_pairs(line, &depth);
                         if (depth <= 0) { printf("  func: %s (%dL)\n", func_name, func_lines); in_func = 0; depth = 0; }
                         continue;
                     }
@@ -285,7 +285,7 @@ void display_current_source_structure_report(const char *srcdir) {
                 if (in_func) {
                     func_lines++;
                     if (func_start) { func_start = 0; continue; }
-                    count_braces(line, &depth);
+                    count_open_close_brace_pairs(line, &depth);
                     if (depth <= 0) { printf("  func: %s (%dL)\n", func_name, func_lines); in_func = 0; depth = 0; }
                 }
             }
