@@ -106,15 +106,11 @@ static void check_name(const char *what, const char *name, const char *fp) {
         "package","module","system","utility","application",
         "program","process","worker",NULL
     };
-    const char *allowed_abbrev[] = {
-        "gpu","cpu","io","ssh","sql","db","api","http","json","yaml","toml",NULL
-    };
     const char *soful = "SOUL §10 (immutable): 'Exactly 5 words, hyphen-separated. No more, no less. "
         "No type words. Banned: service,server,daemon,library,tool,binary,package,module,"
         "system,utility,application,program,process,worker. "
         "Describes WHAT it does, not what it is or how it is built. "
         "English only. Full words over abbreviations. "
-        "Allowed abbreviations: gpu,cpu,io,ssh,sql,db,api,http,json,yaml,toml. "
         "Self-documenting.'";
 
     char is_file = (what[0] == 'f');
@@ -125,35 +121,19 @@ static void check_name(const char *what, const char *name, const char *fp) {
     char *tok = strtok(buf, &sep);
     while (tok) {
         words++;
-        int is_abbrev = 0;
-        for (int i = 0; allowed_abbrev[i]; i++) if (!strcmp(tok, allowed_abbrev[i])) is_abbrev = 1;
-        if (!is_abbrev && (int)strlen(tok) < 3) {
+        if ((int)strlen(tok) < 3) {
             char eb[2048];
             snprintf(eb, sizeof(eb),
-                "SOUL §10: word '%s' in %s '%s' at %s is too short (min 3 chars or allowed abbreviation).\n"
-                "SOUL §10 (immutable): 'Exactly 5 words, hyphen-separated. No more, no less. "
-                "No type words. Banned: service,server,daemon,library,tool,binary,package,module,"
-                "system,utility,application,program,process,worker. "
-                "Describes WHAT it does, not what it is or how it is built. "
-                "English only. Full words over abbreviations. "
-                "Established abbreviations allowed: gpu,cpu,io,ssh,sql,db,api,http,json,yaml,toml. "
-                "Self-documenting.'",
-                tok, what, name, fp);
+                "SOUL §10: word '%s' in %s '%s' at %s is too short (min 3 chars).\n%s",
+                tok, what, name, fp, soful);
             die(eb);
         }
         for (int i = 0; banned_type[i]; i++)
             if (!strcmp(tok, banned_type[i])) {
                 char eb[2048];
                 snprintf(eb, sizeof(eb),
-                    "SOUL §10: word '%s' in %s '%s' at %s is a banned type word.\n"
-                    "SOUL §10 (immutable): 'Exactly 5 words, hyphen-separated. No more, no less. "
-                    "No type words. Banned: service,server,daemon,library,tool,binary,package,module,"
-                    "system,utility,application,program,process,worker. "
-                    "Describes WHAT it does, not what it is or how it is built. "
-                    "English only. Full words over abbreviations. "
-                    "Established abbreviations allowed: gpu,cpu,io,ssh,sql,db,api,http,json,yaml,toml. "
-                    "Self-documenting.'",
-                    tok, what, name, fp);
+                    "SOUL §10: word '%s' in %s '%s' at %s is a banned type word.\n%s",
+                    tok, what, name, fp, soful);
                 die(eb);
             }
         tok = strtok(NULL, &sep);
@@ -161,29 +141,15 @@ static void check_name(const char *what, const char *name, const char *fp) {
     if (words != 5) {
         char eb[2048];
         snprintf(eb, sizeof(eb),
-            "SOUL §10: %s '%s' at %s has %d words — exactly 5 required (%s-separated).\n"
-            "SOUL §10 (immutable): 'Exactly 5 words, hyphen-separated. No more, no less. "
-            "No type words. Banned: service,server,daemon,library,tool,binary,package,module,"
-            "system,utility,application,program,process,worker. "
-            "Describes WHAT it does, not what it is or how it is built. "
-            "English only. Full words over abbreviations. "
-            "Established abbreviations allowed: gpu,cpu,io,ssh,sql,db,api,http,json,yaml,toml. "
-            "Self-documenting.'",
-            what, name, fp, words, is_file ? "hyphen" : "underscore");
+            "SOUL §10: %s '%s' at %s has %d words — exactly 5 required (%s-separated).\n%s",
+            what, name, fp, words, is_file ? "hyphen" : "underscore", soful);
         die(eb);
     }
     if (!is_allowed(name)) {
         char eb[2048];
         snprintf(eb, sizeof(eb),
-            "SOUL §10: %s '%s' at %s — not in allowed-names.txt (%s).\n"
-            "SOUL §10 (immutable): 'Exactly 5 words, hyphen-separated. No more, no less. "
-            "No type words. Banned: service,server,daemon,library,tool,binary,package,module,"
-            "system,utility,application,program,process,worker. "
-            "Describes WHAT it does, not what it is or how it is built. "
-            "English only. Full words over abbreviations. "
-            "Established abbreviations allowed: gpu,cpu,io,ssh,sql,db,api,http,json,yaml,toml. "
-            "Self-documenting.'",
-            what, name, fp, name);
+            "SOUL §10: %s '%s' at %s — not in allowed-names.txt.\n%s",
+            what, name, fp, soful);
         die(eb);
     }
 }
