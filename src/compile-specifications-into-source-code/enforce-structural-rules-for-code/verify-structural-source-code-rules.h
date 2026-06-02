@@ -16,5 +16,6 @@ const char *get_allowed_name_from_whitelist(int index);
 void read_banned_patterns_from_file(const char *srcdir);
 int  detect_hardcoded_file_path_string(const char *line);
 extern int banned_patterns_count;
+extern char banned_patterns[32][64];
 
 #endif
