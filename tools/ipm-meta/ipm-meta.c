@@ -71,6 +71,10 @@ int main(int argc, char **argv) {
         cJSON_AddItemToObject(meta, "imports", arr);
     }
 
+    /* toolchain provenance */
+    cJSON_AddStringToObject(meta, "toolchain", "spec2c");
+    cJSON_AddStringToObject(meta, "toolchain_version", "0.2.0");
+
     char *out = cJSON_PrintUnformatted(meta);
     printf("%s\n", out);
     free(out);
