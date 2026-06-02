@@ -82,12 +82,12 @@ void validate_name_against_soul_rules(const char *what, const char *name, const 
 
     char is_file = (what[0] == 'f' && what[1] == 'i');
     char is_dir  = (what[0] == 'd' && what[1] == 'i');
-    char sep = (is_file || is_dir) ? '-' : '_';
+    char sep_str[2] = {(is_file || is_dir) ? '-' : '_', 0};
     const char *dir_note = is_dir ? dir_note_text : "";
 
     char buf[256]; snprintf(buf, sizeof(buf), "%s", name);
     int words = 0;
-    char *tok = strtok(buf, &sep);
+    char *tok = strtok(buf, sep_str);
     while (tok) {
         words++;
         if ((int)strlen(tok) < 3) {
@@ -105,7 +105,7 @@ void validate_name_against_soul_rules(const char *what, const char *name, const 
                     tok, what, name, fp, soful, dir_note);
                 report_fatal_error_and_exit(eb);
             }
-        tok = strtok(NULL, &sep);
+        tok = strtok(NULL, sep_str);
     }
     if (words != 5) {
         char eb[2048];
