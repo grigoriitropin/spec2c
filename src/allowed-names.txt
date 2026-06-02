@@ -172,3 +172,4 @@ read_file_bytes_into_buffer
 hash-table-and-substitution-code
 file-string-and-json-parsing
 buffer-output-and-command-launch
+fprintf
