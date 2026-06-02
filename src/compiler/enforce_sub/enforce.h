@@ -5,5 +5,6 @@
 #define ENFORCE_H
 
 void enforce_structural_limits(const char *srcdir);
+void print_source_structure(const char *srcdir);
 
 #endif

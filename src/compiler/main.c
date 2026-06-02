@@ -71,7 +71,22 @@ int main(int argc, char *argv[]) {
                 "  --check <file>  Run conformance check on generated C file\n"
                 "  --spec <spec>   Spec file for scaffold comparison (with --check)\n"
                 "  --help, -h\n"
-                "  --library      Generate .c + .h library (skip main), for linking into other programs\n");
+                "  --library      Generate .c + .h library (skip main), for linking into other programs\n"
+                "  --list-names   Print all allowed names from allowed-names.txt\n"
+                "  --show-structure  Print file and function boundaries for all source files\n");
+            return 0;
+        } else if (strcmp(argv[i], "--list-names") == 0) {
+            #ifdef SPEC2C_SRC_DIR
+            char path[4096];
+            snprintf(path, sizeof(path), "%s/allowed-names.txt", SPEC2C_SRC_DIR);
+            char *txt = read_file(path);
+            if (txt) { printf("%s", txt); free(txt); }
+            #endif
+            return 0;
+        } else if (strcmp(argv[i], "--show-structure") == 0) {
+            #ifdef SPEC2C_SRC_DIR
+            print_source_structure(SPEC2C_SRC_DIR);
+            #endif
             return 0;
         } else if (strcmp(argv[i], "--library") == 0) {
             is_library = 1;
