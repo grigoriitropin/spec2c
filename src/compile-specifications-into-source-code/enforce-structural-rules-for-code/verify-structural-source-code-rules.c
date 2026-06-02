@@ -193,6 +193,37 @@ static void check_include_headers_for_file(const char *sub, inc_entry_t *incs, i
     }
 }
 
+static void search_for_unused_function_code(fn_entry_t *fns, int fn_qty, const char *srcdir) {
+    for (int i = 0; i < fn_qty; i++) {
+        if (!strcmp(fns[i].name, "main")) continue;
+        int called = 0;
+        void search_calls(const char *dpath) {
+            DIR *dd = opendir(dpath); if (!dd) return;
+            struct dirent *de2;
+            while ((de2 = readdir(dd)) != NULL && !called) {
+                if (de2->d_name[0] == '.') continue;
+                char sp[8192]; snprintf(sp, sizeof(sp), "%s/%s", dpath, de2->d_name);
+                struct stat sst; if (stat(sp, &sst) != 0) continue;
+                if (S_ISDIR(sst.st_mode)) { search_calls(sp); continue; }
+                if (!match_source_code_header_filename(de2->d_name)) continue;
+                FILE *rf = fopen(sp, "r"); if (!rf) continue;
+                char rl[1024];
+                while (fgets(rl, sizeof(rl), rf) && !called) {
+                    char call[256]; snprintf(call, sizeof(call), "%s(", fns[i].name);
+                    if (strstr(rl, call)) called = 1;
+                }
+                fclose(rf);
+            }
+            closedir(dd);
+        }
+        search_calls(srcdir);
+        if (!called) {
+            char buf[8448]; snprintf(buf, sizeof(buf), "SOUL §7: dead code — '%s' in %s never called", fns[i].name, fns[i].file);
+            report_fatal_error_and_exit(buf);
+        }
+    }
+}
+
 void enforce_all_source_code_rules(const char *srcdir) {
     read_allowed_names_from_file(srcdir);
     read_banned_patterns_from_file(srcdir);
@@ -228,37 +259,7 @@ void enforce_all_source_code_rules(const char *srcdir) {
         }
     }
     scan_dir(srcdir);
-
-    for (int i = 0; i < fn_qty; i++) {
-        if (!strcmp(fns[i].name, "main")) continue;
-        int called = 0;
-        void search_calls(const char *dpath) {
-            DIR *dd = opendir(dpath); if (!dd) return;
-            struct dirent *de2;
-            while ((de2 = readdir(dd)) != NULL && !called) {
-                if (de2->d_name[0] == '.') continue;
-                char sp[8192]; snprintf(sp, sizeof(sp), "%s/%s", dpath, de2->d_name);
-                struct stat sst; if (stat(sp, &sst) != 0) continue;
-                if (S_ISDIR(sst.st_mode)) { search_calls(sp); continue; }
-                if (!match_source_code_header_filename(de2->d_name)) continue;
-                FILE *rf = fopen(sp, "r"); if (!rf) continue;
-                char rl[1024];
-                while (fgets(rl, sizeof(rl), rf) && !called) {
-                    char call[256]; snprintf(call, sizeof(call), "%s(", fns[i].name);
-                    if (strstr(rl, call)) called = 1;
-                }
-                fclose(rf);
-            }
-            closedir(dd);
-        }
-        search_calls(srcdir);
-        if (!called) {
-            char buf[8448]; snprintf(buf, sizeof(buf), "SOUL §7: dead code — '%s' in %s never called", fns[i].name, fns[i].file);
-            report_fatal_error_and_exit(buf);
-        }
-    }
-
-    int main_count = 0;
+    search_for_unused_function_code(fns, fn_qty, srcdir);
     for (int i = 0; i < fn_qty; i++)
         if (!strcmp(fns[i].name, "main")) main_count++;
     if (main_count != 1) {

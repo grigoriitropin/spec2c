@@ -149,3 +149,4 @@ emit_skeleton_sections_into_output
 count_open_close_brace_pairs
 check_single_file_for_violations
 check_include_headers_for_file
+search_for_unused_function_code
