@@ -118,8 +118,8 @@ int main(int argc, char *argv[]) {
 static void check_ipm_name_against_soul(const char *name) {
     if (!name || !name[0]) return;
     if (!strcmp(name, "main")) return;
-    const char *banned[] = {"service","server","daemon","library","tool","binary",
-        "package","module","system","utility","application","program","process","worker",NULL};
+    /* banned list from share-type-definitions-across-files.h */
+    extern const char *soul_banned_type_words[];
     char sep_str[2] = {strchr(name, '-') ? '-' : '_', 0};
     char buf[256]; snprintf(buf, sizeof(buf), "%s", name);
     int words = 0; char *tok = strtok(buf, sep_str);
@@ -131,8 +131,8 @@ static void check_ipm_name_against_soul(const char *name) {
                 "  → rename using full English words, no abbreviations", tok, name);
             report_fatal_error_and_exit(msg);
         }
-        for (int i = 0; banned[i]; i++)
-            if (!strcmp(tok, banned[i])) {
+        for (int i = 0; soul_banned_type_words[i]; i++)
+            if (!strcmp(tok, soul_banned_type_words[i])) {
                 char msg[512]; snprintf(msg, sizeof(msg),
                     "IPM validation: '%s' in '%s' is a banned type word\n"
                     "  → replace with a word that describes WHAT it does, not WHAT it is", tok, name);

@@ -11,6 +11,7 @@ static void report_fatal_error_and_exit(const char *msg) {
 }
 
 static const char *banned_type_words[] = {
+    /* canonical list — keep in sync with share-type-definitions-across-files.h */
     "service","server","daemon","library","tool","binary",
     "package","module","system","utility","application",
     "program","process","worker",NULL

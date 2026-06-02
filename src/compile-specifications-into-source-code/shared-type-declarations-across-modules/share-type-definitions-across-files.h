@@ -45,4 +45,11 @@ void create_substitution_table_for_spec(const spec_t *s, subst_t *subs, int *nsu
 char *apply_substitution_against_text_data(const char *tmpl, const subst_t *subs, int nsubs);
 char *resolve_template_file_from_base(const char *base, const char *file);
 
+/* ── SOUL §10 banned type words (canonical list — keep in sync with enforce-naming-whitelist-and-validation.c) ── */
+static const char *soul_banned_type_words[] = {
+    "service","server","daemon","library","tool","binary",
+    "package","module","system","utility","application",
+    "program","process","worker",NULL
+};
+
 #endif
