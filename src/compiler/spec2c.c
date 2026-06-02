@@ -17,6 +17,7 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include "ipm_builtins.h"
+#include "enforce.h"
 
 #define SUBST_MAX 32
 #define VAL_SZ   4096
@@ -695,38 +696,8 @@ static char *resolve_template(const char *base, const char *file) {
 }
 
 int main(int argc, char *argv[]) {
-    /* §ENFORCE: file limit per directory — hard fail if >3 .c/.h */
     #ifdef SPEC2C_SRC_DIR
-    {
-        DIR *d = opendir(SPEC2C_SRC_DIR);
-        if (d) {
-            struct dirent *de;
-            while ((de = readdir(d)) != NULL) {
-                if (de->d_name[0] == '.') continue;
-                char sub[4096];
-                snprintf(sub, sizeof(sub), "%s/%s", SPEC2C_SRC_DIR, de->d_name);
-                struct stat st;
-                if (stat(sub, &st) != 0 || !S_ISDIR(st.st_mode)) continue;
-                int cnt = 0;
-                DIR *sd = opendir(sub);
-                if (sd) {
-                    struct dirent *se;
-                    while ((se = readdir(sd)) != NULL) {
-                        size_t nl = strlen(se->d_name);
-                        if (nl > 2 && (!strcmp(se->d_name + nl - 2, ".c") || !strcmp(se->d_name + nl - 2, ".h")))
-                            cnt++;
-                    }
-                    closedir(sd);
-                }
-                if (cnt > 3) {
-                    char buf[512];
-                    snprintf(buf, sizeof(buf), "SOUL §7: %s has %d .c/.h files (max 3). Split into subdirectories.", sub, cnt);
-                    die(buf);
-                }
-            }
-            closedir(d);
-        }
-    }
+    enforce_structural_limits(SPEC2C_SRC_DIR);
     #endif
 
     const char *spec_path = NULL;
@@ -950,7 +921,3 @@ int main(int argc, char *argv[]) {
 
     return 0;
 }
-
-#if __LINE__ > 400
-#error "SOUL §7 violation: file exceeds 400 lines. Split into smaller compilation units."
-#endif
