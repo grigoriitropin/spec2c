@@ -179,39 +179,41 @@ static int enforce_ipm_specification_validation_rules(const char *spec_text, cJS
     cJSON *mn = cJSON_GetObjectItemCaseSensitive(spec_json, "module_name");
     if (mn && cJSON_IsString(mn)) check_ipm_name_against_soul(mn->valuestring);
 
-    /* 8. No hardcoded paths in source_target fields */
-    void check_no_hardcoded(const char *val) {
+    /* 8. No hardcoded paths + template check */
+    validate_ipm_source_for_hardcoded(spec_json);
+
+    return 1;
+}
+
+static void validate_ipm_source_for_hardcoded(cJSON *spec_json) {
+    void check_val(const char *val) {
         if (!val) return;
         if (strstr(val, "/" "home") || strstr(val, "/" "tmp") || strstr(val, "/" "usr"))
             report_fatal_error_and_exit("IPM validation: hardcoded absolute path in source_target");
     }
-    if (funcs && cJSON_IsObject(funcs)) {
-        cJSON *fn = funcs->child;
-        while (fn) {
-            cJSON *body = cJSON_GetObjectItemCaseSensitive(fn, "execution_instructions");
-            if (body && cJSON_IsArray(body)) {
-                for (int i = 0; i < cJSON_GetArraySize(body); i++) {
-                    cJSON *inst = cJSON_GetArrayItem(body, i);
-                    cJSON *st = cJSON_GetObjectItemCaseSensitive(inst, "source_target");
-                    if (st) {
-                        if (cJSON_IsString(st)) check_no_hardcoded(st->valuestring);
-                        else if (cJSON_IsObject(st)) {
-                            cJSON *s = cJSON_GetObjectItemCaseSensitive(st, "source");
-                            if (s && cJSON_IsString(s)) check_no_hardcoded(s->valuestring);
-                        }
+    cJSON *funcs = cJSON_GetObjectItemCaseSensitive(spec_json, "function_definitions");
+    if (!funcs || !cJSON_IsObject(funcs)) return;
+    cJSON *fn = funcs->child;
+    while (fn) {
+        cJSON *body = cJSON_GetObjectItemCaseSensitive(fn, "execution_instructions");
+        if (body && cJSON_IsArray(body)) {
+            for (int i = 0; i < cJSON_GetArraySize(body); i++) {
+                cJSON *inst = cJSON_GetArrayItem(body, i);
+                cJSON *st = cJSON_GetObjectItemCaseSensitive(inst, "source_target");
+                if (st) {
+                    if (cJSON_IsString(st)) check_val(st->valuestring);
+                    else if (cJSON_IsObject(st)) {
+                        cJSON *s = cJSON_GetObjectItemCaseSensitive(st, "source");
+                        if (s && cJSON_IsString(s)) check_val(s->valuestring);
                     }
                 }
             }
-            fn = fn->next;
         }
+        fn = fn->next;
     }
-
-    /* 9. Template definitions forbidden */
     cJSON *templates = cJSON_GetObjectItemCaseSensitive(spec_json, "template_definitions");
     if (templates && cJSON_IsObject(templates) && templates->child)
         report_fatal_error_and_exit("IPM validation: template_definitions forbidden — use function_definitions");
-
-    return 1;
 }
 
 static void validate_structural_limits_against_spec(const char *spec_text, cJSON *spec_json) {
