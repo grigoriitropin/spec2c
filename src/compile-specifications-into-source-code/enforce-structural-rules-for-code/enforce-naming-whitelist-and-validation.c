@@ -55,6 +55,7 @@ int match_header_against_include_whitelist(const char *hdr) {
         "cjson/cJSON.h","netinet/in.h",
         "runtime-for-generated-ipm-code.h",
         "ipm_builtins.h",
+        "shared-type-declarations-across-modules/soul-rules-for-naming-validation.h",
         "vehir-shared-abstraction-wrapper-code.h",
         "verify-structural-source-code-rules.h",
         "shared-type-declarations-across-modules/share-type-definitions-across-files.h",
