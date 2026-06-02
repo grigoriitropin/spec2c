@@ -1,5 +1,18 @@
 # spec2c Bootstrap Architecture
 
+## Install
+
+```bash
+# Via IPM (preferred)
+ipm workspace spec2c
+ipm workspace set-flake git+https://github.com/grigoriitropin/spec2c
+ipm build --install --attr spec2c
+spec2c --help
+
+# Via raw Nix (bootstrap only — IPM is the daily driver)
+nix build --no-link git+https://github.com/grigoriitropin/spec2c
+```
+
 ## Immutable Bootstrap Anchor
 
 `spec2c.c` is the Stage 0 compiler — a hand-written C implementation that reads
