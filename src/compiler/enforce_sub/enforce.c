@@ -101,10 +101,58 @@ static int is_allowed(const char *name) {
 }
 
 static void check_name(const char *what, const char *name, const char *fp) {
+    const char *banned_type[] = {
+        "service","server","daemon","library","tool","binary",
+        "package","module","system","utility","application",
+        "program","process","worker",NULL
+    };
+    const char *allowed_abbrev[] = {
+        "gpu","cpu","io","ssh","sql","db","api","http","json","yaml","toml",NULL
+    };
+    const char *soful = "SOUL §10 (immutable): 'Exactly 5 words, hyphen-separated. No more, no less. "
+        "No type words. Banned: service,server,daemon,library,tool,binary,package,module,"
+        "system,utility,application,program,process,worker. "
+        "Describes WHAT it does, not what it is or how it is built. "
+        "English only. Full words over abbreviations. "
+        "Allowed abbreviations: gpu,cpu,io,ssh,sql,db,api,http,json,yaml,toml. "
+        "Self-documenting.'";
+
+    char is_file = (what[0] == 'f');
+    char sep = is_file ? '-' : '_';
+
+    char buf[256]; snprintf(buf, sizeof(buf), "%s", name);
+    int words = 0;
+    char *tok = strtok(buf, &sep);
+    while (tok) {
+        words++;
+        int is_abbrev = 0;
+        for (int i = 0; allowed_abbrev[i]; i++) if (!strcmp(tok, allowed_abbrev[i])) is_abbrev = 1;
+        if (!is_abbrev && (int)strlen(tok) < 3) {
+            char eb[2048];
+            snprintf(eb, sizeof(eb), "%s '%s' in %s — word '%s' is too short (min 3 chars or allowed abbreviation).\n%s",
+                     what, name, fp, tok, soful);
+            die(eb);
+        }
+        for (int i = 0; banned_type[i]; i++)
+            if (!strcmp(tok, banned_type[i])) {
+                char eb[2048];
+                snprintf(eb, sizeof(eb), "%s '%s' in %s — word '%s' is a banned type word.\n%s",
+                         what, name, fp, tok, soful);
+                die(eb);
+            }
+        tok = strtok(NULL, &sep);
+    }
+    if (words != 5) {
+        char eb[2048];
+        snprintf(eb, sizeof(eb), "%s '%s' in %s has %d words — exactly 5 required (%s-separated).\n%s",
+                 what, name, fp, words, is_file ? "hyphen" : "underscore", soful);
+        die(eb);
+    }
     if (!is_allowed(name)) {
-        char buf[512];
-        snprintf(buf, sizeof(buf), "SOUL §10: %s '%s' in %s is not in allowed-names.txt", what, name, fp);
-        die(buf);
+        char eb[2048];
+        snprintf(eb, sizeof(eb), "%s '%s' in %s — not in allowed-names.txt. Add: echo '%s' >> src/allowed-names.txt\n%s",
+                 what, name, fp, name, soful);
+        die(eb);
     }
 }
 
