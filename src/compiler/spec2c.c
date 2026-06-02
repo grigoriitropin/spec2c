@@ -950,3 +950,7 @@ int main(int argc, char *argv[]) {
 
     return 0;
 }
+
+#if __LINE__ > 400
+#error "SOUL §7 violation: file exceeds 400 lines. Split into smaller compilation units."
+#endif
