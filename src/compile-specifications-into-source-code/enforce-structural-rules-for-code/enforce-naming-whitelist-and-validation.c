@@ -50,13 +50,23 @@ int match_header_against_include_whitelist(const char *hdr) {
     return 0;
 }
 
+/* ── centralized keyword / built-in exemption ─────────────────────── */
+static int is_exempt_identifier(const char *name) {
+    return !strcmp(name, "main") ||
+           !strcmp(name, "while") || !strcmp(name, "for") ||
+           !strcmp(name, "if") || !strcmp(name, "switch");
+}
+
 static int check_name_against_allowed_whitelist(const char *name) {
+    if (is_exempt_identifier(name)) return 1;
     for (int i = 0; i < allowed_qty; i++)
         if (!strcmp(allowed[i].name, name)) return 1;
     return 0;
 }
 
 void validate_name_against_soul_rules(const char *what, const char *name, const char *fp) {
+    if (is_exempt_identifier(name)) return;
+
     const char *banned_type[] = {
         "service","server","daemon","library","tool","binary",
         "package","module","system","utility","application",
@@ -147,10 +157,7 @@ void read_allowed_names_from_file(const char *srcdir) {
         while (len > 0 && (line[len-1] == '\n' || line[len-1] == '\r')) line[--len] = 0;
         if (len > 0) {
             if (line[0] == '#') continue;
-            if (strcmp(line, "main") && strcmp(line, "while") &&
-                strcmp(line, "for") && strcmp(line, "if") &&
-                strcmp(line, "switch") &&
-                !validate_single_whitelist_entry_name(line)) {
+            if (!is_exempt_identifier(line) && !validate_single_whitelist_entry_name(line)) {
                 char eb[2048];
                 snprintf(eb, sizeof(eb),
                     "SOUL §10: whitelist entry '%s' is invalid.\n"
