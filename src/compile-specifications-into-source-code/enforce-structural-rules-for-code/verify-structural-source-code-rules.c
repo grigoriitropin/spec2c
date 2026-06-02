@@ -78,10 +78,13 @@ static void pull_function_name_from_definition(const char *line, char *out, size
 
 /* ── brace counter (string-aware) ─────────────────────────────────── */
 static void count_braces(const char *line, int *depth) {
-    int in_str = 0;
+    int in_str = 0, in_char = 0;
     for (const char *p = line; *p; p++) {
-        if (*p == '"' && (p == line || *(p-1) != '\\')) in_str = !in_str;
-        if (!in_str) {
+        if (!in_str && !in_char && *p == '/' && *(p+1) == '/') break;
+        if (*p == '\\' && *(p+1) != '\0') { p++; continue; }
+        if (!in_char && *p == '"') in_str = !in_str;
+        else if (!in_str && *p == '\'') in_char = !in_char;
+        if (!in_str && !in_char) {
             if (*p == '{') (*depth)++;
             else if (*p == '}') (*depth)--;
         }
