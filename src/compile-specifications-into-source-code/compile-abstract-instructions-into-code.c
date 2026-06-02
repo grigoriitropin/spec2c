@@ -139,7 +139,7 @@ void generate_code_from_ast_instructions(cJSON *instructions, FILE *out, int ind
             if (cJSON_IsString(st)) src = st->valuestring;
             else if (st) { cJSON *s2 = cJSON_GetObjectItemCaseSensitive(st, "source"); if (cJSON_IsString(s2)) src = s2->valuestring; }
             if (vn && vt && op) {
-                fprintf(out, "%s %s = %s(%s);\n", resolve_spec_type_into_target_lang(vt), vn, op, src);
+                fprintf(out, "%s %s = %s(%s);\n", resolve_spec_type_into_lang(vt), vn, op, src);
             }
         } else if (!strcmp(type, "function_invocation")) {
             emit_function_invocation_code_block(inst, out, indent);
@@ -195,7 +195,7 @@ static void emit_function_body_into_output(cJSON *fn, FILE *out, int is_library,
             const char *pn = extract_json_field_string_value(par, "parameter_name");
             const char *pt = extract_json_field_string_value(par, "parameter_type");
             if (p > 0) fprintf(out, ", ");
-            fprintf(out, "%s %s", resolve_spec_type_into_target_lang(pt), pn);
+            fprintf(out, "%s %s", resolve_spec_type_into_lang(pt), pn);
         }
     }
     fprintf(out, ") {\n");
@@ -223,7 +223,7 @@ void compile_every_function_into_code(const ipm_spec_t *spec, FILE *out, int is_
                 for (int p = 0; p < cJSON_GetArraySize(params); p++) {
                     cJSON *par = cJSON_GetArrayItem(params, p);
                     if (p > 0) fprintf(out, ", ");
-                    fprintf(out, "%s %s", resolve_spec_type_into_target_lang(
+                    fprintf(out, "%s %s", resolve_spec_type_into_lang(
                         extract_json_field_string_value(par, "parameter_type")),
                         extract_json_field_string_value(par, "parameter_name"));
                 }

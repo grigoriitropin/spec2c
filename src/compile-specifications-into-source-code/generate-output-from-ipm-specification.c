@@ -27,7 +27,7 @@ static void emit_function_prototypes_into_header(FILE *hdr, cJSON *funcs) {
                 const char *pn = extract_json_field_string_value(par, "parameter_name");
                 const char *pt = extract_json_field_string_value(par, "parameter_type");
                 if (p > 0) fprintf(hdr, ", ");
-                fprintf(hdr, "%s %s", resolve_spec_type_into_target_lang(pt), pn);
+                fprintf(hdr, "%s %s", resolve_spec_type_into_lang(pt), pn);
             }
         }
         fprintf(hdr, ");\n");
@@ -87,13 +87,13 @@ void handle_ipm_spec_emit_code(const ipm_spec_t *spec, const char *out_path, int
                 cJSON *fn = funcs->child;
                 while (fn) {
                     const char *name = fn->string;
-                    fprintf(hdr, "%s %s(", resolve_spec_type_into_target_lang(extract_json_field_string_value(fn, "return_type")), name);
+                    fprintf(hdr, "%s %s(", resolve_spec_type_into_lang(extract_json_field_string_value(fn, "return_type")), name);
                     cJSON *params = cJSON_GetObjectItemCaseSensitive(fn, "parameter_definitions");
                     if (params && cJSON_IsArray(params)) {
                         for (int p = 0; p < cJSON_GetArraySize(params); p++) {
                             cJSON *par = cJSON_GetArrayItem(params, p);
                             if (p > 0) fprintf(hdr, ", ");
-                            fprintf(hdr, "%s %s", resolve_spec_type_into_target_lang(extract_json_field_string_value(par, "parameter_type")), extract_json_field_string_value(par, "parameter_name"));
+                            fprintf(hdr, "%s %s", resolve_spec_type_into_lang(extract_json_field_string_value(par, "parameter_type")), extract_json_field_string_value(par, "parameter_name"));
                         }
                     }
                     fprintf(hdr, ");\n");

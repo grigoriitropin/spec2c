@@ -71,7 +71,7 @@ int match_pattern_against_text_string(const char *text, const char *pattern) {
     return rc == 0 ? 1 : 0;
 }
 
-const char *resolve_spec_type_into_target_lang(const char *t) {
+const char *resolve_spec_type_into_lang(const char *t) {
     if (!t) return "void *";
     if (!strcmp(t, "void")) return "void";
     if (!strcmp(t, "string")) return "char *";
