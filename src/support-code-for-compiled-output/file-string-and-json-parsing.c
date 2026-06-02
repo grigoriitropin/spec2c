@@ -76,7 +76,7 @@ const char *resolve_spec_type_into_lang(const char *t) {
     if (!strcmp(t, "void")) return "void";
     if (!strcmp(t, "string")) return "char *";
     if (!strcmp(t, "int")) return "int";
-    if (!strcmp(t, "float")) return "double";
+    if (!strcmp(t, "float")) return "float";
     if (!strcmp(t, "boolean")) return "int";
     if (!strcmp(t, "json_object")) return "cJSON *";
     if (!strcmp(t, "json_array")) return "cJSON *";

@@ -150,10 +150,12 @@ void generate_code_from_ast_instructions(cJSON *instructions, FILE *out, int ind
                         if (!cJSON_IsString(field)) continue;
                         char fn[64] = {0}, ft[64] = {0};
                         if (sscanf(field->valuestring, "%63[^:]:%63s", fn, ft) == 2) {
+                            for (int s = 0; s < indent; s++) fputs("  ", out);
                             fprintf(out, "%s %s_%s[%d];\n",
                                 resolve_spec_type_into_lang(ft), vn, fn, array_size);
                         }
                     }
+                    for (int s = 0; s < indent; s++) fputs("  ", out);
                     fprintf(out, "%s(%s", op, src ? src : "");
                     cJSON_ArrayForEach(field, fields) {
                         if (!cJSON_IsString(field)) continue;
