@@ -10,7 +10,7 @@
 
 #define MAX_FILES_PER_DIR 3
 #define MAX_LINES_PER_FILE 400
-#define MAX_INCLUDES 2
+#define MAX_INCLUDES 3
 
 static void die(const char *msg) {
     fprintf(stderr, "spec2c: %s\n", msg);
