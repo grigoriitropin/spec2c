@@ -108,7 +108,8 @@ void verify_ipm_names_across_sources(const char *srcdir) {
             FILE *f = fopen(sp, "r"); if (!f) continue;
             fseek(f, 0, SEEK_END); long sz = ftell(f); fseek(f, 0, SEEK_SET);
             if (sz <= 0 || sz > 65536) { fclose(f); continue; }
-            char *txt = malloc(sz + 1); if (!txt) { fclose(f); continue; }
+            char *txt = malloc(sz + 1);
+            if (!txt) { fclose(f); continue; }
             (void)!fread(txt, 1, sz, f); fclose(f); txt[sz] = 0;
             cJSON *root = cJSON_Parse(txt); free(txt);
             if (!root) continue;
