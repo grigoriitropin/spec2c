@@ -373,7 +373,6 @@ static int run_spec2c_pipeline_after_parsing(
     if (!spec_json) report_fatal_error_and_exit("JSON parse error in spec file");
     enforce_ipm_specification_validation_rules(spec_text, spec_json);
     validate_structural_limits_against_spec(spec_text, spec_json);
-
     cJSON *pkg_name = cJSON_GetObjectItemCaseSensitive(spec_json, "package_name");
     if (pkg_name && cJSON_IsString(pkg_name)) {
         handle_ipm_spec_code_generation(spec_json, pkg_name->valuestring, out_path, is_library);
@@ -381,20 +380,16 @@ static int run_spec2c_pipeline_after_parsing(
         free(spec_text);
         return 0;
     }
-
     char *skel_path = resolve_template_file_from_base(base_dir, "skeleton.json");
     char *skel_text = read_entire_file_into_memory(skel_path);
     free(skel_path);
     cJSON *skel = cJSON_Parse(skel_text);
     free(skel_text);
     if (!skel) report_fatal_error_and_exit("JSON parse error in skeleton.json");
-
     spec_t spec;
     parse_legacy_object_format_json(spec_json, &spec);
     free(spec_text);
-
     int result = emit_skeleton_sections_into_output(skel, base_dir, &spec, out_path);
-
     cJSON_Delete(skel);
     free((void *)spec.name);
     free((void *)spec.ident);
