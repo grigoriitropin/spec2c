@@ -221,7 +221,7 @@ void exit_process(int code) {
 
 /* ── AST-to-C compiler (Phase 2b built-in) ───────────────────────────── */
 
-char *vartype_to_c(const char *t) {
+const char *vartype_to_c(const char *t) {
     if (!t) return "void *";
     if (!strcmp(t, "void")) return "void";
     if (!strcmp(t, "string")) return "char *";

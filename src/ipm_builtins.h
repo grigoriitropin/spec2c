@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <cjson/cJSON.h>
+#include <sys/types.h>
 
 typedef char* string;
 typedef cJSON json_object;
@@ -54,7 +55,7 @@ void print_error_to_stderr(const char *msg);
 void exit_process(int code);
 
 /* Type mapping */
-char* vartype_to_c(const char *type_name);
+const char* vartype_to_c(const char *type_name);
 
 /* Regex */
 int regex_match(const char *text, const char *pattern);

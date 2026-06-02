@@ -14,6 +14,7 @@
 #include <string.h>
 #include <errno.h>
 #include <cjson/cJSON.h>
+#include "ipm_builtins.h"
 
 #define SUBST_MAX 32
 #define VAL_SZ   4096
@@ -264,20 +265,6 @@ static void ipm_add_subst(subst_t *subs, int *n, const char *k, const char *v) {
 }
 
 /* ── Phase 2a: AST-to-C compiler ─────────────────────────────────────── */
-
-static const char *vartype_to_c(const char *t) {
-    if (!strcmp(t, "void")) return "void";
-    if (!strcmp(t, "string")) return "char *";
-    if (!strcmp(t, "int")) return "int";
-    if (!strcmp(t, "float")) return "double";
-    if (!strcmp(t, "boolean")) return "int";
-    if (!strcmp(t, "json_object")) return "cJSON *";
-    if (!strcmp(t, "json_array")) return "cJSON *";
-    if (!strcmp(t, "db_handle")) return "struct vehir_db *";
-    if (!strcmp(t, "subst_table")) return "subst_table *";
-    if (!strcmp(t, "string_buffer")) return "string_buffer *";
-    return "void *";
-}
 
 static void compile_instructions(cJSON *instructions, FILE *out, int indent, const char *return_type) {
     if (!cJSON_IsArray(instructions)) return;
