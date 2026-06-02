@@ -26,7 +26,7 @@ char *resolve_default_config_file_path(void);
 char *load_vehir_configuration_from_file(const char *tool, const char *path, const char *key);
 
 // Like load_vehir_configuration_from_file but calls vehir_fatal_error_and_exit on failure.
-char *require_config_value_or_die(const char *tool, const char *path, const char *key);
+char *require_config_value_else_die(const char *tool, const char *path, const char *key);
 
 // --- DB types (opaque; real definitions in db.h) ---
 

@@ -82,7 +82,7 @@ char *load_vehir_configuration_from_file(const char *tool, const char *path, con
     return result;
 }
 
-char *require_config_value_or_die(const char *tool, const char *path, const char *key) {
+char *require_config_value_else_die(const char *tool, const char *path, const char *key) {
     char *val = load_vehir_configuration_from_file(tool, path, key);
     if (!val) {
         char msg[384];
