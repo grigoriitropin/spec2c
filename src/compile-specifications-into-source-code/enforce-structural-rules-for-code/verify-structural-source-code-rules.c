@@ -70,8 +70,6 @@ static void report_violation_with_actionable_hint(enforce_err_t code, const char
     }
     report_fatal_error_and_exit(buf);
 }
-    report_fatal_error_and_exit(buf);
-}
 static int count_lines_within_source_file(const char *path) {
     FILE *f = fopen(path, "r"); if (!f) return -1;
     int lines = 0, ch; while ((ch = fgetc(f)) != EOF) if (ch == '\n') lines++;
