@@ -26,7 +26,7 @@ static int count_lines_within_source_file(const char *path) {
     fclose(f); return lines;
 }
 
-static int check_filename_extension_c_or_h(const char *name) {
+static int match_source_code_header_filename(const char *name) {
     size_t nl = strlen(name);
     return nl > 2 && (!strcmp(name + nl - 2, ".c") || !strcmp(name + nl - 2, ".h"));
 }
@@ -87,7 +87,10 @@ static int match_header_against_include_whitelist(const char *hdr) {
 static struct { char name[128]; } allowed[512];
 static int allowed_qty = 0;
 
-static void load_allowed_names_from_text_file(const char *srcdir) {
+static int check_name_against_allowed_whitelist(const char *name);
+static void validate_name_against_soul_rules(const char *what, const char *name, const char *fp);
+
+static void read_allowed_names_from_file(const char *srcdir) {
     char path[4096]; snprintf(path, sizeof(path), "%s/allowed-names.txt", srcdir);
     FILE *f = fopen(path, "r");
     if (!f) report_fatal_error_and_exit("cannot open allowed-names.txt");
@@ -95,7 +98,33 @@ static void load_allowed_names_from_text_file(const char *srcdir) {
     while (fgets(line, sizeof(line), f) && allowed_qty < 512) {
         size_t len = strlen(line);
         while (len > 0 && (line[len-1] == '\n' || line[len-1] == '\r')) line[--len] = 0;
-        if (len > 0) { snprintf(allowed[allowed_qty].name, 128, "%s", line); allowed_qty++; }
+        if (len > 0) {
+            if (strcmp(line, "main")) {
+                int ok = 0;
+                char buf_h[256], buf_u[256];
+                snprintf(buf_h, sizeof(buf_h), "%s", line);
+                snprintf(buf_u, sizeof(buf_u), "%s", line);
+                int wh = 0, wu = 0, sh_h = 0, sh_u = 0;
+                char *t;
+                t = strtok(buf_h, "-"); while (t) { wh++; if ((int)strlen(t) < 3) sh_h++; t = strtok(NULL, "-"); }
+                t = strtok(buf_u, "_"); while (t) { wu++; if ((int)strlen(t) < 3) sh_u++; t = strtok(NULL, "_"); }
+                ok = (wh == 5 && sh_h == 0) || (wu == 5 && sh_u == 0);
+                if (!ok) {
+                    char eb[1024];
+                    snprintf(eb, sizeof(eb),
+                        "SOUL §10: whitelist entry '%s' is invalid — must have exactly 5 hyphen or underscore words, each >=3 chars, no banned type words.\n"
+                        "SOUL §10 (immutable): 'Exactly 5 words, hyphen-separated. No more, no less. "
+                        "No type words. Banned: service,server,daemon,library,tool,binary,package,module,"
+                        "system,utility,application,program,process,worker. "
+                        "Describes WHAT it does, not what it is or how it is built. "
+                        "English only. Full words over abbreviations. "
+                        "Self-documenting.'",
+                        line);
+                    report_fatal_error_and_exit(eb);
+                }
+            }
+            snprintf(allowed[allowed_qty].name, 128, "%s", line); allowed_qty++;
+        }
     }
     fclose(f);
 }
@@ -161,7 +190,7 @@ static void validate_name_against_soul_rules(const char *what, const char *name,
 }
 
 void enforce_all_source_code_rules(const char *srcdir) {
-    load_allowed_names_from_text_file(srcdir);
+    read_allowed_names_from_file(srcdir);
     DIR *d = opendir(srcdir);
     if (!d) report_fatal_error_and_exit("cannot open source directory");
 
@@ -180,7 +209,7 @@ void enforce_all_source_code_rules(const char *srcdir) {
         if (sd) {
             struct dirent *se;
             while ((se = readdir(sd)) != NULL) {
-                if (!check_filename_extension_c_or_h(se->d_name)) continue;
+                if (!match_source_code_header_filename(se->d_name)) continue;
                 file_cnt++;
                 char fp[8192]; snprintf(fp, sizeof(fp), "%s/%s", sub, se->d_name);
 
@@ -285,7 +314,7 @@ void enforce_all_source_code_rules(const char *srcdir) {
             DIR *sd2 = opendir(sub); if (!sd2) continue;
             struct dirent *se2;
             while ((se2 = readdir(sd2)) != NULL && !called) {
-                if (!check_filename_extension_c_or_h(se2->d_name)) continue;
+                if (!match_source_code_header_filename(se2->d_name)) continue;
                 char fp2[8192]; snprintf(fp2, sizeof(fp2), "%s/%s", sub, se2->d_name);
                 FILE *f3 = fopen(fp2, "r"); if (!f3) continue;
                 char line[1024];
@@ -300,9 +329,22 @@ void enforce_all_source_code_rules(const char *srcdir) {
         closedir(d);
         if (!called) { char buf[512]; snprintf(buf, sizeof(buf), "SOUL §7: dead code — '%s' in %s is never called", fns[i].name, fns[i].file); report_fatal_error_and_exit(buf); }
     }
+
+    /* Verify exactly one main() in the entry-point file */
+    {
+        int main_count = 0;
+        for (int i = 0; i < fn_qty; i++) {
+            if (!strcmp(fns[i].name, "main")) main_count++;
+        }
+        if (main_count != 1) {
+            char buf[512];
+            snprintf(buf, sizeof(buf), "SOUL §7: exactly one main() required, found %d. Entry-point file must have single main function.", main_count);
+            report_fatal_error_and_exit(buf);
+        }
+    }
 }
 
-void display_source_structure_report(const char *srcdir) {
+void display_current_source_structure_report(const char *srcdir) {
     DIR *d = opendir(srcdir);
     if (!d) { fprintf(stderr, "cannot open %s\n", srcdir); return; }
     struct dirent *de;
@@ -313,7 +355,7 @@ void display_source_structure_report(const char *srcdir) {
         DIR *sd = opendir(sub); if (!sd) continue;
         struct dirent *se;
         while ((se = readdir(sd)) != NULL) {
-            if (!check_filename_extension_c_or_h(se->d_name)) continue;
+            if (!match_source_code_header_filename(se->d_name)) continue;
             char fp[8192]; snprintf(fp, sizeof(fp), "%s/%s", sub, se->d_name);
             printf("%s: %d lines\n", fp, count_lines_within_source_file(fp));
             FILE *f = fopen(fp, "r");

@@ -85,7 +85,7 @@ int main(int argc, char *argv[]) {
             return 0;
         } else if (strcmp(argv[i], "--show-structure") == 0) {
             #ifdef SPEC2C_SRC_DIR
-            display_source_structure_report(SPEC2C_SRC_DIR);
+            display_current_source_structure_report(SPEC2C_SRC_DIR);
             #endif
             return 0;
         } else if (strcmp(argv[i], "--library") == 0) {
