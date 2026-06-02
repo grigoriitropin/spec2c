@@ -47,6 +47,9 @@ char *read_entire_file_into_memory(const char *path) {
     return buf;
 }
 
+static int run_spec2c_pipeline_after_parsing(const char *spec_path, const char *out_path,
+    const char *base_dir, int check_mode, const char *check_spec, int is_library);
+
 static void parse_command_line_arguments(int argc, char *argv[],
     const char **spec_path, const char **out_path, const char **base_dir,
     int *check_mode, const char **check_spec, int *is_library)
