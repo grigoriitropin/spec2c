@@ -17,7 +17,7 @@ static const char *soul_banned_type_words[] = {
 };
 
 /* ── centralized error reporter ───────────────────────────────────── */
-static void soul_error(const char *code, const char *context, const char *fix) {
+static void report_soul_violation_and_exit(const char *code, const char *context, const char *fix) {
     fprintf(stderr, "SOUL VIOLATION [%s]\n", code);
     if (context) fprintf(stderr, "  error: %s\n", context);
     if (fix)     fprintf(stderr, "  fix:   %s\n", fix);
@@ -25,7 +25,7 @@ static void soul_error(const char *code, const char *context, const char *fix) {
 }
 
 /* ── SOUL §10 name validator ──────────────────────────────────────── */
-static void soul_validate_name(const char *name) {
+static void verify_name_complies_with_soul(const char *name) {
     if (!name || !name[0]) return;
     if (!strcmp(name, "main")) return;
 
@@ -40,14 +40,14 @@ static void soul_validate_name(const char *name) {
             char ctx[256], fix[256];
             snprintf(ctx, sizeof(ctx), "word '%s' in '%s' is too short (min 3 chars)", tok, name);
             snprintf(fix, sizeof(fix), "rename using full English words, no abbreviations");
-            soul_error("NAME_WORD_TOO_SHORT", ctx, fix);
+            report_soul_violation_and_exit("NAME_WORD_TOO_SHORT", ctx, fix);
         }
         for (int i = 0; soul_banned_type_words[i]; i++) {
             if (!strcmp(tok, soul_banned_type_words[i])) {
                 char ctx[256], fix[256];
                 snprintf(ctx, sizeof(ctx), "word '%s' in '%s' is a banned type word", tok, name);
                 snprintf(fix, sizeof(fix), "replace with a word describing WHAT it does, not WHAT it is");
-                soul_error("NAME_BANNED_TYPE_WORD", ctx, fix);
+                report_soul_violation_and_exit("NAME_BANNED_TYPE_WORD", ctx, fix);
             }
         }
         tok = strtok(NULL, sep_str);
@@ -57,7 +57,7 @@ static void soul_validate_name(const char *name) {
         char ctx[256], fix[256];
         snprintf(ctx, sizeof(ctx), "'%s' has %d words (need exactly 5)", name, words);
         snprintf(fix, sizeof(fix), "rename using exactly 5 hyphen-separated words");
-        soul_error("NAME_WRONG_WORD_COUNT", ctx, fix);
+        report_soul_violation_and_exit("NAME_WRONG_WORD_COUNT", ctx, fix);
     }
 }
 

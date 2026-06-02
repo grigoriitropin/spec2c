@@ -159,3 +159,5 @@ check_ipm_name_against_soul
 validate_ipm_source_for_hardcoded
 soul-rules-for-naming-validation
 soul-rules-for-naming-validation
+verify_name_complies_with_soul
+report_soul_violation_and_exit

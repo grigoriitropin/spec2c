@@ -143,7 +143,7 @@ static int enforce_ipm_specification_validation_rules(const char *spec_text, cJS
                     report_fatal_error_and_exit("IPM validation: function has >50 instructions\n  → extract sub-logic into separate functions");
             }
             /* validate function name */
-            if (fn->string)             soul_validate_name(fn->string);
+            if (fn->string)             verify_name_complies_with_soul(fn->string);
             fn = fn->next;
         }
     }
@@ -155,9 +155,9 @@ static int enforce_ipm_specification_validation_rules(const char *spec_text, cJS
 
     /* 5-7. Name validation */
     cJSON *pn = cJSON_GetObjectItemCaseSensitive(spec_json, "package_name");
-    if (pn && cJSON_IsString(pn)) soul_validate_name(pn->valuestring);
+    if (pn && cJSON_IsString(pn)) verify_name_complies_with_soul(pn->valuestring);
     cJSON *mn = cJSON_GetObjectItemCaseSensitive(spec_json, "module_name");
-    if (mn && cJSON_IsString(mn)) soul_validate_name(mn->valuestring);
+    if (mn && cJSON_IsString(mn)) verify_name_complies_with_soul(mn->valuestring);
 
     /* 8. No hardcoded paths + template check */
     validate_ipm_source_for_hardcoded(spec_json);
