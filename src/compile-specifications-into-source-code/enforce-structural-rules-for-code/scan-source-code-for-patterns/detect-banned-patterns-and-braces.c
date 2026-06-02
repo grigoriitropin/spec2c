@@ -72,3 +72,53 @@ int match_name_against_stdlib_list(const char *name) {
         if (!strcmp(name, lib[i])) return 1;
     return 0;
 }
+
+/* ── cross-reference: .ipm file name validation ───────────────────── */
+#include <cjson/cJSON.h>
+
+static void validate_one_ipm_name(const char *name, const char *what, const char *path) {
+    if (!name || !name[0] || !strcmp(name, "main")) return;
+    char sep[2] = {strchr(name, '-') ? '-' : '_', 0};
+    int w = 0; char buf[256], *tok;
+    snprintf(buf, sizeof(buf), "%s", name);
+    for (tok = strtok(buf, sep); tok; tok = strtok(NULL, sep)) w++;
+    if (w != 5) {
+        char msg[512]; snprintf(msg, sizeof(msg),
+            "SOUL §10: .ipm %s '%s' in %s has %d words (need 5)", what, name, path, w);
+        fprintf(stderr, "spec2c: %s\n", msg); exit(1);
+    }
+}
+
+void validate_ipm_files_in_source(const char *srcdir) {
+    void scan_ipm(const char *dpath) {
+        DIR *dd = opendir(dpath); if (!dd) return;
+        struct dirent *de2;
+        while ((de2 = readdir(dd)) != NULL) {
+            if (de2->d_name[0] == '.') continue;
+            char sp[8192]; snprintf(sp, sizeof(sp), "%s/%s", dpath, de2->d_name);
+            struct stat sst; if (stat(sp, &sst) != 0) continue;
+            if (S_ISDIR(sst.st_mode)) { scan_ipm(sp); continue; }
+            size_t nl = strlen(de2->d_name);
+            if (nl <= 5 || strcmp(de2->d_name + nl - 4, ".ipm")) continue;
+            FILE *f = fopen(sp, "r"); if (!f) continue;
+            fseek(f, 0, SEEK_END); long sz = ftell(f); fseek(f, 0, SEEK_SET);
+            if (sz <= 0 || sz > 65536) { fclose(f); continue; }
+            char *txt = malloc(sz + 1); if (!txt) { fclose(f); continue; }
+            (void)!fread(txt, 1, sz, f); fclose(f); txt[sz] = 0;
+            cJSON *root = cJSON_Parse(txt); free(txt);
+            if (!root) continue;
+            cJSON *pkg = cJSON_GetObjectItemCaseSensitive(root, "package_name");
+            if (pkg && cJSON_IsString(pkg)) validate_one_ipm_name(pkg->valuestring, "package_name", sp);
+            cJSON *mod = cJSON_GetObjectItemCaseSensitive(root, "module_name");
+            if (mod && cJSON_IsString(mod)) validate_one_ipm_name(mod->valuestring, "module_name", sp);
+            cJSON *funcs = cJSON_GetObjectItemCaseSensitive(root, "function_definitions");
+            if (funcs && cJSON_IsObject(funcs)) {
+                cJSON *fn = funcs->child;
+                while (fn) { validate_one_ipm_name(fn->string, "function", sp); fn = fn->next; }
+            }
+            cJSON_Delete(root);
+        }
+        closedir(dd);
+    }
+    scan_ipm(srcdir);
+}

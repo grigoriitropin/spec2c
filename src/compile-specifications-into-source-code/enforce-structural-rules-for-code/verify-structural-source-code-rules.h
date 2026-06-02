@@ -25,5 +25,6 @@ void pull_function_name_from_definition(const char *line, char *out, size_t sz);
 int  check_for_banned_keyword_pattern(const char *line);
 int  detect_hardcoded_file_path_string(const char *line);
 int  match_name_against_stdlib_list(const char *name);
+void validate_ipm_files_in_source(const char *srcdir);
 
 #endif
