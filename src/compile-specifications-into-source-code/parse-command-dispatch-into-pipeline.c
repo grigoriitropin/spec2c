@@ -368,7 +368,6 @@ static int run_spec2c_pipeline_after_parsing(
 
     if (!spec_path) report_fatal_error_and_exit("spec file required");
     if (!base_dir) base_dir = ".";
-
     char *spec_text = read_entire_file_into_memory(spec_path);
     cJSON *spec_json = cJSON_Parse(spec_text);
     if (!spec_json) report_fatal_error_and_exit("JSON parse error in spec file");
