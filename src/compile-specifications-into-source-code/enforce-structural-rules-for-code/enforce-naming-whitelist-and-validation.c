@@ -10,23 +10,6 @@ static void report_fatal_error_and_exit(const char *msg) {
     fprintf(stderr, "spec2c: %s\n", msg); exit(1);
 }
 
-static const char *soful =
-    "\n"
-    "   ── SOUL.md §10 Naming (immutable) ───────────────────────────\n"
-    "   A name is the primary documentation. It must make clear\n"
-    "   what the thing does.\n"
-    "\n"
-    "   • Exactly 5 words, hyphen-separated. No more, no less.\n"
-    "   • No type words. Banned: service, server, daemon, library,\n"
-    "     tool, binary, package, module, system, utility,\n"
-    "     application, program, process, worker.\n"
-    "   • Describes WHAT it does, not what it is or how it is built.\n"
-    "   • English only. Full words over abbreviations.\n"
-    "   • Self-documenting. Among several similar tools, the\n"
-    "     primary one's name reflects that — the user should not\n"
-    "     have to guess which to run.\n"
-    "   ──────────────────────────────────────────────────────────";
-
 /* ── naming whitelist ──────────────────────────────────────────────── */
 static struct { char name[128]; } allowed[512];
 static int allowed_qty;
@@ -67,22 +50,10 @@ static int check_name_against_allowed_whitelist(const char *name) {
 void validate_name_against_soul_rules(const char *what, const char *name, const char *fp) {
     if (skip_name_validation_for_keywords(name)) return;
 
-    const char *banned_type[] = {
-        "service","server","daemon","library","tool","binary",
-        "package","module","system","utility","application",
-        "program","process","worker",NULL
-    };
     char is_file = (what[0] == 'f' && what[1] == 'i');
     char is_dir  = (what[0] == 'd' && what[1] == 'i');
     char sep = (is_file || is_dir) ? '-' : '_';
-
-    const char *dir_note = is_dir ?
-        "\n"
-        "   A directory name must describe ONLY the files directly\n"
-        "   inside this specific directory — not its subdirectories,\n"
-        "   not its parent directories. The name must accurately\n"
-        "   reflect the contents of this directory alone."
-        : "";
+    const char *dir_note = is_dir ? dir_note_text : "";
 
     char buf[256]; snprintf(buf, sizeof(buf), "%s", name);
     int words = 0;
@@ -96,8 +67,8 @@ void validate_name_against_soul_rules(const char *what, const char *name, const 
                 tok, what, name, fp, soful, dir_note);
             report_fatal_error_and_exit(eb);
         }
-        for (int i = 0; banned_type[i]; i++)
-            if (!strcmp(tok, banned_type[i])) {
+        for (int i = 0; banned_type_words[i]; i++)
+            if (!strcmp(tok, banned_type_words[i])) {
                 char eb[2048];
                 snprintf(eb, sizeof(eb),
                     "SOUL §10: word '%s' in %s '%s' at %s is a banned type word.\n%s%s",
