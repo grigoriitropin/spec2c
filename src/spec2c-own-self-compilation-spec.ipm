@@ -1,6 +1,6 @@
 {
   "package_name": "compile-specifications-into-source-code",
-  "module_name": "specification-to-source-code-compiler",
+  "module_name": "specification-into-source-code-compiler",
   "imports": [
     "runtime-for-generated-ipm-code"
   ],

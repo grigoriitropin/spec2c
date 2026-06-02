@@ -2,6 +2,7 @@
 // shared pattern scanning helpers for enforcement
 
 #include "verify-structural-source-code-rules.h"
+#include "soul-naming-forbidden-words-list.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <dirent.h>
@@ -86,7 +87,20 @@ static void validate_single_ipm_name_value(const char *name, const char *what, c
     char sep[2] = {strchr(name, '-') ? '-' : '_', 0};
     int w = 0; char buf[256], *tok;
     snprintf(buf, sizeof(buf), "%s", name);
-    for (tok = strtok(buf, sep); tok; tok = strtok(NULL, sep)) w++;
+    for (tok = strtok(buf, sep); tok; tok = strtok(NULL, sep)) {
+        w++;
+        if ((int)strlen(tok) < 3) {
+            char msg[512]; snprintf(msg, sizeof(msg),
+                "SOUL §10: .ipm %s '%s' in %s: word '%s' too short (min 3)", what, name, path, tok);
+            fprintf(stderr, "spec2c: %s\n", msg); exit(1);
+        }
+        for (int i = 0; soul_banned_words[i]; i++)
+            if (!strcmp(tok, soul_banned_words[i])) {
+                char msg[512]; snprintf(msg, sizeof(msg),
+                    "SOUL §10: .ipm %s '%s' in %s: '%s' is banned", what, name, path, tok);
+                fprintf(stderr, "spec2c: %s\n", msg); exit(1);
+            }
+    }
     if (w != 5) {
         char msg[512]; snprintf(msg, sizeof(msg),
             "SOUL §10: .ipm %s '%s' in %s has %d words (need 5)", what, name, path, w);

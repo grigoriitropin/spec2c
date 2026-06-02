@@ -170,3 +170,4 @@ spec2c-own-self-compilation-spec
 specification-into-source-code-compiler
 compile-specifications-into-source-code
 spec2c-own-self-compilation-spec
+specification-into-source-code-compiler
