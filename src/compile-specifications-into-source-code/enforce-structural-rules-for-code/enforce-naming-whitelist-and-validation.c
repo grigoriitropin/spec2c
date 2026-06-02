@@ -2,6 +2,7 @@
 // whitelist + naming validation — shared with enforce.c
 
 #include "verify-structural-source-code-rules.h"
+#include "soul-validation.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,12 +11,6 @@ static void report_fatal_error_and_exit(const char *msg) {
     fprintf(stderr, "spec2c: %s\n", msg); exit(1);
 }
 
-static const char *banned_type_words[] = {
-    /* canonical list — keep in sync with share-type-definitions-across-files.h */
-    "service","server","daemon","library","tool","binary",
-    "package","module","system","utility","application",
-    "program","process","worker",NULL
-};
 
 static const char *soful =
     "\n"
@@ -99,8 +94,8 @@ void validate_name_against_soul_rules(const char *what, const char *name, const 
                 tok, what, name, fp, soful, dir_note);
             report_fatal_error_and_exit(eb);
         }
-        for (int i = 0; banned_type_words[i]; i++)
-            if (!strcmp(tok, banned_type_words[i])) {
+        for (int i = 0; soul_banned_type_words[i]; i++)
+            if (!strcmp(tok, soul_banned_type_words[i])) {
                 char eb[2048];
                 snprintf(eb, sizeof(eb),
                     "SOUL §10: word '%s' in %s '%s' at %s is a banned type word.\n%s%s",

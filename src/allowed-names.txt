@@ -157,3 +157,4 @@ scan_source_for_undocumented_flags
 enforce_ipm_specification_validation_rules
 check_ipm_name_against_soul
 validate_ipm_source_for_hardcoded
+soul-validation

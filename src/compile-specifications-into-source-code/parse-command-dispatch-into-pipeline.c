@@ -2,6 +2,7 @@
 // main.c — entry point, CLI argument parsing, utility functions
 
 #include "shared-type-declarations-across-modules/share-type-definitions-across-files.h"
+#include "shared-type-declarations-across-modules/soul-validation.h"
 
 const char *extract_json_field_string_value(const cJSON *obj, const char *key) {
     const cJSON *v = cJSON_GetObjectItemCaseSensitive(obj, key);
@@ -114,41 +115,6 @@ int main(int argc, char *argv[]) {
     return run_spec2c_pipeline_after_parsing(spec_path, out_path, base_dir, check_mode, check_spec, is_library);
 }
 
-/* ── IPM name validation helper ────────────────────────────────────── */
-static void check_ipm_name_against_soul(const char *name) {
-    if (!name || !name[0]) return;
-    if (!strcmp(name, "main")) return;
-    /* banned list — keep in sync with enforce-naming-whitelist-and-validation.c:banned_type_words */
-    static const char *banned[] = {"service","server","daemon","library","tool","binary",
-        "package","module","system","utility","application","program","process","worker",NULL};
-    char sep_str[2] = {strchr(name, '-') ? '-' : '_', 0};
-    char buf[256]; snprintf(buf, sizeof(buf), "%s", name);
-    int words = 0; char *tok = strtok(buf, sep_str);
-    while (tok) {
-        words++;
-        if ((int)strlen(tok) < 3) {
-            char msg[512]; snprintf(msg, sizeof(msg),
-                "IPM validation: word '%s' in '%s' is too short (min 3 chars)\n"
-                "  → rename using full English words, no abbreviations", tok, name);
-            report_fatal_error_and_exit(msg);
-        }
-        for (int i = 0; banned[i]; i++)
-            if (!strcmp(tok, banned[i])) {
-                char msg[512]; snprintf(msg, sizeof(msg),
-                    "IPM validation: '%s' in '%s' is a banned type word\n"
-                    "  → replace with a word that describes WHAT it does, not WHAT it is", tok, name);
-                report_fatal_error_and_exit(msg);
-            }
-        tok = strtok(NULL, sep_str);
-    }
-    if (words != 5) {
-        char msg[512]; snprintf(msg, sizeof(msg),
-            "IPM validation: '%s' has %d words (need exactly 5)\n"
-            "  → rename using 5 hyphen-separated words describing what it does", name, words);
-        report_fatal_error_and_exit(msg);
-    }
-}
-
 /* ── IPM/JSON specification validator (12 rules, SOUL §7 + §10) ───── */
 static void validate_ipm_source_for_hardcoded(cJSON *spec_json);
 static int enforce_ipm_specification_validation_rules(const char *spec_text, cJSON *spec_json) {
@@ -177,7 +143,7 @@ static int enforce_ipm_specification_validation_rules(const char *spec_text, cJS
                     report_fatal_error_and_exit("IPM validation: function has >50 instructions\n  → extract sub-logic into separate functions");
             }
             /* validate function name */
-            if (fn->string) check_ipm_name_against_soul(fn->string);
+            if (fn->string)             soul_validate_name(fn->string);
             fn = fn->next;
         }
     }
@@ -189,9 +155,9 @@ static int enforce_ipm_specification_validation_rules(const char *spec_text, cJS
 
     /* 5-7. Name validation */
     cJSON *pn = cJSON_GetObjectItemCaseSensitive(spec_json, "package_name");
-    if (pn && cJSON_IsString(pn)) check_ipm_name_against_soul(pn->valuestring);
+    if (pn && cJSON_IsString(pn)) soul_validate_name(pn->valuestring);
     cJSON *mn = cJSON_GetObjectItemCaseSensitive(spec_json, "module_name");
-    if (mn && cJSON_IsString(mn)) check_ipm_name_against_soul(mn->valuestring);
+    if (mn && cJSON_IsString(mn)) soul_validate_name(mn->valuestring);
 
     /* 8. No hardcoded paths + template check */
     validate_ipm_source_for_hardcoded(spec_json);
