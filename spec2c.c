@@ -627,6 +627,52 @@ static void generate_from_ipm(const ipm_spec_t *spec, const char *out_path) {
     /* Phase 2a: compile AST functions to C */
     compile_functions_to_c(spec, out_fp);
 
+    if (out_path) fclose(out_fp);
+
+    /* Emit meta.json sidecar — metadata about generated C */
+    cJSON *funcs_meta = cJSON_GetObjectItemCaseSensitive(spec->meta, "function_definitions");
+    if (funcs_meta && cJSON_IsObject(funcs_meta) && out_path) {
+        char meta_path[4096];
+        snprintf(meta_path, sizeof(meta_path), "%s", out_path);
+        char *dot = strrchr(meta_path, '.');
+        if (dot) snprintf(dot, sizeof(meta_path) - (size_t)(dot - meta_path), ".meta.json");
+
+        cJSON *meta = cJSON_CreateObject();
+        cJSON_AddStringToObject(meta, "source", spec->name);
+        cJSON_AddStringToObject(meta, "output", out_path);
+        cJSON_AddNumberToObject(meta, "functions", cJSON_GetArraySize(funcs_meta));
+        cJSON_AddStringToObject(meta, "module", modname);
+
+        int total_lines = 0;
+        cJSON *fn = funcs_meta->child;
+        cJSON *func_list = cJSON_CreateArray();
+        cJSON *includes = cJSON_CreateArray();
+        while (fn) {
+            cJSON_AddItemToArray(func_list, cJSON_CreateString(fn->string));
+            cJSON *body = cJSON_GetObjectItemCaseSensitive(fn, "execution_instructions");
+            if (body && cJSON_IsArray(body)) total_lines += cJSON_GetArraySize(body);
+            fn = fn->next;
+        }
+        cJSON_AddItemToObject(meta, "function_names", func_list);
+        cJSON_AddNumberToObject(meta, "total_instructions", total_lines);
+
+        cJSON *imps = cJSON_GetObjectItemCaseSensitive(spec->meta, "imports");
+        if (imps && cJSON_IsArray(imps)) {
+            for (int i = 0; i < cJSON_GetArraySize(imps); i++) {
+                cJSON_AddItemToArray(includes, cJSON_Duplicate(cJSON_GetArrayItem(imps, i), 1));
+            }
+        }
+        cJSON_AddItemToObject(meta, "includes", includes);
+
+        char *s = cJSON_PrintUnformatted(meta);
+        if (s) {
+            FILE *mf = fopen(meta_path, "w");
+            if (mf) { fputs(s, mf); fclose(mf); }
+            free(s);
+        }
+        cJSON_Delete(meta);
+    }
+
     /* Phase 1: template substitution for remaining templates */
     if (!templates || !cJSON_IsObject(templates)) return;
     cJSON *tmpl = templates->child;
