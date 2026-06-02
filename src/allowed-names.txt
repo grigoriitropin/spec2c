@@ -142,4 +142,5 @@ write_text_string_into_file
 resolve_spec_type_into_lang
 skip_name_validation_for_keywords
 match_name_against_stdlib_list
-report_enforcement_error
+report_violation_with_actionable_hint
+report_violation_with_actionable_hint

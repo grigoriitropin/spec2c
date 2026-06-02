@@ -35,7 +35,7 @@ static void report_fatal_error_and_exit(const char *msg) {
     fprintf(stderr, "spec2c: %s\n", msg); exit(1);
 }
 
-static void report_enforcement_error(enforce_err_t code, const char *a1,
+static void report_violation_with_actionable_hint(enforce_err_t code, const char *a1,
     int v1, int v2, const char *a2)
 {
     char buf[8448];
@@ -109,7 +109,7 @@ static void check_single_file_for_violations(const char *sub, int is_c,
     if (is_c) {
         int lines = count_lines_within_source_file(sub);
         if (lines > MAX_LINES_PER_FILE) {
-            report_enforcement_error(ERR_FILE_TOO_LONG, sub, lines, MAX_LINES_PER_FILE, NULL);
+            report_violation_with_actionable_hint(ERR_FILE_TOO_LONG, sub, lines, MAX_LINES_PER_FILE, NULL);
         }
     }
     FILE *f = fopen(sub, "r");
@@ -121,7 +121,7 @@ static void check_single_file_for_violations(const char *sub, int is_c,
                 if (detect_function_definition_start_line(line)) {
                     func_count++;
                     if (func_count > MAX_FUNCTIONS_PER_FILE) {
-                        fclose(f); report_enforcement_error(ERR_TOO_MANY_FUNCTIONS, sub, func_count, MAX_FUNCTIONS_PER_FILE, NULL);
+                        fclose(f); report_violation_with_actionable_hint(ERR_TOO_MANY_FUNCTIONS, sub, func_count, MAX_FUNCTIONS_PER_FILE, NULL);
                     }
                     if (*fn_qty < 512) {
                         pull_function_name_from_definition(line, fns[*fn_qty].name, 128);
@@ -150,16 +150,16 @@ static void check_single_file_for_violations(const char *sub, int is_c,
                         sub, func_lines, bstate.depth, line);
                 if (bstate.depth <= 0) {
                     if (func_lines > MAX_LINES_PER_FUNCTION) {
-                        fclose(f); report_enforcement_error(ERR_FUNCTION_TOO_LONG, sub, func_count, func_lines, NULL);
+                        fclose(f); report_violation_with_actionable_hint(ERR_FUNCTION_TOO_LONG, sub, func_count, func_lines, NULL);
                     }
                     in_func = 0;
                 }
             }
             if (is_c && check_for_banned_keyword_pattern(line)) {
-                fclose(f); report_enforcement_error(ERR_BANNED_PATTERN, sub, 0, 0, NULL);
+                fclose(f); report_violation_with_actionable_hint(ERR_BANNED_PATTERN, sub, 0, 0, NULL);
             }
             if (is_c && detect_hardcoded_file_path_string(line)) {
-                fclose(f); report_enforcement_error(ERR_HARDCODED_PATH, sub, 0, 0, NULL);
+                fclose(f); report_violation_with_actionable_hint(ERR_HARDCODED_PATH, sub, 0, 0, NULL);
             }
         }
         fclose(f);
@@ -177,14 +177,14 @@ static void check_include_headers_for_file(const char *sub, inc_entry_t *incs, i
             else if (sscanf(line, " #include \"%127[^\"]\"", hdr) == 1) is_angle = 0;
             else continue;
             if (!match_header_against_include_whitelist(hdr)) {
-                fclose(f2); report_enforcement_error(ERR_HEADER_NOT_IN_WHITELIST, hdr, 0, 0, sub);
+                fclose(f2); report_violation_with_actionable_hint(ERR_HEADER_NOT_IN_WHITELIST, hdr, 0, 0, sub);
             }
             if (!is_angle) {
                 int found = 0;
                 for (int i = 0; i < *inc_qty; i++)
                     if (!strcmp(incs[i].name, hdr)) {
                         if (++incs[i].count > MAX_INCLUDES) {
-                            fclose(f2); report_enforcement_error(ERR_HEADER_INCLUDED_TOO_OFTEN, hdr, incs[i].count, MAX_INCLUDES, NULL);
+                            fclose(f2); report_violation_with_actionable_hint(ERR_HEADER_INCLUDED_TOO_OFTEN, hdr, incs[i].count, MAX_INCLUDES, NULL);
                         }
                         found = 1; break;
                     }
@@ -223,7 +223,7 @@ static void search_for_unused_function_code(fn_entry_t *fns, int fn_qty, const c
         }
         search_calls(srcdir);
         if (!called) {
-            report_enforcement_error(ERR_DEAD_CODE, fns[i].name, 0, 0, fns[i].file);
+            report_violation_with_actionable_hint(ERR_DEAD_CODE, fns[i].name, 0, 0, fns[i].file);
         }
     }
 }
@@ -258,7 +258,7 @@ void enforce_all_source_code_rules(const char *srcdir) {
         }
         closedir(d);
         if (file_cnt > MAX_FILES_PER_DIR) {
-            report_enforcement_error(ERR_TOO_MANY_FILES_IN_DIR, dirpath, file_cnt, MAX_FILES_PER_DIR, NULL);
+            report_violation_with_actionable_hint(ERR_TOO_MANY_FILES_IN_DIR, dirpath, file_cnt, MAX_FILES_PER_DIR, NULL);
         }
     }
     scan_dir(srcdir);
@@ -267,7 +267,7 @@ void enforce_all_source_code_rules(const char *srcdir) {
     for (int i = 0; i < fn_qty; i++)
         if (!strcmp(fns[i].name, "main")) main_count++;
     if (main_count != 1) {
-        report_enforcement_error(ERR_MAIN_COUNT, NULL, main_count, 0, NULL);
+        report_violation_with_actionable_hint(ERR_MAIN_COUNT, NULL, main_count, 0, NULL);
     }
 }
 
