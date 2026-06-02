@@ -338,7 +338,57 @@ void enforce_all_source_code_rules(const char *srcdir) {
         }
         if (main_count != 1) {
             char buf[512];
-            snprintf(buf, sizeof(buf), "SOUL §7: exactly one main() required, found %d. Entry-point file must have single main function.", main_count);
+            snprintf(buf, sizeof(buf), "SOUL §7: exactly one main() required, found %d.", main_count);
+            report_fatal_error_and_exit(buf);
+        }
+    }
+
+    /* Verify all CLI flags are documented in help text */
+    d = opendir(srcdir);
+    while ((de = readdir(d)) != NULL) {
+        if (de->d_name[0] == '.') continue;
+        char sub[4096]; snprintf(sub, sizeof(sub), "%s/%s", srcdir, de->d_name);
+        struct stat st2; if (stat(sub, &st2) != 0 || !S_ISDIR(st2.st_mode)) continue;
+        DIR *sd2 = opendir(sub); if (!sd2) continue;
+        struct dirent *se2;
+        while ((se2 = readdir(sd2)) != NULL) {
+            if (!match_source_code_header_filename(se2->d_name)) continue;
+            char fp2[8192]; snprintf(fp2, sizeof(fp2), "%s/%s", sub, se2->d_name);
+            FILE *f4 = fopen(fp2, "r"); if (!f4) continue;
+            char *content = malloc(65536); if (!content) { fclose(f4); continue; }
+            size_t cs = fread(content, 1, 65535, f4); fclose(f4);
+            if (cs == 0 || cs >= 65535) { free(content); continue; }
+            content[cs] = 0;
+            /* Extract flags: find all "--flag" in the file */
+            const char *p = content;
+            while ((p = strstr(p, "\"--")) != NULL) {
+                p += 2;
+                char flag[64]; int fi = 0;
+                while (*p && *p != '"' && fi < 63) flag[fi++] = *p++;
+                flag[fi] = 0;
+                if (fi == 0) continue;
+                /* Check flag appears in help text */
+                if (!strstr(content, flag)) {
+                    char buf[512];
+                    snprintf(buf, sizeof(buf), "SOUL §7: CLI flag '%s' in %s is not documented in help text.", flag, fp2);
+                    free(content); report_fatal_error_and_exit(buf);
+                }
+            }
+            free(content);
+        }
+        closedir(sd2);
+    }
+    closedir(d);
+
+    /* Verify exactly one main() in the entry-point file */
+    {
+        int main_count = 0;
+        for (int i = 0; i < fn_qty; i++) {
+            if (!strcmp(fns[i].name, "main")) main_count++;
+        }
+        if (main_count != 1) {
+            char buf[512];
+            snprintf(buf, sizeof(buf), "SOUL §7: exactly one main() required, found %d.", main_count);
             report_fatal_error_and_exit(buf);
         }
     }
