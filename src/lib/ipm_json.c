@@ -123,4 +123,4 @@ void cJSON_Delete(cJSON *n) {
 
 cJSON *cJSON_Duplicate(const cJSON *n, int recurse) { (void)recurse; if(!n)return NULL; char *s=cJSON_PrintUnformatted(n); cJSON *d=cJSON_Parse(s); free(s); return d; }
 void cJSON_SetNumberValue(cJSON *n, double v) { if(n){n->type=JINT; n->ival=(int64_t)v;} }
-void cJSON_SetValuestring(cJSON *n, const char *s) { if(n){n->valuestring=s;} }
+void cJSON_SetValuestring(cJSON *n, const char *s) { if(n){n->sval = s ? strdup(s) : NULL;} }
