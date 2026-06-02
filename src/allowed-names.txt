@@ -164,3 +164,4 @@ report_soul_violation_and_exit
 soul-naming-forbidden-words-list
 soul-naming-forbidden-words-list
 soul-naming-forbidden-words-list
+validate_single_ipm_name_value

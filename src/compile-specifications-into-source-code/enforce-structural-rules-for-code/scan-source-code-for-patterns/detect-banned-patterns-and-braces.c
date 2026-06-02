@@ -81,7 +81,7 @@ int match_name_against_stdlib_list(const char *name) {
 /* ── cross-reference: .ipm file name validation ───────────────────── */
 #include <cjson/cJSON.h>
 
-static void validate_one_ipm_name(const char *name, const char *what, const char *path) {
+static void validate_single_ipm_name_value(const char *name, const char *what, const char *path) {
     if (!name || !name[0] || !strcmp(name, "main")) return;
     char sep[2] = {strchr(name, '-') ? '-' : '_', 0};
     int w = 0; char buf[256], *tok;
@@ -113,13 +113,13 @@ void validate_ipm_files_in_source(const char *srcdir) {
             cJSON *root = cJSON_Parse(txt); free(txt);
             if (!root) continue;
             cJSON *pkg = cJSON_GetObjectItemCaseSensitive(root, "package_name");
-            if (pkg && cJSON_IsString(pkg)) validate_one_ipm_name(pkg->valuestring, "package_name", sp);
+            if (pkg && cJSON_IsString(pkg)) validate_single_ipm_name_value(pkg->valuestring, "package_name", sp);
             cJSON *mod = cJSON_GetObjectItemCaseSensitive(root, "module_name");
-            if (mod && cJSON_IsString(mod)) validate_one_ipm_name(mod->valuestring, "module_name", sp);
+            if (mod && cJSON_IsString(mod)) validate_single_ipm_name_value(mod->valuestring, "module_name", sp);
             cJSON *funcs = cJSON_GetObjectItemCaseSensitive(root, "function_definitions");
             if (funcs && cJSON_IsObject(funcs)) {
                 cJSON *fn = funcs->child;
-                while (fn) { validate_one_ipm_name(fn->string, "function", sp); fn = fn->next; }
+                while (fn) { validate_single_ipm_name_value(fn->string, "function", sp); fn = fn->next; }
             }
             cJSON_Delete(root);
         }
