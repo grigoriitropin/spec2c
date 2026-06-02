@@ -162,3 +162,4 @@ soul-rules-for-naming-validation
 verify_name_complies_with_soul
 report_soul_violation_and_exit
 soul-banned-words
+soul-banned-words

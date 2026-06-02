@@ -7,6 +7,8 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <cjson/cJSON.h>
+#include "soul-banned-words.h"
 static int debug_trace = 0;
 #define MAX_FILES_PER_DIR 3
 #define MAX_LINES_PER_FILE 400
@@ -309,6 +311,63 @@ void enforce_all_source_code_rules(const char *srcdir) {
     }
 
     scan_source_for_undocumented_flags(srcdir);
+    validate_ipm_files_in_source(srcdir);
+}
+
+static void validate_ipm_files_in_source(const char *srcdir) {
+    void scan_ipm(const char *dpath) {
+        DIR *dd = opendir(dpath); if (!dd) return;
+        struct dirent *de2;
+        while ((de2 = readdir(dd)) != NULL) {
+            if (de2->d_name[0] == '.') continue;
+            char sp[8192]; snprintf(sp, sizeof(sp), "%s/%s", dpath, de2->d_name);
+            struct stat sst;
+            if (stat(sp, &sst) != 0) continue;
+            if (S_ISDIR(sst.st_mode)) { scan_ipm(sp); continue; }
+            size_t nl = strlen(de2->d_name);
+            if (nl <= 5 || strcmp(de2->d_name + nl - 4, ".ipm")) continue;
+            /* Parse .ipm JSON and validate names */
+            FILE *f = fopen(sp, "r"); if (!f) continue;
+            fseek(f, 0, SEEK_END); long sz = ftell(f); fseek(f, 0, SEEK_SET);
+            if (sz <= 0 || sz > 65536) { fclose(f); continue; }
+            char *txt = malloc(sz + 1);
+            if (!txt) { fclose(f); continue; }
+            fread(txt, 1, sz, f); fclose(f); txt[sz] = 0;
+            cJSON *root = cJSON_Parse(txt); free(txt);
+            if (!root) continue;
+            /* Validate package_name */
+            cJSON *pkg = cJSON_GetObjectItemCaseSensitive(root, "package_name");
+            if (pkg && cJSON_IsString(pkg) && pkg->valuestring[0]) {
+                char sep[2] = {strchr(pkg->valuestring, '-') ? '-' : '_', 0};
+                int w = 0; char buf[256], *tok;
+                snprintf(buf, sizeof(buf), "%s", pkg->valuestring);
+                for (tok = strtok(buf, sep); tok; tok = strtok(NULL, sep)) w++;
+                if (w != 5) {
+                    char msg[512]; snprintf(msg, sizeof(msg),
+                        "SOUL §10: .ipm package_name '%s' in %s has %d words (need 5)\n"
+                        "  → rename using exactly 5 hyphen-separated words", pkg->valuestring, sp, w);
+                    cJSON_Delete(root); report_fatal_error_and_exit(msg);
+                }
+            }
+            /* Validate module_name */
+            cJSON *mod = cJSON_GetObjectItemCaseSensitive(root, "module_name");
+            if (mod && cJSON_IsString(mod) && mod->valuestring[0]) {
+                char sep2[2] = {strchr(mod->valuestring, '-') ? '-' : '_', 0};
+                int w = 0; char buf[256], *tok;
+                snprintf(buf, sizeof(buf), "%s", mod->valuestring);
+                for (tok = strtok(buf, sep2); tok; tok = strtok(NULL, sep2)) w++;
+                if (w != 5) {
+                    char msg[512]; snprintf(msg, sizeof(msg),
+                        "SOUL §10: .ipm module_name '%s' in %s has %d words (need 5)\n"
+                        "  → rename using exactly 5 hyphen-separated words", mod->valuestring, sp, w);
+                    cJSON_Delete(root); report_fatal_error_and_exit(msg);
+                }
+            }
+            cJSON_Delete(root);
+        }
+        closedir(dd);
+    }
+    scan_ipm(srcdir);
 }
 
 static void scan_source_for_undocumented_flags(const char *srcdir) {
