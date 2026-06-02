@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 // ipm_builtins.c — deterministic runtime library for spec2c-generated code
 #include "ipm_builtins.h"
+#include <unistd.h>
+#include <sys/wait.h>
 #include <regex.h>
 
 /* ── I/O primitives ──────────────────────────────────────────────────── */
@@ -245,3 +247,39 @@ char *get_arg_value(int index) {
         return g_argv[index];
     return "";
 }
+
+/* ── safe exec wrappers (replace system/popen) ──────────────────────── */
+int safe_exec(char *const argv[]) {
+    pid_t pid = fork();
+    if (pid < 0) return -1;
+    if (pid == 0) { execvp(argv[0], argv); _exit(127); }
+    int status; waitpid(pid, &status, 0);
+    return WIFEXITED(status) ? WEXITSTATUS(status) : -1;
+}
+
+FILE *safe_popen_read(char *const argv[], pid_t *out_pid) {
+    int pfd[2];
+    if (pipe(pfd) < 0) return NULL;
+    pid_t pid = fork();
+    if (pid < 0) { close(pfd[0]); close(pfd[1]); return NULL; }
+    if (pid == 0) {
+        close(pfd[0]);
+        dup2(pfd[1], STDOUT_FILENO);
+        close(STDERR_FILENO);
+        execvp(argv[0], argv);
+        _exit(127);
+    }
+    close(pfd[1]);
+    if (out_pid) *out_pid = pid;
+    return fdopen(pfd[0], "r");
+}
+
+int safe_pclose(FILE *fp, pid_t pid) {
+    fclose(fp);
+    int status; waitpid(pid, &status, 0);
+    return WIFEXITED(status) ? WEXITSTATUS(status) : -1;
+}
+
+#if __LINE__ > 400
+#error "SOUL §7 violation: file exceeds 400 lines"
+#endif

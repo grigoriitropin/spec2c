@@ -10,12 +10,40 @@
 #include <sys/un.h>
 #include <cjson/cJSON.h>
 
+#include <sys/wait.h>
+
+static FILE *safe_popen_read(char *const argv[], pid_t *out_pid) {
+    int pfd[2];
+    if (pipe(pfd) < 0) return NULL;
+    pid_t pid = fork();
+    if (pid < 0) { close(pfd[0]); close(pfd[1]); return NULL; }
+    if (pid == 0) {
+        close(pfd[0]);
+        dup2(pfd[1], STDOUT_FILENO);
+        close(STDERR_FILENO);
+        execvp(argv[0], argv);
+        _exit(127);
+    }
+    close(pfd[1]);
+    if (out_pid) *out_pid = pid;
+    return fdopen(pfd[0], "r");
+}
+
+static int safe_pclose(FILE *fp, pid_t pid) {
+    fclose(fp);
+    int status; waitpid(pid, &status, 0);
+    return WIFEXITED(status) ? WEXITSTATUS(status) : -1;
+}
+
 static int check_vram(long *free_mb) {
-    FILE *fp = popen("nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits 2>/dev/null", "r");
+    char *args[] = {(char*)"nvidia-smi", (char*)"--query-gpu=memory.free",
+                    (char*)"--format=csv,noheader,nounits", NULL};
+    pid_t pid;
+    FILE *fp = safe_popen_read(args, &pid);
     if (!fp) return -1;
     char buf[64]; *free_mb = 0;
     if (fgets(buf, sizeof(buf), fp)) *free_mb = atol(buf);
-    pclose(fp);
+    safe_pclose(fp, pid);
     return *free_mb > 0 ? 0 : -1;
 }
 

@@ -755,14 +755,21 @@ int main(int argc, char *argv[]) {
     if (check_mode) {
         if (!spec_path) die("file argument required for --check");
         if (!base_dir) base_dir = ".";
-        char cmd[4096];
-        snprintf(cmd, sizeof(cmd),
-            "spec2c-check \"%s\" --base \"%s\" --patterns \"%s/soul-patterns.json\"%s%s%s",
-            spec_path, base_dir, base_dir,
-            check_spec ? " --spec \"" : "",
-            check_spec ? check_spec : "",
-            check_spec ? "\"" : "");
-        return system(cmd);
+        char pat[4096];
+        snprintf(pat, sizeof(pat), "%s/soul-patterns.json", base_dir);
+        char *args[16]; int ai = 0;
+        args[ai++] = (char*)"spec2c-check";
+        args[ai++] = (char*)spec_path;
+        args[ai++] = (char*)"--base";
+        args[ai++] = (char*)base_dir;
+        args[ai++] = (char*)"--patterns";
+        args[ai++] = pat;
+        if (check_spec) {
+            args[ai++] = (char*)"--spec";
+            args[ai++] = (char*)check_spec;
+        }
+        args[ai] = NULL;
+        return safe_exec(args);
     }
 
     if (!spec_path) die("spec file required");

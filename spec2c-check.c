@@ -21,6 +21,40 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <sys/wait.h>
+
+/* ── safe exec wrappers (no system/popen, no /dev/null) ───────────── */
+static int safe_exec(char *const argv[]) {
+    pid_t pid = fork();
+    if (pid < 0) return -1;
+    if (pid == 0) { execvp(argv[0], argv); _exit(127); }
+    int status; waitpid(pid, &status, 0);
+    return WIFEXITED(status) ? WEXITSTATUS(status) : -1;
+}
+
+static FILE *safe_popen_read(char *const argv[], pid_t *out_pid) {
+    int pfd[2];
+    if (pipe(pfd) < 0) return NULL;
+    pid_t pid = fork();
+    if (pid < 0) { close(pfd[0]); close(pfd[1]); return NULL; }
+    if (pid == 0) {
+        close(pfd[0]);
+        dup2(pfd[1], STDOUT_FILENO);
+        close(STDERR_FILENO);
+        execvp(argv[0], argv);
+        _exit(127);
+    }
+    close(pfd[1]);
+    if (out_pid) *out_pid = pid;
+    return fdopen(pfd[0], "r");
+}
+
+static int safe_pclose(FILE *fp, pid_t pid) {
+    fclose(fp);
+    int status; waitpid(pid, &status, 0);
+    return WIFEXITED(status) ? WEXITSTATUS(status) : -1;
+}
 #include <errno.h>
 #include <cjson/cJSON.h>
 
@@ -150,9 +184,8 @@ static char *shell_escape(const char *s) {
 static int sg_available(void) {
     const char *candidates[] = {"ast-grep", "sg", NULL};
     for (int i = 0; candidates[i]; i++) {
-        char cmd[256];
-        snprintf(cmd, sizeof(cmd), "%s --version >/dev/null 2>&1", candidates[i]);
-        if (system(cmd) == 0) return 1;
+        char *args[] = {(char*)candidates[i], (char*)"--version", NULL};
+        if (safe_exec(args) == 0) return 1;
     }
     return 0;
 }
@@ -160,35 +193,31 @@ static int sg_available(void) {
 static const char *sg_path(void) {
     const char *candidates[] = {"ast-grep", "sg", NULL};
     for (int i = 0; candidates[i]; i++) {
-        char cmd[256];
-        snprintf(cmd, sizeof(cmd), "%s --version >/dev/null 2>&1", candidates[i]);
-        if (system(cmd) == 0) return candidates[i];
+        char *args[] = {(char*)candidates[i], (char*)"--version", NULL};
+        if (safe_exec(args) == 0) return candidates[i];
     }
     return NULL;
 }
 
 static char *run_ast_grep(const char *sg_cmd, const char *file_path, const char *pattern) {
-    char cmd[PATH_MAX_SZ * 2];
-    char *esc_pattern = shell_escape(pattern);
-    snprintf(cmd, sizeof(cmd),
-        "%s run -l c -p '%s' --json %s 2>/dev/null",
-        sg_cmd, esc_pattern, file_path);
-    free(esc_pattern);
+    char *args[] = {(char*)sg_cmd, (char*)"run", (char*)"-l", (char*)"c",
+                    (char*)"-p", (char*)pattern, (char*)"--json", (char*)file_path, NULL};
 
-    FILE *p = popen(cmd, "r");
+    pid_t pid;
+    FILE *p = safe_popen_read(args, &pid);
     if (!p) return NULL;
 
     size_t cap = 8192, len = 0;
     char *buf = malloc(cap);
-    if (!buf) { pclose(p); return NULL; }
+    if (!buf) { safe_pclose(p, pid); return NULL; }
 
     size_t n;
     while ((n = fread(buf + len, 1, cap - len - 1, p)) > 0) {
         len += n;
-        if (len + 1 >= cap) { cap *= 2; char *t = realloc(buf, cap); if (!t) { free(buf); pclose(p); return NULL; } buf = t; }
+        if (len + 1 >= cap) { cap *= 2; char *t = realloc(buf, cap); if (!t) { free(buf); safe_pclose(p, pid); return NULL; } buf = t; }
     }
     buf[len] = '\0';
-    pclose(p);
+    safe_pclose(p, pid);
     return buf;
 }
 
