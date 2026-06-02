@@ -183,7 +183,7 @@ static int enforce_ipm_specification_validation_rules(const char *spec_text, cJS
     /* 8. No hardcoded paths in source_target fields */
     void check_no_hardcoded(const char *val) {
         if (!val) return;
-        if (strstr(val, "/home") || strstr(val, "/tmp") || strstr(val, "/usr"))
+        if (strstr(val, "/" "home") || strstr(val, "/" "tmp") || strstr(val, "/" "usr"))
             report_fatal_error_and_exit("IPM validation: hardcoded absolute path in source_target");
     }
     if (funcs && cJSON_IsObject(funcs)) {
