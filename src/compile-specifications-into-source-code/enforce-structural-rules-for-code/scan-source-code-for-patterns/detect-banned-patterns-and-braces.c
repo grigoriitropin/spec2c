@@ -4,14 +4,7 @@
 #include "verify-structural-source-code-rules.h"
 #include <string.h>
 
-typedef struct {
-    int depth;
-    int in_str;
-    int in_char;
-    int in_comment;
-} brace_state_t;
-
-void count_open_close_brace_pairs_reset(brace_state_t *state) {
+void clear_brace_tracking_for_function(brace_state_t *state) {
     memset(state, 0, sizeof(*state));
 }
 
