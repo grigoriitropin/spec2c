@@ -8,8 +8,8 @@
 #include <cjson/cJSON.h>
 #include "ipm_builtins.h"
 
-/* directory_list(path) → cJSON array of filenames, or NULL on error */
-cJSON* directory_list(const char *path) {
+/* enumerate_directory_entry_list(path) → cJSON array of filenames, or NULL on error */
+cJSON* enumerate_directory_entry_list(const char *path) {
     if (!path) return NULL;
     DIR *d = opendir(path);
     if (!d) return NULL;
@@ -76,8 +76,8 @@ int rename_file_from_old_path(const char *old_path, const char *new_path) {
     return rename(old_path, new_path);
 }
 
-/* remove_file_from_file_system(path) → 0 on success, -1 on error */
-int remove_file_from_file_system(const char *path) {
+/* delete_file_from_disk_storage(path) → 0 on success, -1 on error */
+int delete_file_from_disk_storage(const char *path) {
     if (!path) return -1;
     return unlink(path);
 }
