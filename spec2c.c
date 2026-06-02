@@ -666,24 +666,23 @@ static void generate_from_ipm(const ipm_spec_t *spec, const char *out_path, int 
     /* Emit includes from the first template (provides cJSON, etc.) */
     cJSON *templates = cJSON_GetObjectItemCaseSensitive(spec->meta, "template_definitions");
 
+    /* §ENFORCE: reject raw C templates — all code must be AST-generated */
+    if (templates && cJSON_IsObject(templates) && templates->child) {
+        die("spec uses template_definitions — raw C passthrough forbidden. All code must be generated from function_definitions (AST instructions). Convert templates to AST or remove them.");
+    }
+
     /* Phase 2a: compile AST functions to C */
     compile_functions_to_c(spec, out_fp, is_library);
 
-    /* Phase 1: template substitution for remaining templates */
-    if (!templates || !cJSON_IsObject(templates)) return;
-    cJSON *tmpl = templates->child;
-
-    while (tmpl) {
-        const char *tmpl_name = tmpl->string;
-        /* In library mode, skip templates containing "main" */
-        if (is_library && strstr(tmpl_name, "main")) { tmpl = tmpl->next; continue; }
-        if (cJSON_IsString(tmpl)) {
-            char *gen = subst_apply(tmpl->valuestring, subs, nsubs);
-            fprintf(out_fp, "/* --- template: %s --- */\n", tmpl_name);
-            fputs(gen, out_fp);
-            free(gen);
-        }
-        tmpl = tmpl->next;
+    /* Auto-generate main() from function_definitions */
+    cJSON *funcs = cJSON_GetObjectItemCaseSensitive(spec->meta, "function_definitions");
+    if (funcs && funcs->child) {
+        const char *entry = funcs->child->string;
+        fprintf(out_fp, "\n/* --- auto-generated main --- */\n");
+        fprintf(out_fp, "int main(int argc, char **argv) {\n");
+        fprintf(out_fp, "    (void)argc; (void)argv;\n");
+        fprintf(out_fp, "    return %s();\n", entry);
+        fprintf(out_fp, "}\n");
     }
 
     if (out_path) fclose(out_fp);
