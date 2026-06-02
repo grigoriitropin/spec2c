@@ -68,28 +68,28 @@ typedef struct {
 } pattern_def_t;
 
 
-int safe_exec(char *const argv[]);
-FILE *safe_popen_read(char *const argv[], pid_t *out_pid);
-int safe_pclose(FILE *fp, pid_t pid);
-_Noreturn void die(const char *msg);
-char *read_file(const char *path);
-void dl_init(deviation_list_t *dl);
-void dl_add(deviation_list_t *dl, const char *check_id, const char *pattern_id,
+int launch_command_with_argument_list(char *const argv[]);
+FILE *execute_command_capture_stdout_pipe(char *const argv[], pid_t *out_pid);
+int close_pipe_await_child_finish(FILE *fp, pid_t pid);
+_Noreturn void terminate_with_error_message_output(const char *msg);
+char *read_entire_text_into_memory(const char *path);
+void initialize_deviation_list_data_structure(deviation_list_t *dl);
+void append_deviation_into_report_list(deviation_list_t *dl, const char *check_id, const char *pattern_id,
             severity_t sev, int line, int column, const char *identifier,
             const char *message, const char *fix, int skeleton_line);
-const char *sev_str(severity_t s);
-severity_t parse_severity(const char *s);
-char *shell_escape(const char *s);
-int sg_available(void);
-const char *sg_path(void);
-char *run_ast_grep(const char *sg_cmd, const char *file_path, const char *pattern);
-void check_identifier_pattern(const pattern_def_t *pat, const char *identifier,
+const char *convert_severity_into_readable_string(severity_t s);
+severity_t parse_severity_from_config_string(const char *s);
+char *escape_string_for_shell_command(const char *s);
+int verify_ast_grep_command_exists(void);
+const char *find_ast_grep_executable_path(void);
+char *execute_ast_grep_with_pattern(const char *sg_cmd, const char *file_path, const char *pattern);
+void match_identifier_against_ast_grep(const pattern_def_t *pat, const char *identifier,
                               const char *sg_cmd, const char *file_path,
                               const char *file_content, deviation_list_t *dl);
-void check_string_pattern(const pattern_def_t *pat, const char *file_path,
+void match_string_against_file_content(const pattern_def_t *pat, const char *file_path,
                           const char *file_content, deviation_list_t *dl);
-void check_scaffold_markers(const char *file_content, const char *spec_name,
+void scan_for_scaffold_marker_deviations(const char *file_content, const char *spec_name,
                             deviation_list_t *dl);
-int load_patterns(const char *path, pattern_def_t **patterns_out, int *npatterns_out);
-void emit_report(const deviation_list_t *dl, const char *file_path,
+int read_pattern_definitions_from_json(const char *path, pattern_def_t **patterns_out, int *npatterns_out);
+void write_conformance_report_into_output(const deviation_list_t *dl, const char *file_path,
                  int scaffold_ok, int error_count, int warning_count);

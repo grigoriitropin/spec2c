@@ -3,78 +3,20 @@
 
 const char *SPEC2C_CHECK_VERSION = "0.3";
 
-int safe_exec(char *const argv[]) {
-    pid_t pid = fork();
-    if (pid < 0) return -1;
-    if (pid == 0) { execvp(argv[0], argv); _exit(127); }
-    int status; waitpid(pid, &status, 0);
-    return WIFEXITED(status) ? WEXITSTATUS(status) : -1;
-}
-
-FILE *safe_popen_read(char *const argv[], pid_t *out_pid) {
-    int pfd[2];
-    if (pipe(pfd) < 0) return NULL;
-    pid_t pid = fork();
-    if (pid < 0) { close(pfd[0]); close(pfd[1]); return NULL; }
-    if (pid == 0) {
-        close(pfd[0]);
-        dup2(pfd[1], STDOUT_FILENO);
-        execvp(argv[0], argv);
-        _exit(127);
-    }
-    close(pfd[1]);
-    if (out_pid) *out_pid = pid;
-    return fdopen(pfd[0], "r");
-}
-
-int safe_pclose(FILE *fp, pid_t pid) {
-    fclose(fp);
-    int status; waitpid(pid, &status, 0);
-    return WIFEXITED(status) ? WEXITSTATUS(status) : -1;
-}
-
-
-_Noreturn void die(const char *msg) {
-    fprintf(stderr, "spec2c-check: %s\n", msg);
-    printf("{\"ok\":false,\"error\":\"%s\"}\n", msg);
-    exit(1);
-}
-
-char *read_file(const char *path) {
-    FILE *f = fopen(path, "r");
-    if (!f) {
-        char buf[512];
-        snprintf(buf, sizeof(buf), "cannot open %s: %s", path, strerror(errno));
-        die(buf);
-    }
-    size_t cap = 16384, len = 0;
-    char *buf = malloc(cap);
-    if (!buf) die("malloc failed");
-    size_t n;
-    while ((n = fread(buf + len, 1, cap - len - 1, f)) > 0) {
-        len += n;
-        if (len + 1 >= cap) { cap *= 2; char *t = realloc(buf, cap); if (!t) { free(buf); die("realloc"); } buf = t; }
-    }
-    if (ferror(f)) { free(buf); die("read error"); }
-    buf[len] = '\0';
-    fclose(f);
-    return buf;
-}
-
-void dl_init(deviation_list_t *dl) {
+void initialize_deviation_list_structure(deviation_list_t *dl) {
     dl->cap = 32;
     dl->items = malloc((size_t)dl->cap * sizeof(deviation_t));
-    if (!dl->items) die("malloc");
+    if (!dl->items) terminate_with_error_message_output("malloc");
     dl->count = 0;
 }
 
-void dl_add(deviation_list_t *dl, const char *check_id, const char *pattern_id,
+void append_deviation_to_report_list(deviation_list_t *dl, const char *check_id, const char *pattern_id,
                    severity_t sev, int line, int col, const char *source_line,
                    const char *msg, const char *sug, int in_scaffold) {
     if (dl->count >= dl->cap) {
         dl->cap *= 2;
         deviation_t *t = realloc(dl->items, (size_t)dl->cap * sizeof(deviation_t));
-        if (!t) die("realloc");
+        if (!t) terminate_with_error_message_output("realloc");
         dl->items = t;
     }
     deviation_t *d = &dl->items[dl->count++];
@@ -89,7 +31,7 @@ void dl_add(deviation_list_t *dl, const char *check_id, const char *pattern_id,
     d->in_scaffold = in_scaffold;
 }
 
-const char *sev_str(severity_t s) {
+const char *convert_severity_into_readable_string(severity_t s) {
     switch (s) {
         case SEV_INFO:    return "info";
         case SEV_WARNING: return "warning";
@@ -98,16 +40,16 @@ const char *sev_str(severity_t s) {
     }
 }
 
-severity_t parse_severity(const char *s) {
+severity_t parse_severity_from_config_string(const char *s) {
     if (strcmp(s, "error") == 0) return SEV_ERROR;
     if (strcmp(s, "warning") == 0) return SEV_WARNING;
     return SEV_INFO;
 }
 
-char *shell_escape(const char *s) {
+char *escape_string_for_shell_command(const char *s) {
     size_t len = strlen(s);
     char *out = malloc(len * 2 + 3);
-    if (!out) die("malloc");
+    if (!out) terminate_with_error_message_output("malloc");
     size_t pos = 0;
     for (size_t i = 0; i < len; i++) {
         if (s[i] == '"') { out[pos++] = '\\'; out[pos++] = '"'; }
@@ -118,50 +60,50 @@ char *shell_escape(const char *s) {
     return out;
 }
 
-int sg_available(void) {
+int verify_ast_grep_command_exists(void) {
     const char *candidates[] = {"ast-grep", "sg", NULL};
     for (int i = 0; candidates[i]; i++) {
         char *args[] = {(char*)candidates[i], (char*)"--version", NULL};
-        if (safe_exec(args) == 0) return 1;
+        if (launch_command_with_argument_list(args) == 0) return 1;
     }
     return 0;
 }
 
-const char *sg_path(void) {
+const char *find_ast_grep_executable_path(void) {
     const char *candidates[] = {"ast-grep", "sg", NULL};
     for (int i = 0; candidates[i]; i++) {
         char *args[] = {(char*)candidates[i], (char*)"--version", NULL};
-        if (safe_exec(args) == 0) return candidates[i];
+        if (launch_command_with_argument_list(args) == 0) return candidates[i];
     }
     return NULL;
 }
 
-char *run_ast_grep(const char *sg_cmd, const char *file_path, const char *pattern) {
+char *execute_ast_grep_with_pattern(const char *sg_cmd, const char *file_path, const char *pattern) {
     char *args[] = {(char*)sg_cmd, (char*)"run", (char*)"-l", (char*)"c",
                     (char*)"-p", (char*)pattern, (char*)"--json", (char*)file_path, NULL};
 
     pid_t pid;
-    FILE *p = safe_popen_read(args, &pid);
+    FILE *p = execute_command_capture_stdout_pipe(args, &pid);
     if (!p) return NULL;
 
     size_t cap = 8192, len = 0;
     char *buf = malloc(cap);
-    if (!buf) { safe_pclose(p, pid); return NULL; }
+    if (!buf) { close_pipe_await_child_finish(p, pid); return NULL; }
 
     size_t n;
     while ((n = fread(buf + len, 1, cap - len - 1, p)) > 0) {
         len += n;
-        if (len + 1 >= cap) { cap *= 2; char *t = realloc(buf, cap); if (!t) { free(buf); safe_pclose(p, pid); return NULL; } buf = t; }
+        if (len + 1 >= cap) { cap *= 2; char *t = realloc(buf, cap); if (!t) { free(buf); close_pipe_await_child_finish(p, pid); return NULL; } buf = t; }
     }
     buf[len] = '\0';
-    safe_pclose(p, pid);
+    close_pipe_await_child_finish(p, pid);
     return buf;
 }
 
-void emit_report(const deviation_list_t *dl, const char *file_path,
+void write_conformance_report_to_output(const deviation_list_t *dl, const char *file_path,
                          int scaffold_ok, int error_count, int warning_count) {
     cJSON *root = cJSON_CreateObject();
-    if (!root) die("cJSON alloc failed");
+    if (!root) terminate_with_error_message_output("cJSON alloc failed");
 
     int ok = (error_count == 0);
     cJSON_AddBoolToObject(root, "ok", ok);
@@ -177,7 +119,7 @@ void emit_report(const deviation_list_t *dl, const char *file_path,
         cJSON *dev = cJSON_CreateObject();
         cJSON_AddStringToObject(dev, "check_id", d->check_id);
         cJSON_AddStringToObject(dev, "pattern_id", d->pattern_id);
-        cJSON_AddStringToObject(dev, "severity", sev_str(d->severity));
+        cJSON_AddStringToObject(dev, "severity", convert_severity_into_readable_string(d->severity));
         cJSON_AddNumberToObject(dev, "line", d->line);
         cJSON_AddNumberToObject(dev, "column", d->col);
         if (d->source_line && d->source_line[0])
@@ -193,7 +135,6 @@ void emit_report(const deviation_list_t *dl, const char *file_path,
     if (js) { printf("%s\n", js); free(js); }
     cJSON_Delete(root);
 }
-
 
 int main(int argc, char *argv[]) {
     const char *file_path = NULL;
@@ -216,22 +157,22 @@ int main(int argc, char *argv[]) {
                 "Emits JSON report to stdout.\n");
             return 0;
         } else if (strcmp(argv[i], "--spec") == 0) {
-            if (++i >= argc) die("missing argument for --spec");
+            if (++i >= argc) terminate_with_error_message_output("missing argument for --spec");
             spec_path = argv[i];
         } else if (strcmp(argv[i], "--base") == 0) {
-            if (++i >= argc) die("missing argument for --base");
+            if (++i >= argc) terminate_with_error_message_output("missing argument for --base");
             base_dir = argv[i];
         } else if (strcmp(argv[i], "--patterns") == 0) {
-            if (++i >= argc) die("missing argument for --patterns");
+            if (++i >= argc) terminate_with_error_message_output("missing argument for --patterns");
             patterns_path = argv[i];
         } else if (!file_path) {
             file_path = argv[i];
         } else {
-            die("unexpected argument");
+            terminate_with_error_message_output("unexpected argument");
         }
     }
 
-    if (!file_path) die("C source file required");
+    if (!file_path) terminate_with_error_message_output("C source file required");
     if (!base_dir) base_dir = ".";
     if (!patterns_path) {
         static char default_patterns[PATH_MAX_SZ];
@@ -239,32 +180,32 @@ int main(int argc, char *argv[]) {
         patterns_path = default_patterns;
     }
 
-    if (!sg_available())
-        die("ast-grep not found in PATH — required for C AST parsing");
+    if (!verify_ast_grep_command_exists())
+        terminate_with_error_message_output("ast-grep not found in PATH — required for C AST parsing");
 
-    const char *sg_cmd = sg_path();
+    const char *sg_cmd = find_ast_grep_executable_path();
 
-    char *file_content = read_file(file_path);
+    char *file_content = read_entire_text_into_memory(file_path);
 
     deviation_list_t dl;
-    dl_init(&dl);
+    initialize_deviation_list_structure(&dl);
 
     pattern_def_t *patterns = NULL;
     int npatterns = 0;
-    if (!load_patterns(patterns_path, &patterns, &npatterns))
-        die("cannot load soul-patterns.json");
+    if (!read_pattern_definitions_from_json(patterns_path, &patterns, &npatterns))
+        terminate_with_error_message_output("cannot load soul-patterns.json");
 
     for (int i = 0; i < npatterns; i++) {
         pattern_def_t *pat = &patterns[i];
 
         for (int j = 0; j < pat->nidentifiers; j++)
-            check_identifier_pattern(pat, pat->identifiers[j], sg_cmd, file_path, file_content, &dl);
+            match_identifier_against_ast_grep(pat, pat->identifiers[j], sg_cmd, file_path, file_content, &dl);
 
         if (pat->nforbidden_strings > 0)
-            check_string_pattern(pat, file_path, file_content, &dl);
+            match_string_against_file_content(pat, file_path, file_content, &dl);
     }
 
-    check_scaffold_markers(file_content, spec_path ? spec_path : file_path, &dl);
+    scan_for_scaffold_marker_deviations(file_content, spec_path ? spec_path : file_path, &dl);
 
     int error_count = 0, warning_count = 0;
     for (int i = 0; i < dl.count; i++) {
@@ -281,7 +222,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    emit_report(&dl, file_path, scaffold_ok, error_count, warning_count);
+    write_conformance_report_to_output(&dl, file_path, scaffold_ok, error_count, warning_count);
 
     free(file_content);
     for (int i = 0; i < dl.count; i++) free((void *)dl.items[i].source_line);
