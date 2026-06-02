@@ -260,6 +260,7 @@ void enforce_all_source_code_rules(const char *srcdir) {
     }
     scan_dir(srcdir);
     search_for_unused_function_code(fns, fn_qty, srcdir);
+    int main_count = 0;
     for (int i = 0; i < fn_qty; i++)
         if (!strcmp(fns[i].name, "main")) main_count++;
     if (main_count != 1) {
