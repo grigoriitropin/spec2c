@@ -133,3 +133,5 @@ scan-source-code-for-patterns
 shared-type-declarations-across-modules
 support-code-for-compiled-output
 verify-source-against-soul-patterns
+find_ast_grep_executable_path
+terminate_with_error_message_output
