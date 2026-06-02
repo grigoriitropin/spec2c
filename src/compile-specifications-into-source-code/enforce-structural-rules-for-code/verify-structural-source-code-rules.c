@@ -67,6 +67,12 @@ static void pull_function_name_from_definition(const char *line, char *out, size
     memcpy(out, start, len); out[len] = 0;
 }
 
+static int check_for_banned_keyword_pattern(const char *line) {
+    for (int i = 0; i < banned_patterns_count; i++)
+        if (strstr(line, banned_patterns[i])) return 1;
+    return 0;
+}
+
 /* ── brace counter (string-aware) ─────────────────────────────────── */
 static void count_open_close_brace_pairs(const char *line, int *depth) {
     int in_str = 0, in_char = 0;

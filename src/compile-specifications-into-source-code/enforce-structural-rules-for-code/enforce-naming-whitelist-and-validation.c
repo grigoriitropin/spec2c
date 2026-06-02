@@ -177,7 +177,7 @@ int return_total_count_allowed_names(void) { return allowed_qty; }
 const char *get_allowed_name_from_whitelist(int index) { return index < allowed_qty ? allowed[index].name : NULL; }
 
 static char banned_patterns[32][64];
-static int banned_patterns_count;
+int banned_patterns_count;
 
 void read_banned_patterns_from_file(const char *srcdir) {
     char path[4096]; snprintf(path, sizeof(path), "%s/banned-patterns.txt", srcdir);
@@ -190,12 +190,6 @@ void read_banned_patterns_from_file(const char *srcdir) {
         if (len > 0) { snprintf(banned_patterns[banned_patterns_count], 64, "%s", line); banned_patterns_count++; }
     }
     fclose(f);
-}
-
-int check_for_banned_keyword_pattern(const char *line) {
-    for (int i = 0; i < banned_patterns_count; i++)
-        if (strstr(line, banned_patterns[i])) return 1;
-    return 0;
 }
 
 int detect_hardcoded_file_path_string(const char *line) {
