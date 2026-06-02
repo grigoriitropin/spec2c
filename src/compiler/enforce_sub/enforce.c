@@ -49,6 +49,20 @@ static int has_banned(const char *line) {
            strstr(line, "\"/dev/") || strstr(line, "\"/proc/") || strstr(line, "\"/sys/");
 }
 
+static int is_allowed_include(const char *hdr) {
+    const char *ok[] = {
+        "stdio.h","stdlib.h","string.h","errno.h","unistd.h","fcntl.h",
+        "sys/stat.h","sys/types.h","sys/wait.h","sys/socket.h","sys/un.h",
+        "dirent.h","regex.h","stdint.h","stddef.h","stdbool.h","time.h",
+        "cjson/cJSON.h","netinet/in.h",
+        "ipm_builtins.h","enforce.h","common_h/common.h","enforce_sub/enforce.h",
+        "../common_h/common.h","vehir_lib.h","ipm_json.h","header.h",
+        NULL
+    };
+    for (int i = 0; ok[i]; i++) if (!strcmp(hdr, ok[i])) return 1;
+    return 0;
+}
+
 static int has_hardcoded_path(const char *line) {
     if (strstr(line, "#include")) return 0;
     const char *p = line;
@@ -173,6 +187,12 @@ void enforce_structural_limits(const char *srcdir) {
                         char hdr[64] = {0};
                         if (sscanf(line, " #include <%63[^>]>", hdr) == 1 ||
                             sscanf(line, " #include \"%63[^\"]\"", hdr) == 1) {
+                            if (!is_allowed_include(hdr)) {
+                                char buf[512];
+                                snprintf(buf, sizeof(buf),
+                                         "SOUL §7: header '%s' is not in the allowed whitelist.", hdr);
+                                fclose(f2); die(buf);
+                            }
                             int found = 0;
                             for (int i = 0; i < inc_qty; i++) {
                                 if (!strcmp(incs[i].name, hdr)) {
