@@ -59,4 +59,10 @@ char* vartype_to_c(const char *type_name);
 /* Regex */
 int regex_match(const char *text, const char *pattern);
 
+/* CLI argument access (set by auto-generated main) */
+extern int g_argc;
+extern char **g_argv;
+int get_arg_count(void);
+char* get_arg_value(int index);
+
 #endif /* IPM_BUILTINS_H */

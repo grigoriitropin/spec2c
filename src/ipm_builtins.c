@@ -233,3 +233,15 @@ char *vartype_to_c(const char *t) {
     if (!strcmp(t, "string_buffer")) return "string_buffer *";
     return "void *";
 }
+
+/* ── CLI argument access (set by auto-generated main) ──────────────── */
+int g_argc = 0;
+char **g_argv = NULL;
+
+int get_arg_count(void) { return g_argc; }
+
+char *get_arg_value(int index) {
+    if (index >= 0 && index < g_argc && g_argv)
+        return g_argv[index];
+    return "";
+}
