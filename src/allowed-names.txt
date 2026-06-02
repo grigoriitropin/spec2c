@@ -169,3 +169,6 @@ check_file_exists_upon_disk
 check_directory_exists_upon_disk
 count_newlines_within_text_string
 read_file_bytes_into_buffer
+hash-table-and-substitution-code
+file-string-and-json-parsing
+buffer-output-and-command-launch
