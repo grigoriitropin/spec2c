@@ -1,0 +1,43 @@
+{
+  "package_name": "compile-specifications-into-source-code",
+  "module_name": "specification-to-source-code-compiler",
+  "imports": [
+    "runtime-for-generated-ipm-code"
+  ],
+  "structural_limits": [
+    { "limit_name": "function_line_count", "maximum_value": 50 },
+    { "limit_name": "file_line_count", "maximum_value": 400 },
+    { "limit_name": "function_count_per_file", "maximum_value": 10 }
+  ],
+  "function_definitions": {
+    "main": {
+      "description": "spec2c entry point — parse CLI args, dispatch pipeline",
+      "return_type": "int",
+      "execution_instructions": [
+        {
+          "instruction_type": "variable_declaration",
+          "variable_name": "input",
+          "variable_type": "string",
+          "assignment_operation": "get_arg_value",
+          "source_target": { "source": "1" }
+        },
+        {
+          "instruction_type": "variable_declaration",
+          "variable_name": "output",
+          "variable_type": "string",
+          "assignment_operation": "get_arg_value",
+          "source_target": { "source": "2" }
+        },
+        {
+          "instruction_type": "function_invocation",
+          "invocation_name": "run_spec2c_pipeline_after_parsing",
+          "invocation_arguments": {
+            "spec_path": "input",
+            "out_path": "output"
+          },
+          "result_type": "int"
+        }
+      ]
+    }
+  }
+}

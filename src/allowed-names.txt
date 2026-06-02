@@ -166,3 +166,7 @@ soul-naming-forbidden-words-list
 soul-naming-forbidden-words-list
 validate_single_ipm_name_value
 verify_ipm_names_across_sources
+spec2c-own-self-compilation-spec
+specification-into-source-code-compiler
+compile-specifications-into-source-code
+spec2c-own-self-compilation-spec
