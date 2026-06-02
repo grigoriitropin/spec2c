@@ -2,7 +2,7 @@
 // whitelist + naming validation — shared with enforce.c
 
 #include "verify-structural-source-code-rules.h"
-#include "soul-banned-words.h"
+#include "soul-naming-forbidden-words-list.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

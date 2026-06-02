@@ -5,7 +5,7 @@
 #ifndef SOUL_VALIDATION_H
 #define SOUL_VALIDATION_H
 
-#include "soul-banned-words.h"
+#include "soul-naming-forbidden-words-list.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
