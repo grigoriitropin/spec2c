@@ -5,18 +5,12 @@
 #ifndef SOUL_VALIDATION_H
 #define SOUL_VALIDATION_H
 
+#include "soul-banned-words.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-/* ── canonical banned type words (single source of truth) ──────────── */
-static const char *soul_banned_type_words[] = {
-    "service","server","daemon","library","tool","binary",
-    "package","module","system","utility","application",
-    "program","process","worker",NULL
-};
-
-/* ── centralized error reporter ───────────────────────────────────── */
+/* ── centralized error reporter (code + error + fix) ───────────────── */
 static void report_soul_violation_and_exit(const char *code, const char *context, const char *fix) {
     fprintf(stderr, "SOUL VIOLATION [%s]\n", code);
     if (context) fprintf(stderr, "  error: %s\n", context);
@@ -42,8 +36,8 @@ static void verify_name_complies_with_soul(const char *name) {
             snprintf(fix, sizeof(fix), "rename using full English words, no abbreviations");
             report_soul_violation_and_exit("NAME_WORD_TOO_SHORT", ctx, fix);
         }
-        for (int i = 0; soul_banned_type_words[i]; i++) {
-            if (!strcmp(tok, soul_banned_type_words[i])) {
+        for (int i = 0; soul_banned_words[i]; i++) {
+            if (!strcmp(tok, soul_banned_words[i])) {
                 char ctx[256], fix[256];
                 snprintf(ctx, sizeof(ctx), "word '%s' in '%s' is a banned type word", tok, name);
                 snprintf(fix, sizeof(fix), "replace with a word describing WHAT it does, not WHAT it is");
