@@ -434,7 +434,7 @@ static void compile_instructions(cJSON *instructions, FILE *out, int indent, con
     }
 }
 
-static void compile_functions_to_c(const ipm_spec_t *spec, FILE *out) {
+static void compile_functions_to_c(const ipm_spec_t *spec, FILE *out, int is_library) {
     cJSON *funcs = cJSON_GetObjectItemCaseSensitive(spec->meta, "function_definitions");
     if (!funcs || !cJSON_IsObject(funcs)) return;
     cJSON *fn;
@@ -462,7 +462,7 @@ static void compile_functions_to_c(const ipm_spec_t *spec, FILE *out) {
                 else if (!strcmp(ret, "db_handle")) ret_c = "struct vehir_db *";
                 else if (!strcmp(ret, "subst_table")) ret_c = "subst_table *";
             }
-            fprintf(out, "static %s %s(", ret_c, name);
+            fprintf(out, "%s%s %s(", is_library ? "" : "static ", ret_c, name);
             cJSON *params = cJSON_GetObjectItemCaseSensitive(fn, "parameter_definitions");
             if (params && cJSON_IsArray(params)) {
                 for (int p = 0; p < cJSON_GetArraySize(params); p++) {
@@ -502,7 +502,7 @@ static void compile_functions_to_c(const ipm_spec_t *spec, FILE *out) {
                 else if (!strcmp(ret, "subst_table")) ret_c = "subst_table *";
             }
             fprintf(out, "/* %s: %s */\n", name, desc[0] ? desc : "no description");
-            fprintf(out, "%s%s %s(", modname[0] ? "" : "static ", ret_c, name);
+            fprintf(out, "%s%s %s(", is_library ? "" : (modname[0] ? "" : "static "), ret_c, name);
             if (params && cJSON_IsArray(params)) {
                 for (int p = 0; p < cJSON_GetArraySize(params); p++) {
                     cJSON *par = cJSON_GetArrayItem(params, p);
@@ -667,7 +667,7 @@ static void generate_from_ipm(const ipm_spec_t *spec, const char *out_path, int 
     cJSON *templates = cJSON_GetObjectItemCaseSensitive(spec->meta, "template_definitions");
 
     /* Phase 2a: compile AST functions to C */
-    compile_functions_to_c(spec, out_fp);
+    compile_functions_to_c(spec, out_fp, is_library);
 
     /* Phase 1: template substitution for remaining templates */
     if (!templates || !cJSON_IsObject(templates)) return;
