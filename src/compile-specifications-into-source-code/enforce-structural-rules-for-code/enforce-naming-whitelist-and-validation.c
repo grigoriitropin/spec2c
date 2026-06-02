@@ -10,7 +10,7 @@ static void report_fatal_error_and_exit(const char *msg) {
     fprintf(stderr, "spec2c: %s\n", msg); exit(1);
 }
 
-/* banned list — keep in sync with soul-validation.h:banned_type_words */
+/* banned list — keep in sync with soul-rules-for-naming-validation.h:banned_type_words */
 static const char *banned_type_words[] = {
     "service","server","daemon","library","tool","binary",
     "package","module","system","utility","application",

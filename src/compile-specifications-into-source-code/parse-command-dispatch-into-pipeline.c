@@ -2,7 +2,7 @@
 // main.c — entry point, CLI argument parsing, utility functions
 
 #include "shared-type-declarations-across-modules/share-type-definitions-across-files.h"
-#include "shared-type-declarations-across-modules/soul-validation.h"
+#include "shared-type-declarations-across-modules/soul-rules-for-naming-validation.h"
 
 const char *extract_json_field_string_value(const cJSON *obj, const char *key) {
     const cJSON *v = cJSON_GetObjectItemCaseSensitive(obj, key);
