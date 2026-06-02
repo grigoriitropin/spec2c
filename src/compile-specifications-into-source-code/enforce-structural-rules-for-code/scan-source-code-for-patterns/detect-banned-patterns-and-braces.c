@@ -94,7 +94,7 @@ static void validate_single_ipm_name_value(const char *name, const char *what, c
     }
 }
 
-void validate_ipm_files_in_source(const char *srcdir) {
+void verify_ipm_names_across_sources(const char *srcdir) {
     void scan_ipm(const char *dpath) {
         DIR *dd = opendir(dpath); if (!dd) return;
         struct dirent *de2;

@@ -310,7 +310,7 @@ void enforce_all_source_code_rules(const char *srcdir) {
     }
 
     scan_source_for_undocumented_flags(srcdir);
-    validate_ipm_files_in_source(srcdir);
+    verify_ipm_names_across_sources(srcdir);
 }
 static void scan_source_for_undocumented_flags(const char *srcdir) {
     void check_flags(const char *dpath) {
