@@ -264,7 +264,11 @@ void enforce_all_source_code_rules(const char *srcdir) {
     search_for_unused_function_code(fns, fn_qty, srcdir);
     int main_count = 0;
     for (int i = 0; i < fn_qty; i++)
-        if (!strcmp(fns[i].name, "main")) main_count++;
+        if (!strcmp(fns[i].name, "main") &&
+            !strstr(fns[i].file, "/enforce-structural-rules-for-code/") &&
+            !strstr(fns[i].file, "/verify-source-against-soul-patterns/") &&
+            !strstr(fns[i].file, "/helper-standalone-executables-for-spec2c/"))
+            main_count++;
     if (main_count != 1) {
         report_violation_with_actionable_hint(ERR_MAIN_COUNT, NULL, main_count, 0, NULL);
     }
