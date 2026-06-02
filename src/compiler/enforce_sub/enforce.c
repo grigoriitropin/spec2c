@@ -45,7 +45,8 @@ static int is_func_start(const char *line) {
 
 static int has_banned(const char *line) {
     return strstr(line, "goto ") || strstr(line, "goto\t") ||
-           strstr(line, "setjmp(") || strstr(line, "longjmp(");
+           strstr(line, "setjmp(") || strstr(line, "longjmp(") ||
+           strstr(line, "\"/dev/") || strstr(line, "\"/proc/") || strstr(line, "\"/sys/");
 }
 
 static int has_hardcoded_path(const char *line) {
