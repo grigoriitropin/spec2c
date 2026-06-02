@@ -23,15 +23,15 @@ cJSON* enumerate_directory_entry_list_items(const char *path) {
     return arr;
 }
 
-/* check_file_exists_on_disk(path) → 1 if regular file, 0 otherwise */
-int check_file_exists_on_disk(const char *path) {
+/* check_file_exists_upon_disk(path) → 1 if regular file, 0 otherwise */
+int check_file_exists_upon_disk(const char *path) {
     if (!path) return 0;
     struct stat st;
     return (stat(path, &st) == 0 && S_ISREG(st.st_mode)) ? 1 : 0;
 }
 
-/* check_directory_exists_on_disk(path) → 1 if directory, 0 otherwise */
-int check_directory_exists_on_disk(const char *path) {
+/* check_directory_exists_upon_disk(path) → 1 if directory, 0 otherwise */
+int check_directory_exists_upon_disk(const char *path) {
     if (!path) return 0;
     struct stat st;
     return (stat(path, &st) == 0 && S_ISDIR(st.st_mode)) ? 1 : 0;

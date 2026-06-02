@@ -165,3 +165,5 @@ write_raw_bytes_into_file
 delete_file_from_disk_storage
 delete_file_from_disk_storage
 enumerate_directory_entry_list_items
+check_file_exists_upon_disk
+check_directory_exists_upon_disk
