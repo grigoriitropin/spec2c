@@ -36,7 +36,7 @@ int match_header_against_include_whitelist(const char *hdr) {
         "stdio.h","stdlib.h","string.h","errno.h","unistd.h","fcntl.h",
         "sys/stat.h","sys/types.h","sys/wait.h","sys/socket.h","sys/un.h",
         "sys/select.h",
-        "dirent.h","regex.h","stdint.h","stddef.h","stdbool.h","time.h",
+        "dirent.h","regex.h","signal.h","stdint.h","stddef.h","stdbool.h","time.h",
         "cjson/cJSON.h","netinet/in.h",
         "runtime-for-generated-ipm-code.h",
         "verify-structural-source-code-rules.h",
