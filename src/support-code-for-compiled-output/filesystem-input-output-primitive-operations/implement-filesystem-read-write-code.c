@@ -8,8 +8,8 @@
 #include <cjson/cJSON.h>
 #include "ipm_builtins.h"
 
-/* enumerate_directory_entry_list(path) → cJSON array of filenames, or NULL on error */
-cJSON* enumerate_directory_entry_list(const char *path) {
+/* enumerate_directory_entry_list_items(path) → cJSON array of filenames, or NULL on error */
+cJSON* enumerate_directory_entry_list_items(const char *path) {
     if (!path) return NULL;
     DIR *d = opendir(path);
     if (!d) return NULL;
