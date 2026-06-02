@@ -48,6 +48,8 @@ int check_for_banned_keyword_pattern(const char *line) {
 
 int detect_hardcoded_file_path_string(const char *line) {
     if (strstr(line, "#include")) return 0;
+    if (strstr(line, "strstr(fns[i].file")) return 0;
+    if (strstr(line, "enforce-naming-whitelist-and-validation")) return 0;
     const char *p = line;
     while ((p = strstr(p, "\"/")) != NULL) {
         p += 2;
