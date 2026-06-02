@@ -8,7 +8,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <cjson/cJSON.h>
-#include "soul-banned-words.h"
 static int debug_trace = 0;
 #define MAX_FILES_PER_DIR 3
 #define MAX_LINES_PER_FILE 400

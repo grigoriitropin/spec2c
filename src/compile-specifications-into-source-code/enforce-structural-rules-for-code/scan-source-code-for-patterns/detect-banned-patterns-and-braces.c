@@ -2,6 +2,11 @@
 // shared pattern scanning helpers for enforcement
 
 #include "verify-structural-source-code-rules.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <dirent.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #include <string.h>
 
 void clear_brace_tracking_for_function(brace_state_t *state) {
