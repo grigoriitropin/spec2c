@@ -55,7 +55,7 @@ void print_error_into_stderr_output(const char *msg);
 void terminate_with_status_return_code(int code);
 
 /* Type mapping */
-const char* resolve_spec_type_into_target_lang(const char *type_name);
+const char* resolve_spec_type_into_lang(const char *type_name);
 
 /* Regex */
 int match_pattern_against_text_string(const char *text, const char *pattern);

@@ -11,6 +11,7 @@ void append_key_value_into_substitution(subst_t *subs, int *n, const char *k, co
 }
 
 static void emit_function_invocation_code_block(cJSON *inst, FILE *out, int indent) {
+    (void)indent;
     const char *fn = extract_json_field_string_value(inst, "invocation_name");
     const char *rv = extract_json_field_string_value(inst, "result_assignment_variable");
     const char *rt = extract_json_field_string_value(inst, "result_type");
