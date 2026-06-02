@@ -91,6 +91,99 @@ static void count_open_close_brace_pairs(const char *line, int *depth) {
     }
 }
 
+static void check_single_file_for_violations(const char *sub, const char *fname, int is_c,
+    struct { char name[128]; char file[256]; } *fns, int *fn_qty,
+    struct { char name[64]; int count; } *incs, int *inc_qty)
+{
+    if (is_c) {
+        int lines = count_lines_within_source_file(sub);
+        if (lines > MAX_LINES_PER_FILE) {
+            char buf[8448]; snprintf(buf, sizeof(buf), "SOUL §7: %s has %d lines (max %d)", sub, lines, MAX_LINES_PER_FILE);
+            report_fatal_error_and_exit(buf);
+        }
+    }
+    FILE *f = fopen(sub, "r");
+    if (f) {
+        char line[1024];
+        int func_count = 0, func_lines = 0, in_func = 0, func_start = 0, depth = 0;
+        while (fgets(line, sizeof(line), f)) {
+            if (!in_func) {
+                if (detect_function_definition_start_line(line)) {
+                    func_count++;
+                    if (func_count > MAX_FUNCTIONS_PER_FILE) {
+                        char buf[8448]; snprintf(buf, sizeof(buf), "SOUL §7: %s has %d functions (max %d)", sub, func_count, MAX_FUNCTIONS_PER_FILE);
+                        fclose(f); report_fatal_error_and_exit(buf);
+                    }
+                    if (*fn_qty < 512) {
+                        pull_function_name_from_definition(line, fns[*fn_qty].name, 128);
+                        if (fns[*fn_qty].name[0]) {
+                            snprintf(fns[*fn_qty].file, 256, "%.255s", sub);
+                            if (strcmp(fns[*fn_qty].name, "main"))
+                                validate_name_against_soul_rules("function", fns[*fn_qty].name, sub);
+                            (*fn_qty)++;
+                        }
+                    }
+                    in_func = 1; func_lines = 1; func_start = 1;
+                    depth = 0; count_open_close_brace_pairs(line, &depth);
+                    if (depth <= 0) { in_func = 0; }
+                    continue;
+                }
+            }
+            if (in_func) {
+                func_lines++;
+                if (func_start) { func_start = 0; continue; }
+                count_open_close_brace_pairs(line, &depth);
+                if (depth <= 0) {
+                    if (func_lines > MAX_LINES_PER_FUNCTION) {
+                        char buf[8448]; snprintf(buf, sizeof(buf), "SOUL §7: %s func#%d is %d lines (max %d)", sub, func_count, func_lines, MAX_LINES_PER_FUNCTION);
+                        fclose(f); report_fatal_error_and_exit(buf);
+                    }
+                    in_func = 0; depth = 0;
+                }
+            }
+            if (is_c && check_for_banned_keyword_pattern(line)) {
+                char buf[8448]; snprintf(buf, sizeof(buf), "SOUL §7: %s uses banned pattern", sub);
+                fclose(f); report_fatal_error_and_exit(buf);
+            }
+            if (is_c && detect_hardcoded_file_path_string(line)) {
+                char buf[8448]; snprintf(buf, sizeof(buf), "SOUL §7: %s has hardcoded absolute path", sub);
+                fclose(f); report_fatal_error_and_exit(buf);
+            }
+        }
+        fclose(f);
+    }
+    FILE *f2 = fopen(sub, "r");
+    if (f2) {
+        char line[512];
+        while (fgets(line, sizeof(line), f2)) {
+            char hdr[128] = {0}; int is_angle = 0;
+            if (sscanf(line, " #include <%127[^>]>", hdr) == 1) is_angle = 1;
+            else if (sscanf(line, " #include \"%127[^\"]\"", hdr) == 1) is_angle = 0;
+            else continue;
+            if (!match_header_against_include_whitelist(hdr)) {
+                char buf[8448]; snprintf(buf, sizeof(buf), "SOUL §7: header '%s' not in whitelist", hdr);
+                fclose(f2); report_fatal_error_and_exit(buf);
+            }
+            if (!is_angle) {
+                int found = 0;
+                for (int i = 0; i < *inc_qty; i++)
+                    if (!strcmp(incs[i].name, hdr)) {
+                        if (++incs[i].count > MAX_INCLUDES) {
+                            char buf[8448]; snprintf(buf, sizeof(buf), "SOUL §7: header '%s' included %d times (max %d)", hdr, incs[i].count, MAX_INCLUDES);
+                            fclose(f2); report_fatal_error_and_exit(buf);
+                        }
+                        found = 1; break;
+                    }
+                if (!found && *inc_qty < 128) {
+                    snprintf(incs[*inc_qty].name, 64, "%s", hdr);
+                    incs[*inc_qty].count = 1; (*inc_qty)++;
+                }
+            }
+        }
+        fclose(f2);
+    }
+}
+
 void enforce_all_source_code_rules(const char *srcdir) {
     read_allowed_names_from_file(srcdir);
     read_banned_patterns_from_file(srcdir);
@@ -116,97 +209,8 @@ void enforce_all_source_code_rules(const char *srcdir) {
             char fname[256]; snprintf(fname, sizeof(fname), "%s", de->d_name);
             char *dot = strrchr(fname, '.'); if (dot) *dot = 0;
             validate_name_against_soul_rules("file", fname, sub);
-
             int is_c = !strcmp(de->d_name + strlen(de->d_name) - 2, ".c");
-            if (is_c) {
-                int lines = count_lines_within_source_file(sub);
-                if (lines > MAX_LINES_PER_FILE) {
-                    char buf[8448]; snprintf(buf, sizeof(buf), "SOUL §7: %s has %d lines (max %d)", sub, lines, MAX_LINES_PER_FILE);
-                    report_fatal_error_and_exit(buf);
-                }
-            }
-
-            FILE *f = fopen(sub, "r");
-            if (f) {
-                char line[1024];
-                int func_count = 0, func_lines = 0, in_func = 0, func_start = 0, depth = 0;
-                while (fgets(line, sizeof(line), f)) {
-                    if (!in_func) {
-                        if (detect_function_definition_start_line(line)) {
-                            func_count++;
-                            if (func_count > MAX_FUNCTIONS_PER_FILE) {
-                                char buf[8448]; snprintf(buf, sizeof(buf), "SOUL §7: %s has %d functions (max %d)", sub, func_count, MAX_FUNCTIONS_PER_FILE);
-                                fclose(f); report_fatal_error_and_exit(buf);
-                            }
-                            if (fn_qty < 512) {
-                                pull_function_name_from_definition(line, fns[fn_qty].name, 128);
-                                if (fns[fn_qty].name[0]) {
-                                    snprintf(fns[fn_qty].file, 256, "%.255s", sub);
-                                    if (strcmp(fns[fn_qty].name, "main"))
-                                        validate_name_against_soul_rules("function", fns[fn_qty].name, sub);
-                                    fn_qty++;
-                                }
-                            }
-                            in_func = 1; func_lines = 1; func_start = 1;
-                            depth = 0; count_open_close_brace_pairs(line, &depth);
-                            if (depth <= 0) { in_func = 0; }
-                            continue;
-                        }
-                    }
-                    if (in_func) {
-                        func_lines++;
-                        if (func_start) { func_start = 0; continue; }
-                        count_open_close_brace_pairs(line, &depth);
-                        if (depth <= 0) {
-                            if (func_lines > MAX_LINES_PER_FUNCTION) {
-                                char buf[8448]; snprintf(buf, sizeof(buf), "SOUL §7: %s func#%d is %d lines (max %d)", sub, func_count, func_lines, MAX_LINES_PER_FUNCTION);
-                                fclose(f); report_fatal_error_and_exit(buf);
-                            }
-                            in_func = 0; depth = 0;
-                        }
-                    }
-                    if (is_c && check_for_banned_keyword_pattern(line)) {
-                        char buf[8448]; snprintf(buf, sizeof(buf), "SOUL §7: %s uses banned pattern", sub);
-                        fclose(f); report_fatal_error_and_exit(buf);
-                    }
-                    if (is_c && detect_hardcoded_file_path_string(line)) {
-                        char buf[8448]; snprintf(buf, sizeof(buf), "SOUL §7: %s has hardcoded absolute path", sub);
-                        fclose(f); report_fatal_error_and_exit(buf);
-                    }
-                }
-                fclose(f);
-            }
-
-            FILE *f2 = fopen(sub, "r");
-            if (f2) {
-                char line[512];
-                while (fgets(line, sizeof(line), f2)) {
-                    char hdr[128] = {0}; int is_angle = 0;
-                    if (sscanf(line, " #include <%127[^>]>", hdr) == 1) is_angle = 1;
-                    else if (sscanf(line, " #include \"%127[^\"]\"", hdr) == 1) is_angle = 0;
-                    else continue;
-                    if (!match_header_against_include_whitelist(hdr)) {
-                        char buf[8448]; snprintf(buf, sizeof(buf), "SOUL §7: header '%s' not in whitelist", hdr);
-                        fclose(f2); report_fatal_error_and_exit(buf);
-                    }
-                    if (!is_angle) {
-                        int found = 0;
-                        for (int i = 0; i < inc_qty; i++)
-                            if (!strcmp(incs[i].name, hdr)) {
-                                if (++incs[i].count > MAX_INCLUDES) {
-                                    char buf[8448]; snprintf(buf, sizeof(buf), "SOUL §7: header '%s' included %d times (max %d)", hdr, incs[i].count, MAX_INCLUDES);
-                                    fclose(f2); report_fatal_error_and_exit(buf);
-                                }
-                                found = 1; break;
-                            }
-                        if (!found && inc_qty < 128) {
-                            snprintf(incs[inc_qty].name, 64, "%s", hdr);
-                            incs[inc_qty].count = 1; inc_qty++;
-                        }
-                    }
-                }
-                fclose(f2);
-            }
+            check_single_file_for_violations(sub, fname, is_c, fns, &fn_qty, incs, &inc_qty);
         }
         closedir(d);
         if (file_cnt > MAX_FILES_PER_DIR) {
