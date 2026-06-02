@@ -56,4 +56,7 @@ void exit_process(int code);
 /* Type mapping */
 char* vartype_to_c(const char *type_name);
 
+/* Regex */
+int regex_match(const char *text, const char *pattern);
+
 #endif /* IPM_BUILTINS_H */

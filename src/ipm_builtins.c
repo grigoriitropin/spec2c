@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // ipm_builtins.c — deterministic runtime library for spec2c-generated code
 #include "ipm_builtins.h"
+#include <regex.h>
 
 /* ── I/O primitives ──────────────────────────────────────────────────── */
 
@@ -170,6 +171,17 @@ void free_string_buffer(string_buffer *buf) {
     if (!buf) return;
     free(buf->data);
     free(buf);
+}
+
+/* ── Regex ─────────────────────────────────────────────────────────────── */
+
+int regex_match(const char *text, const char *pattern) {
+    if (!text || !pattern) return 0;
+    regex_t regex;
+    if (regcomp(&regex, pattern, REG_EXTENDED | REG_NOSUB)) return 0;
+    int rc = regexec(&regex, text, 0, NULL, 0);
+    regfree(&regex);
+    return rc == 0 ? 1 : 0;
 }
 
 /* ── Error handling ───────────────────────────────────────────────────── */
