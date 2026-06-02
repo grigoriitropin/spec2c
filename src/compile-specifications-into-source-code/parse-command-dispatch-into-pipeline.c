@@ -114,32 +114,31 @@ int main(int argc, char *argv[]) {
     return run_spec2c_pipeline_after_parsing(spec_path, out_path, base_dir, check_mode, check_spec, is_library);
 }
 
+/* ── IPM name validation helper ────────────────────────────────────── */
+static void check_ipm_name_against_soul(const char *name) {
+    if (!name || !name[0]) return;
+    if (!strcmp(name, "main")) return;
+    const char *banned[] = {"service","server","daemon","library","tool","binary",
+        "package","module","system","utility","application","program","process","worker",NULL};
+    char sep_str[2] = {strchr(name, '-') ? '-' : '_', 0};
+    char buf[256]; snprintf(buf, sizeof(buf), "%s", name);
+    int words = 0; char *tok = strtok(buf, sep_str);
+    while (tok) {
+        words++;
+        if ((int)strlen(tok) < 3)
+            report_fatal_error_and_exit("IPM validation: word too short in name");
+        for (int i = 0; banned[i]; i++)
+            if (!strcmp(tok, banned[i]))
+                report_fatal_error_and_exit("IPM validation: banned type word in name");
+        tok = strtok(NULL, sep_str);
+    }
+    if (words != 5)
+        report_fatal_error_and_exit("IPM validation: name must have exactly 5 words");
+}
+
 /* ── IPM/JSON specification validator (12 rules, SOUL §7 + §10) ───── */
 static int enforce_ipm_specification_validation_rules(const char *spec_text, cJSON *spec_json) {
     if (!spec_text || !spec_json) return 1;
-
-    const char *banned[] = {"service","server","daemon","library","tool","binary",
-        "package","module","system","utility","application","program","process","worker",NULL};
-
-    /* helper: validate a name against SOUL §10 */
-    void check_name(const char *what, const char *name) {
-        if (!name || !name[0]) return;
-        if (!strcmp(name, "main")) return;
-        char sep_str[2] = {strchr(name, '-') ? '-' : '_', 0};
-        char buf[256]; snprintf(buf, sizeof(buf), "%s", name);
-        int words = 0; char *tok = strtok(buf, sep_str);
-        while (tok) {
-            words++;
-            if ((int)strlen(tok) < 3)
-                report_fatal_error_and_exit("IPM validation: word too short in name");
-            for (int i = 0; banned[i]; i++)
-                if (!strcmp(tok, banned[i]))
-                    report_fatal_error_and_exit("IPM validation: banned type word in name");
-            tok = strtok(NULL, sep_str);
-        }
-        if (words != 5)
-            report_fatal_error_and_exit("IPM validation: name must have exactly 5 words");
-    }
 
     /* 1. File line count */
     int lines = 0;
@@ -164,7 +163,7 @@ static int enforce_ipm_specification_validation_rules(const char *spec_text, cJS
                     report_fatal_error_and_exit("IPM validation: function has >50 instructions");
             }
             /* validate function name */
-            if (fn->string) check_name("function", fn->string);
+            if (fn->string) check_ipm_name_against_soul(fn->string);
             fn = fn->next;
         }
     }
@@ -176,9 +175,9 @@ static int enforce_ipm_specification_validation_rules(const char *spec_text, cJS
 
     /* 5-7. Name validation */
     cJSON *pn = cJSON_GetObjectItemCaseSensitive(spec_json, "package_name");
-    if (pn && cJSON_IsString(pn)) check_name("package", pn->valuestring);
+    if (pn && cJSON_IsString(pn)) check_ipm_name_against_soul(pn->valuestring);
     cJSON *mn = cJSON_GetObjectItemCaseSensitive(spec_json, "module_name");
-    if (mn && cJSON_IsString(mn)) check_name("module", mn->valuestring);
+    if (mn && cJSON_IsString(mn)) check_ipm_name_against_soul(mn->valuestring);
 
     /* 8. No hardcoded paths in source_target fields */
     void check_no_hardcoded(const char *val) {
