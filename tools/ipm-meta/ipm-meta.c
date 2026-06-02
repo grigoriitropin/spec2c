@@ -77,6 +77,7 @@ int main(int argc, char **argv) {
     cJSON_AddStringToObject(meta, "toolchain", "spec2c");
     cJSON_AddStringToObject(meta, "toolchain_version", "0.2.0");
 
+    char ts[21]; ipm_timestamp(ts); cJSON_AddStringToObject(meta, "timestamp", ts);
     cJSON_AddNumberToObject(meta, "elapsed_us", (double)ipm_time_us());
     char *out = cJSON_PrintUnformatted(meta);
     printf("%s\n", out);

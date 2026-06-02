@@ -68,6 +68,7 @@ int main(void) {
     }
 
     cJSON *graph = cJSON_CreateObject();
+    char ts[21]; ipm_timestamp(ts); cJSON_AddStringToObject(graph, "timestamp", ts);
     cJSON_AddNumberToObject(graph, "elapsed_us", (double)ipm_time_us());
     cJSON_AddItemToObject(graph, "counts", counts);
     cJSON_AddNumberToObject(graph, "total_nodes",
