@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // ipm_builtins.c — deterministic runtime library for spec2c-generated code
-#include "ipm_builtins.h"
+#include "runtime-for-generated-ipm-code.h"
 #include <unistd.h>
 #include <sys/wait.h>
 #include <regex.h>

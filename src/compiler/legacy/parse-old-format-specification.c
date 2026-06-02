@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // legacy.c — old .spec.json format parser (backward compat)
 
-#include "../common_h/common.h"
+#include "../common_h/share-type-definitions-across-files.h"
 
 void parse_spec_from_cjson(cJSON *root, spec_t *s) {
     memset(s, 0, sizeof(*s));

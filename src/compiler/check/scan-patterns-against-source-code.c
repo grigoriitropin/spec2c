@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-#include "header.h"
+#include "share-check-types-and-declarations.h"
 
 
 void check_identifier_pattern(const pattern_def_t *pat, const char *identifier,

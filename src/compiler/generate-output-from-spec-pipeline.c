@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // pipeline.c — .ipm pipeline: header generation, output emission, auto-main
 
-#include "common_h/common.h"
+#include "common_h/share-type-definitions-across-files.h"
 
 void generate_header(const ipm_spec_t *spec, const char *hdr_path) {
     cJSON *funcs = cJSON_GetObjectItemCaseSensitive(spec->meta, "function_definitions");

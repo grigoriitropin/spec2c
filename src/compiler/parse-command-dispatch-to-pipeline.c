@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // main.c — entry point, CLI argument parsing, utility functions
 
-#include "common_h/common.h"
+#include "common_h/share-type-definitions-across-files.h"
 
 const char *jstr(const cJSON *obj, const char *key) {
     const cJSON *v = cJSON_GetObjectItemCaseSensitive(obj, key);

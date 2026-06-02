@@ -5,7 +5,7 @@
 //           dead code, naming whitelist
 // Naming whitelist loaded from src/allowed-names.txt at startup.
 
-#include "enforce.h"
+#include "verify-structural-source-code-rules.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -39,8 +39,14 @@ static int is_func_start(const char *line) {
 }
 
 static int has_banned(const char *line) {
-    return strstr(line, "goto ") || strstr(line, "goto\t") ||
-           strstr(line, "setjmp(") || strstr(line, "longjmp(");
+    if (strstr(line, "goto ") || strstr(line, "goto\t") ||
+        strstr(line, "setjmp(") || strstr(line, "longjmp("))
+        return 1;
+    if (strstr(line, "2>/dev/null") || strstr(line, ">/dev/null") ||
+        strstr(line, "&>/dev/null") || strstr(line, "1>/dev/null") ||
+        strstr(line, "2>&1"))
+        return 1;
+    return 0;
 }
 
 static int has_hardcoded_path(const char *line) {
@@ -70,7 +76,7 @@ static int is_allowed_include(const char *hdr) {
         "sys/stat.h","sys/types.h","sys/wait.h","sys/socket.h","sys/un.h",
         "dirent.h","regex.h","stdint.h","stddef.h","stdbool.h","time.h",
         "cjson/cJSON.h","netinet/in.h",
-        "ipm_builtins.h","enforce.h","common_h/common.h","enforce_sub/enforce.h",
+        "ipm_builtins.h","verify-structural-source-code-rules.h","common_h/common.h","enforce_sub/enforce.h",
         "../common_h/common.h","vehir_lib.h","ipm_json.h","header.h", NULL
     };
     for (int i = 0; ok[i]; i++) if (!strcmp(hdr, ok[i])) return 1;
@@ -226,7 +232,7 @@ void enforce_structural_limits(const char *srcdir) {
                             }
                         }
                         if (is_c && has_banned(line)) {
-                            char buf[512]; snprintf(buf, sizeof(buf), "SOUL §7: %s uses banned keyword (goto/setjmp/longjmp)", fp);
+                            char buf[512]; snprintf(buf, sizeof(buf), "SOUL §3§7: %s uses banned pattern (goto/setjmp/longjmp/output-suppression)", fp);
                             fclose(f); die(buf);
                         }
                         if (is_c && has_hardcoded_path(line)) {

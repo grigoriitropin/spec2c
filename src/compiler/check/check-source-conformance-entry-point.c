@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-#include "header.h"
+#include "share-check-types-and-declarations.h"
 
 const char *SPEC2C_CHECK_VERSION = "0.3";
 

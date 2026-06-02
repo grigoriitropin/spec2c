@@ -12,8 +12,8 @@
 #include <cjson/cJSON.h>
 #include <dirent.h>
 #include <sys/stat.h>
-#include "ipm_builtins.h"
-#include "enforce_sub/enforce.h"
+#include "runtime-for-generated-ipm-code.h"
+#include "enforce_sub/verify-structural-source-code-rules.h"
 
 #define SUBST_MAX 32
 #define VAL_SZ   4096

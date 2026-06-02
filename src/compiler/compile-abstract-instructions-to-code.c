@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // gen.c — AST-to-C code generation
 
-#include "common_h/common.h"
+#include "common_h/share-type-definitions-across-files.h"
 
 void ipm_add_subst(subst_t *subs, int *n, const char *k, const char *v) {
     if (*n >= SUBST_MAX) die("too many substitutions");
