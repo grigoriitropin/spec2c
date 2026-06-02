@@ -119,7 +119,7 @@ static void check_name(const char *what, const char *name, const char *fp) {
         "English only. Full words over abbreviations. "
         "Self-documenting.'";
 
-    char is_file = (what[0] == 'f');
+    char is_file = (what[0] == 'f' && what[1] == 'i');
     char sep = is_file ? '-' : '_';
 
     char buf[256]; snprintf(buf, sizeof(buf), "%s", name);
