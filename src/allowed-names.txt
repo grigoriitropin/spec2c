@@ -167,3 +167,4 @@ delete_file_from_disk_storage
 enumerate_directory_entry_list_items
 check_file_exists_upon_disk
 check_directory_exists_upon_disk
+count_newlines_within_text_string

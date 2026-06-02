@@ -37,8 +37,8 @@ int check_directory_exists_upon_disk(const char *path) {
     return (stat(path, &st) == 0 && S_ISDIR(st.st_mode)) ? 1 : 0;
 }
 
-/* count_newlines_in_text_string(text) → number of \n characters */
-int count_newlines_in_text_string(const char *text) {
+/* count_newlines_within_text_string(text) → number of \n characters */
+int count_newlines_within_text_string(const char *text) {
     if (!text) return 0;
     int n = 0;
     for (const char *p = text; *p; p++) if (*p == '\n') n++;
