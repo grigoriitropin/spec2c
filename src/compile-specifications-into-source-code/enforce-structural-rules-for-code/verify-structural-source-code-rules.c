@@ -33,6 +33,7 @@ static int detect_function_definition_start_line(const char *line) {
     const char *s = line;
     while (*s == ' ' || *s == '\t') s++;
     if (*s == '/' || *s == '*' || *s == '#' || *s == '\0' || *s == '\n' || *s == '!') return 0;
+    if (*s >= '0' && *s <= '9') return 0;
     if (strstr(s, "typedef") || strstr(s, "struct") || strstr(s, "enum")) return 0;
     const char *op = strchr(s, '(');
     const char *ob = strrchr(s, '{');
@@ -54,7 +55,8 @@ static int detect_function_definition_start_line(const char *line) {
         !strcmp(first, "strlen") || !strcmp(first, "sscanf") || !strcmp(first, "snprintf") ||
         !strcmp(first, "printf") || !strcmp(first, "fprintf") || !strcmp(first, "sprintf") ||
         !strcmp(first, "malloc") || !strcmp(first, "realloc") || !strcmp(first, "free") ||
-        !strcmp(first, "fopen") || !strcmp(first, "fclose")) return 0;
+        !strcmp(first, "fopen") || !strcmp(first, "fclose") ||
+        !strcmp(first, "calloc") || !strcmp(first, "memset")) return 0;
     return 1;
 }
 
