@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <cjson/cJSON.h>
+#include "ipm_time.h"
 
 static int known_configs(const char *name) {
     const char *known[] = {
@@ -46,6 +47,7 @@ static const char *category(const char *path, const char *type) {
 }
 
 int main(void) {
+    ipm_time_init();
     cJSON *counts = cJSON_CreateObject();
 
     char line[8192];
@@ -66,6 +68,7 @@ int main(void) {
     }
 
     cJSON *graph = cJSON_CreateObject();
+    cJSON_AddNumberToObject(graph, "elapsed_us", (double)ipm_time_us());
     cJSON_AddItemToObject(graph, "counts", counts);
     cJSON_AddNumberToObject(graph, "total_nodes",
         cJSON_GetArraySize(counts) > 0 ? 1 : 0); /* approximate */

@@ -2,9 +2,11 @@
   "package_name": "ipm-audit",
   "package_type": "tool",
   "module_name": "ipm_audit",
-  "imports": ["ipm_builtins_fs"],
+  "imports": [
+    "ipm_builtins_fs"
+  ],
   "template_definitions": {
-    "ipm_audit_main_c": "int main(int argc, char **argv) {\n    if (argc < 2) {\n        fprintf(stderr, \"Usage: %s <directory>\\n\", argv[0]);\n        return 1;\n    }\n    cJSON *entries = directory_list(argv[1]);\n    if (!entries) {\n        fprintf(stderr, \"cannot list directory\\n\");\n        return 1;\n    }\n    int nfiles = 0, nlines = 0;\n    cJSON *e = NULL;\n    cJSON_ArrayForEach(e, entries) {\n        if (!cJSON_IsString(e)) continue;\n        char full[4096];\n        snprintf(full, sizeof(full), \"%s/%s\", argv[1], e->valuestring);\n        char *content = read_file_to_string(full);\n        if (content) {\n            nfiles++;\n            nlines += string_count_newlines(content);\n            free(content);\n        }\n    }\n    printf(\"{\\\"path\\\":\\\"%s\\\",\\\"files\\\":%d,\\\"lines\\\":%d}\\n\", argv[1], nfiles, nlines);\n    cJSON_Delete(entries);\n    return 0;\n}\n"
+    "ipm_audit_main_c": "#include \"ipm_time.h\"\nint main(int argc, char **argv) {\n    ipm_time_init();\n    if (argc < 2) {\n        fprintf(stderr, \"Usage: %s <directory>\\n\", argv[0]);\n        return 1;\n    }\n    cJSON *entries = directory_list(argv[1]);\n    if (!entries) {\n        fprintf(stderr, \"cannot list directory\\n\");\n        return 1;\n    }\n    int nfiles = 0, nlines = 0;\n    cJSON *e = NULL;\n    cJSON_ArrayForEach(e, entries) {\n        if (!cJSON_IsString(e)) continue;\n        char full[4096];\n        snprintf(full, sizeof(full), \"%s/%s\", argv[1], e->valuestring);\n        char *content = read_file_to_string(full);\n        if (content) {\n            nfiles++;\n            nlines += string_count_newlines(content);\n            free(content);\n        }\n    }\n    printf(\"{\\\"path\\\":\\\"%s\\\",\\\"files\\\":%d,\\\"lines\\\":%d,\\\"elapsed_us\\\":%ld}\\n\", argv[1], nfiles, nlines, (long)ipm_time_us());\n    cJSON_Delete(entries);\n    return 0;\n}\n"
   },
   "function_definitions": {}
 }

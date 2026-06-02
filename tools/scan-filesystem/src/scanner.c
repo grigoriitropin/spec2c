@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ftw.h>
+#include "ipm_time.h"
 #include <sys/stat.h>
 
 static int max_depth = 64;
@@ -28,10 +29,13 @@ static int walk_callback(const char *fpath, const struct stat *sb,
     fprintf(stdout, "{\"path\":\"%s\",\"type\":\"%s\",\"size\":%ld,\"depth\":%d}\n",
             fpath, type_char(sb->st_mode),
             (long)sb->st_size, ftwbuf->level);
+    fprintf(stderr, "scan-filesystem: %ld us
+", (long)ipm_time_us());
     return 0;
 }
 
 int main(int argc, char **argv) {
+    ipm_time_init();
     const char *root = ".";
     for (int i = 1; i < argc; i++) {
         if (!strcmp(argv[i], "--max-depth") && i + 1 < argc)
@@ -44,5 +48,7 @@ int main(int argc, char **argv) {
         fprintf(stderr, "scan-filesystem: error walking %s\n", root);
         return 1;
     }
+    fprintf(stderr, "scan-filesystem: %ld us
+", (long)ipm_time_us());
     return 0;
 }

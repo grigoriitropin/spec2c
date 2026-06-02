@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <cjson/cJSON.h>
+#include "ipm_time.h"
 
 static char *read_file(const char *path) {
     FILE *f = fopen(path, "rb");
@@ -20,6 +21,7 @@ static char *read_file(const char *path) {
 }
 
 int main(int argc, char **argv) {
+    ipm_time_init();
     if (argc < 2) {
         fprintf(stderr, "Usage: ipm-meta <file.ipm>\n");
         return 1;
@@ -75,6 +77,7 @@ int main(int argc, char **argv) {
     cJSON_AddStringToObject(meta, "toolchain", "spec2c");
     cJSON_AddStringToObject(meta, "toolchain_version", "0.2.0");
 
+    cJSON_AddNumberToObject(meta, "elapsed_us", (double)ipm_time_us());
     char *out = cJSON_PrintUnformatted(meta);
     printf("%s\n", out);
     free(out);
