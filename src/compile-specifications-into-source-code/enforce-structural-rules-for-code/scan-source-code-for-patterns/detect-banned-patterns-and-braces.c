@@ -59,7 +59,7 @@ int detect_hardcoded_file_path_string(const char *line) {
     const char *p = line;
     while ((p = strstr(p, "\"/")) != NULL) {
         p += 2;
-        if (*p == '/') { p++; continue; } /* skip "//" */
+        if (*p == '/') { p++; continue; }
         if (*p >= 'a' && *p <= 'z') return 1;
     }
     return 0;
@@ -79,7 +79,7 @@ int match_name_against_stdlib_list(const char *name) {
     return 0;
 }
 
-/* ── cross-reference: .ipm file name validation ───────────────────── */
+/* ── cross-reference: .ipm validation ──────────────────────────────── */
 #include <cjson/cJSON.h>
 
 static void validate_single_ipm_name_value(const char *name, const char *what, const char *path) {
@@ -108,6 +108,36 @@ static void validate_single_ipm_name_value(const char *name, const char *what, c
     }
 }
 
+/* scan ALL string values in JSON tree for banned words */
+static void scan_json_for_banned_words(cJSON *node, const char *path) {
+    if (!node) return;
+    if (cJSON_IsString(node)) {
+        const char *val = node->valuestring;
+        if (!val || !val[0]) return;
+        char buf[256]; snprintf(buf, sizeof(buf), "%s", val);
+        for (char *tok = strtok(buf, " "); tok; tok = strtok(NULL, " ")) {
+            for (int i = 0; soul_banned_words[i]; i++)
+                if (!strcmp(tok, soul_banned_words[i])) {
+                    char msg[512]; snprintf(msg, sizeof(msg),
+                        "SOUL §10: .ipm string '%s' in %s contains banned word '%s'\n"
+                        "  → replace '%s' with a word describing WHAT it does, not WHAT it is",
+                        val, path, tok, tok);
+                    fprintf(stderr, "spec2c: %s\n", msg); exit(1);
+                }
+        }
+        return;
+    }
+    if (cJSON_IsArray(node)) {
+        cJSON *child = node->child;
+        while (child) { scan_json_for_banned_words(child, path); child = child->next; }
+        return;
+    }
+    if (cJSON_IsObject(node)) {
+        cJSON *child = node->child;
+        while (child) { scan_json_for_banned_words(child, path); child = child->next; }
+    }
+}
+
 void verify_ipm_names_across_sources(const char *srcdir) {
     void scan_ipm(const char *dpath) {
         DIR *dd = opendir(dpath); if (!dd) return;
@@ -122,9 +152,8 @@ void verify_ipm_names_across_sources(const char *srcdir) {
             if (nl <= 5 || strcmp(de2->d_name + nl - 4, ".ipm")) continue;
             ipm_cnt++;
 
-            /* validate .ipm file name (5 hyphen words) */
             char fname[256]; snprintf(fname, sizeof(fname), "%s", de2->d_name);
-            fname[nl - 4] = 0; /* strip .ipm */
+            fname[nl - 4] = 0;
             validate_single_ipm_name_value(fname, "file", sp);
 
             FILE *f = fopen(sp, "r"); if (!f) continue;
@@ -135,6 +164,9 @@ void verify_ipm_names_across_sources(const char *srcdir) {
             (void)!fread(txt, 1, sz, f); fclose(f); txt[sz] = 0;
             cJSON *root = cJSON_Parse(txt); free(txt);
             if (!root) continue;
+
+            scan_json_for_banned_words(root, sp);
+
             cJSON *pkg = cJSON_GetObjectItemCaseSensitive(root, "package_name");
             if (pkg && cJSON_IsString(pkg)) validate_single_ipm_name_value(pkg->valuestring, "package_name", sp);
             cJSON *mod = cJSON_GetObjectItemCaseSensitive(root, "module_name");
