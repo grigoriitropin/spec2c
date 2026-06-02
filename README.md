@@ -6,7 +6,7 @@ Declarative, deterministic, self-reproducing compiler. Converts `.ipm` specifica
 ## Architecture
 
 ```
-spec2c.ipm (AST, 15 functions, 268 instructions)
+spec2c.ipm (AST, 16 functions across 4 modules)
      ↓ compiled by
 spec2c.c (Stage 0, frozen C bootstrap)
      ↓ produces
