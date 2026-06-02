@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <sys/wait.h>
 #include <cjson/cJSON.h>
 
 typedef struct {
@@ -53,10 +55,21 @@ static const char *category(const char *path, const char *type) {
 int main(int argc, char **argv) {
     const char *root = argc > 1 ? argv[1] : ".";
 
-    char cmd[4096];
-    snprintf(cmd, sizeof(cmd), "scan-filesystem %s 2>/dev/null", root);
-    FILE *fp = popen(cmd, "r");
-    if (!fp) { fprintf(stderr, "ipm-graph: cannot run scan-filesystem\n"); return 1; }
+    int pipefd[2];
+    if (pipe(pipefd) != 0) { fprintf(stderr, "ipm-graph: pipe failed\n"); return 1; }
+
+    pid_t pid = fork();
+    if (pid == 0) {
+        close(pipefd[0]);
+        dup2(pipefd[1], STDOUT_FILENO);
+        close(pipefd[1]);
+        execlp("scan-filesystem", "scan-filesystem", root, NULL);
+        _exit(127);
+    }
+    close(pipefd[1]);
+
+    FILE *fp = fdopen(pipefd[0], "r");
+    if (!fp) { close(pipefd[0]); waitpid(pid, NULL, 0); return 1; }
 
     cJSON *graph = cJSON_CreateObject();
     cJSON_AddStringToObject(graph, "root", root);
@@ -82,7 +95,8 @@ int main(int argc, char **argv) {
 
         cJSON_Delete(entry);
     }
-    pclose(fp);
+    fclose(fp);
+    waitpid(pid, NULL, 0);
 
     cJSON_AddItemToObject(graph, "counts", counts);
     cJSON_AddNumberToObject(graph, "total_nodes", cJSON_GetArraySize(nodes));
