@@ -115,7 +115,7 @@ int main(int argc, char *argv[]) {
 }
 
 /* ── IPM/JSON specification validator (12 rules, SOUL §7 + §10) ───── */
-static int validate_ipm_specification(const char *spec_text, cJSON *spec_json) {
+static int enforce_ipm_specification_validation_rules(const char *spec_text, cJSON *spec_json) {
     if (!spec_text || !spec_json) return 1;
 
     const char *banned[] = {"service","server","daemon","library","tool","binary",
@@ -357,7 +357,7 @@ static int run_spec2c_pipeline_after_parsing(
     char *spec_text = read_entire_file_into_memory(spec_path);
     cJSON *spec_json = cJSON_Parse(spec_text);
     if (!spec_json) report_fatal_error_and_exit("JSON parse error in spec file");
-    validate_ipm_specification(spec_text, spec_json);
+    enforce_ipm_specification_validation_rules(spec_text, spec_json);
     validate_structural_limits_against_spec(spec_text, spec_json);
 
     cJSON *pkg_name = cJSON_GetObjectItemCaseSensitive(spec_json, "package_name");
