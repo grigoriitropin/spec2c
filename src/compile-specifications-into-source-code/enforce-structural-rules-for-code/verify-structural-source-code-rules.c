@@ -95,7 +95,6 @@ static void check_single_file_for_violations(const char *sub, int is_c,
                     }
                     in_func = 1; func_lines = 1; func_start = 1;
                     clear_brace_tracking_for_function(&bstate); count_open_close_brace_pairs(line, &bstate);
-                    if (strstr(sub, "parse-command-dispatch"))
                             func_count, func_lines, bstate.depth, line);
                     if (bstate.depth <= 0) { in_func = 0; }
                     continue;
@@ -105,7 +104,6 @@ static void check_single_file_for_violations(const char *sub, int is_c,
                 func_lines++;
                 if (func_start) { func_start = 0; continue; }
                 count_open_close_brace_pairs(line, &bstate);
-                if (strstr(sub, "parse-command-dispatch"))
                         func_lines, bstate.depth, bstate.in_str, bstate.in_char, bstate.in_comment, line);
                 if (bstate.depth <= 0) {
                     if (func_lines > MAX_LINES_PER_FUNCTION) {
