@@ -13,7 +13,7 @@ static int debug_trace = 0;
 
 #define MAX_FILES_PER_DIR 3
 #define MAX_LINES_PER_FILE 400
-#define MAX_INCLUDES 4
+#define MAX_INCLUDES 5
 #define MAX_FUNCTIONS_PER_FILE 10
 #define MAX_LINES_PER_FUNCTION 50
 
