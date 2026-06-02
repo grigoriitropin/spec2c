@@ -44,6 +44,7 @@ typedef struct { char *data; size_t len; size_t cap; } string_buffer;
 string_buffer* create_string_buffer(void);
 void append_to_buffer(string_buffer *buf, const char *str);
 void write_buffer_to_file(string_buffer *buf, const char *path);
+void flush_buffer_to_stdout(string_buffer *buf);
 void free_string_buffer(string_buffer *buf);
 
 /* Error handling — structured JSON output */

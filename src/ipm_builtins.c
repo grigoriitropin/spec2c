@@ -160,6 +160,12 @@ void write_buffer_to_file(string_buffer *buf, const char *path) {
     fclose(f);
 }
 
+void flush_buffer_to_stdout(string_buffer *buf) {
+    if (!buf) return;
+    fwrite(buf->data, 1, buf->len, stdout);
+    fflush(stdout);
+}
+
 void free_string_buffer(string_buffer *buf) {
     if (!buf) return;
     free(buf->data);

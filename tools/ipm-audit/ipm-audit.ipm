@@ -2,46 +2,9 @@
   "package_name": "ipm-audit",
   "package_type": "tool",
   "module_name": "ipm_audit",
-  "imports": [
-    "ipm_builtins_fs"
-  ],
+  "imports": ["ipm_builtins_fs"],
   "template_definitions": {
-    "ipm_audit_main_c": "int main(int argc, char **argv) {\n    if (argc < 2) {\n        fprintf(stderr, \"Usage: %s <directory>\\n\", argv[0]);\n        return 1;\n    }\n    cJSON *entries = audit_scan(argv[1]);\n    if (!entries) {\n        fprintf(stderr, \"cannot list directory\\n\");\n        return 1;\n    }\n    printf(\"{\\\"path\\\":\\\"%s\\\",\\\"entries\\\":%d}\\n\", argv[1], cJSON_GetArraySize(entries));\n    cJSON_Delete(entries);\n    return 0;\n}\n"
+    "ipm_audit_main_c": "int main(int argc, char **argv) {\n    if (argc < 2) {\n        fprintf(stderr, \"Usage: %s <directory>\\n\", argv[0]);\n        return 1;\n    }\n    cJSON *entries = directory_list(argv[1]);\n    if (!entries) {\n        fprintf(stderr, \"cannot list directory\\n\");\n        return 1;\n    }\n    int nfiles = 0, nlines = 0;\n    cJSON *e = NULL;\n    cJSON_ArrayForEach(e, entries) {\n        if (!cJSON_IsString(e)) continue;\n        char full[4096];\n        snprintf(full, sizeof(full), \"%s/%s\", argv[1], e->valuestring);\n        char *content = read_file_to_string(full);\n        if (content) {\n            nfiles++;\n            nlines += string_count_newlines(content);\n            free(content);\n        }\n    }\n    printf(\"{\\\"path\\\":\\\"%s\\\",\\\"files\\\":%d,\\\"lines\\\":%d}\\n\", argv[1], nfiles, nlines);\n    cJSON_Delete(entries);\n    return 0;\n}\n"
   },
-  "function_definitions": {
-    "audit_scan": {
-      "description": "List directory, return cJSON array or NULL",
-      "return_type": "json_array",
-      "parameter_definitions": [
-        {
-          "parameter_name": "target_path",
-          "parameter_type": "string"
-        }
-      ],
-      "execution_instructions": [
-        {
-          "instruction_type": "function_invocation",
-          "invocation_name": "directory_list",
-          "invocation_arguments": {
-            "path": "target_path"
-          },
-          "result_assignment_variable": "entries",
-          "result_type": "json_array"
-        },
-        {
-          "instruction_type": "conditional_branch",
-          "condition_operation": "is_not_null",
-          "condition_target": "entries",
-          "branch_on_success": [],
-          "branch_on_failure": []
-        },
-        {
-          "instruction_type": "return_statement",
-          "return_payload": {
-            "value": "entries"
-          }
-        }
-      ]
-    }
-  }
+  "function_definitions": {}
 }

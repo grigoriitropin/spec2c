@@ -9,5 +9,6 @@
 cJSON* directory_list(const char *path);
 int    file_exists(const char *path);
 int    dir_exists(const char *path);
+int    string_count_newlines(const char *text);
 
 #endif

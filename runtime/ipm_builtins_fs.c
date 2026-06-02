@@ -36,3 +36,11 @@ int dir_exists(const char *path) {
     struct stat st;
     return (stat(path, &st) == 0 && S_ISDIR(st.st_mode)) ? 1 : 0;
 }
+
+/* string_count_newlines(text) → number of \n characters */
+int string_count_newlines(const char *text) {
+    if (!text) return 0;
+    int n = 0;
+    for (const char *p = text; *p; p++) if (*p == '\n') n++;
+    return n;
+}
