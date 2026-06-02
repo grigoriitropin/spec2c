@@ -674,17 +674,6 @@ static void generate_from_ipm(const ipm_spec_t *spec, const char *out_path, int 
     /* Phase 2a: compile AST functions to C */
     compile_functions_to_c(spec, out_fp, is_library);
 
-    /* Auto-generate main() from function_definitions */
-    cJSON *funcs = cJSON_GetObjectItemCaseSensitive(spec->meta, "function_definitions");
-    if (funcs && funcs->child) {
-        const char *entry = funcs->child->string;
-        fprintf(out_fp, "\n/* --- auto-generated main --- */\n");
-        fprintf(out_fp, "int main(int argc, char **argv) {\n");
-        fprintf(out_fp, "    (void)argc; (void)argv;\n");
-        fprintf(out_fp, "    return %s();\n", entry);
-        fprintf(out_fp, "}\n");
-    }
-
     if (out_path) fclose(out_fp);
 }
 
