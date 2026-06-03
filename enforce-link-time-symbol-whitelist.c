@@ -3,69 +3,92 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/types.h>
-#include <sys/wait.h>
+#include <elf.h>
 
 #include "src/bootstrap-compiled-limit-hash-data/bootstrap-file-sha-hashes-generated.h"
+#include "verifysignature.h"
+
+/* ── Ed25519 Operator Public Key (hex) ────────────────────────────────────── */
+/* Generated once by the operator; private key stays offline. */
+static const char OPERATOR_PUBKEY_HEX[] =
+    "489532082ae4dfc21c6ffe21e1bf78c432bc07200d712ad07568c9a46fe52f24";
 
 /* ── Whitelist of Allowed Symbols (Narrowed) ─────────────────────────────── */
 static const char *allowed_symbols[] = {
-    // OS syscalls
-    "__libc_start_main", "__cxa_finalize", "exit", "_exit", "abort", "__assert_fail",
-    "pthread", "dlopen", "dlsym", "mmap", "munmap", "openat", "close", "read", "write",
-    "fstat", "lseek", "getrandom", "clock_gettime", "sigaction", "rt_sigaction",
-    "socket", "connect", "bind", "listen", "accept", "sendto", "recvfrom", "setsockopt",
-    "epoll_create1", "epoll_ctl", "epoll_wait", "sched_yield", "clone", "wait4", "kill",
-    "getpid", "getppid", "getuid", "geteuid", "getgid", "getegid", "syscall", "nanosleep",
-    "getenv", "setenv", "unsetenv", "getcwd", "chdir", "access", "faccessat", "stat",
-    "mkdir", "unlink", "rename", "rmdir", "symlink", "readlink", "fork", "execve",
-    "waitpid", "dup", "dup2", "pipe", "fcntl", "getdents", "getdents64", "prctl",
-    "arch_prctl", "set_tid_address", "set_robust_list", "rseq", "mprotect", "brk", "sbrk",
-    "madvise", "mlock", "munlock", "mincore", "msync", "memfd_create", "shmget", "shmat",
-    "shmctl", "shmdt", "semget", "semop", "semctl", "msgget", "msgsnd", "msgrcv", "msgctl",
-    "io_uring_setup", "io_uring_enter", "io_uring_register",
+    /* Toolchain / compiler auto-injected */
+    "__libc_start_main", "__cxa_finalize",
+    "__stack_chk_fail", "__gmon_start__",
+    "_ITM_deregisterTMCloneTable", "_ITM_registerTMCloneTable",
 
-    // Toolchain/compiler automatic/weak symbols
-    "__stack_chk_fail",
-    "__gmon_start__",
-    "_ITM_deregisterTMCloneTable",
-    "_ITM_registerTMCloneTable",
-
-    // Standard I/O streams
+    /* Standard I/O streams */
     "stderr", "stdout", "stdin",
+
+    /* Process lifecycle */
+    "exit", "_exit",
+
+    /* Memory */
+    "malloc", "free", "realloc", "memcpy", "memmove", "memset", "memcmp",
+
+    /* File I/O (used by enforcer ELF reader and by generated IPM code) */
+    "fopen", "fclose", "fread", "fwrite", "fseek", "ftell", "fdopen", "fflush",
+    "feof", "ferror", "fgets", "fputs",
+
+    /* Formatted I/O (used by generated IPM code and enforcer diagnostics) */
+    "fprintf", "snprintf", "sprintf",
+    "__fprintf_chk", "__snprintf_chk", "__sprintf_chk",
+    "__fread_chk", "__memcpy_chk",
+
+    /* Directory traversal (used by generated IPM scanner) */
+    "opendir", "readdir", "closedir",
+
+    /* String functions (used by generated IPM code and verifysignature) */
+    "strcmp", "strchr", "strrchr", "strstr", "strcpy", "strdup", "strtok", "strlen",
+
+    /* Number parsing (used by generated IPM code) */
+    "strtod", "strtol",
+    "__isoc99_sscanf", "__isoc23_sscanf", "__isoc23_strtol",
+
+    /* Misc libc (used by generated IPM code) */
+    "stat", "qsort", "localeconv",
+    "__ctype_tolower_loc",
+
+    /* Process control (used by buffer-output-and-command-launch.c) */
+    "fork", "execvp", "waitpid", "dup2", "pipe", "close",
 };
 
-/* ── Base Whitelist (for additions/removals detection) ───────────────────── */
+/* ── Base Whitelist Snapshot (for additions gate) ────────────────────────── */
+/* MUST stay identical to allowed_symbols[] above at all times. */
+/* Any addition to allowed_symbols[] that is NOT here requires operator sig. */
 static const char *base_whitelist[] = {
-    "__libc_start_main", "__cxa_finalize", "exit", "_exit", "abort", "__assert_fail",
-    "pthread", "dlopen", "dlsym", "mmap", "munmap", "openat", "close", "read", "write",
-    "fstat", "lseek", "getrandom", "clock_gettime", "sigaction", "rt_sigaction",
-    "socket", "connect", "bind", "listen", "accept", "sendto", "recvfrom", "setsockopt",
-    "epoll_create1", "epoll_ctl", "epoll_wait", "sched_yield", "clone", "wait4", "kill",
-    "getpid", "getppid", "getuid", "geteuid", "getgid", "getegid", "syscall", "nanosleep",
-    "getenv", "setenv", "unsetenv", "getcwd", "chdir", "access", "faccessat", "stat",
-    "mkdir", "unlink", "rename", "rmdir", "symlink", "readlink", "fork", "execve",
-    "waitpid", "dup", "dup2", "pipe", "fcntl", "getdents", "getdents64", "prctl",
-    "arch_prctl", "set_tid_address", "set_robust_list", "rseq", "mprotect", "brk", "sbrk",
-    "madvise", "mlock", "munlock", "mincore", "msync", "memfd_create", "shmget", "shmat",
-    "shmctl", "shmdt", "semget", "semop", "semctl", "msgget", "msgsnd", "msgrcv", "msgctl",
-    "io_uring_setup", "io_uring_enter", "io_uring_register",
+    "__libc_start_main", "__cxa_finalize",
     "__stack_chk_fail", "__gmon_start__",
     "_ITM_deregisterTMCloneTable", "_ITM_registerTMCloneTable",
     "stderr", "stdout", "stdin",
+    "exit", "_exit",
+    "malloc", "free", "realloc", "memcpy", "memmove", "memset", "memcmp",
+    "fopen", "fclose", "fread", "fwrite", "fseek", "ftell", "fdopen", "fflush",
+    "feof", "ferror", "fgets", "fputs",
+    "fprintf", "snprintf", "sprintf",
+    "__fprintf_chk", "__snprintf_chk", "__sprintf_chk",
+    "__fread_chk", "__memcpy_chk",
+    "opendir", "readdir", "closedir",
+    "strcmp", "strchr", "strrchr", "strstr", "strcpy", "strdup", "strtok", "strlen",
+    "strtod", "strtol",
+    "__isoc99_sscanf", "__isoc23_sscanf", "__isoc23_strtol",
+    "stat", "qsort", "localeconv",
+    "__ctype_tolower_loc",
+    "fork", "execvp", "waitpid", "dup2", "pipe", "close",
 };
 
 /* ── SHA256 Implementation (public domain) ──────────────────────────────── */
-#define ROTR(x,n) (((x)>>(n))|((x)<<(32-(n))))
-#define SHR(x,n)  ((x)>>(n))
-#define CH(x,y,z) (((x)&(y))^(~(x)&(z)))
-#define MAJ(x,y,z) (((x)&(y))^((x)&(z))^((y)&(z)))
-#define SIG0(x) (ROTR(x,2)^ROTR(x,13)^ROTR(x,22))
-#define SIG1(x) (ROTR(x,6)^ROTR(x,11)^ROTR(x,25))
-#define sig0(x) (ROTR(x,7)^ROTR(x,18)^SHR(x,3))
-#define sig1(x) (ROTR(x,17)^ROTR(x,19)^SHR(x,10))
+#define S256_ROTR(x,n) (((x)>>(n))|((x)<<(32-(n))))
+#define S256_SHR(x,n)  ((x)>>(n))
+#define S256_CH(x,y,z) (((x)&(y))^(~(x)&(z)))
+#define S256_MAJ(x,y,z) (((x)&(y))^((x)&(z))^((y)&(z)))
+#define S256_SIG0(x) (S256_ROTR(x,2)^S256_ROTR(x,13)^S256_ROTR(x,22))
+#define S256_SIG1(x) (S256_ROTR(x,6)^S256_ROTR(x,11)^S256_ROTR(x,25))
+#define S256_sig0(x) (S256_ROTR(x,7)^S256_ROTR(x,18)^S256_SHR(x,3))
+#define S256_sig1(x) (S256_ROTR(x,17)^S256_ROTR(x,19)^S256_SHR(x,10))
 
 static const uint32_t K[64] = {
     0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
@@ -83,29 +106,17 @@ static void solve_sha256_message_block_hash(const uint8_t *block, uint32_t h[8])
     for (int i = 0; i < 16; i++, block += 4)
         w[i] = ((uint32_t)block[0]<<24)|((uint32_t)block[1]<<16)|((uint32_t)block[2]<<8)|(uint32_t)block[3];
     for (int i = 16; i < 64; i++)
-        w[i] = sig1(w[i-2]) + w[i-7] + sig0(w[i-15]) + w[i-16];
+        w[i] = S256_sig1(w[i-2]) + w[i-7] + S256_sig0(w[i-15]) + w[i-16];
     uint32_t a = h[0], b = h[1], c = h[2], d = h[3];
     uint32_t e = h[4], f = h[5], g = h[6], j = h[7];
     for (int i = 0; i < 64; i++) {
-        uint32_t t1 = j + SIG1(e) + CH(e,f,g) + K[i] + w[i];
-        uint32_t t2 = SIG0(a) + MAJ(a,b,c);
-        j = g;
-        g = f;
-        f = e;
-        e = d + t1;
-        d = c;
-        c = b;
-        b = a;
-        a = t1 + t2;
+        uint32_t t1 = j + S256_SIG1(e) + S256_CH(e,f,g) + K[i] + w[i];
+        uint32_t t2 = S256_SIG0(a) + S256_MAJ(a,b,c);
+        j = g; g = f; f = e; e = d + t1;
+        d = c; c = b; b = a; a = t1 + t2;
     }
-    h[0] += a;
-    h[1] += b;
-    h[2] += c;
-    h[3] += d;
-    h[4] += e;
-    h[5] += f;
-    h[6] += g;
-    h[7] += j;
+    h[0] += a; h[1] += b; h[2] += c; h[3] += d;
+    h[4] += e; h[5] += f; h[6] += g; h[7] += j;
 }
 
 static void compute_sha256_hash_into_bytes(const uint8_t *data, uint32_t len, uint8_t out[32]) {
@@ -146,9 +157,7 @@ static int compute_file_sha256_hex_digest(const char *path, char *out_hex) {
     uint8_t *buf = malloc((size_t)sz + 1);
     if (!buf) { fclose(f); return 0; }
     size_t n = 0;
-    if (sz > 0) {
-        n = fread(buf, 1, (size_t)sz, f);
-    }
+    if (sz > 0) n = fread(buf, 1, (size_t)sz, f);
     fclose(f);
     uint8_t hash[32];
     compute_sha256_hash_into_bytes(buf, (uint32_t)n, hash);
@@ -161,7 +170,7 @@ static int compute_file_sha256_hex_digest(const char *path, char *out_hex) {
 
 /* ── Exemption Check Logic ────────────────────────────────────────────────── */
 static const char *frozen_bootstrap_sources[] = {
-    // s2c_enforce / s2c-enforce sources:
+    /* s2c_enforce / s2c-enforce sources: */
     "src/compile-specifications-into-source-code/enforce-structural-rules-for-code/verify-structural-source-code-rules.c",
     "src/compile-specifications-into-source-code/enforce-structural-rules-for-code/enforce-naming-whitelist-and-validation.c",
     "src/compile-specifications-into-source-code/enforce-structural-rules-for-code/scan-source-code-for-patterns/detect-banned-patterns-and-braces.c",
@@ -174,8 +183,7 @@ static const char *frozen_bootstrap_sources[] = {
     "src/support-code-for-compiled-output/structural-rule-checker-batch-two/structural-rule-checker-batch-two.c",
     "src/support-code-for-compiled-output/validate-type-name-against-whitelist/validate-type-name-against-whitelist.c",
     "src/support-code-for-compiled-output/buffer-output-and-command-launch.c",
-
-    // spec2c specific sources:
+    /* spec2c specific sources: */
     "src/compile-specifications-into-source-code/codegen-instruction-handler-function-set/emit-variable-declaration-handler-function.c",
     "src/compile-specifications-into-source-code/codegen-instruction-handler-function-set/extracted-codegen-helper-functions-here/emit-report-error-and-exit.c",
     "src/compile-specifications-into-source-code/compile-abstract-instructions-into-code.c",
@@ -210,118 +218,81 @@ static int check_s2c_enforce_exemption(void) {
     for (int i = 0; i < count; i++) {
         const char *path = frozen_bootstrap_sources[i];
         int idx = find_hash_index(path);
-        if (idx == -1) {
-            return 0; // Not found in hashes list -> not exempt
-        }
-        // If the frozen hash is all zeros, it means the generator skipped it, so we skip it too
-        if (strcmp(hash_sha256_values[idx], "0000000000000000000000000000000000000000000000000000000000000000") == 0) {
+        if (idx == -1) return 0;
+        if (strcmp(hash_sha256_values[idx],
+                   "0000000000000000000000000000000000000000000000000000000000000000") == 0)
             continue;
-        }
         char computed_hex[65];
-        if (!compute_file_sha256_hex_digest(path, computed_hex)) {
-            return 0; // File unreadable -> not exempt
-        }
-        if (strcmp(computed_hex, hash_sha256_values[idx]) != 0) {
-            return 0; // Hash mismatch -> not exempt
-        }
+        if (!compute_file_sha256_hex_digest(path, computed_hex)) return 0;
+        if (strcmp(computed_hex, hash_sha256_values[idx]) != 0) return 0;
     }
-    return 1; // All hashes matched!
+    return 1;
 }
 
 static int check_frozen_exempt_binaries(const char *bin_name) {
-    int exempt_count = sizeof(frozen_exempt_binaries) / sizeof(frozen_exempt_binaries[0]);
-    for (int i = 0; i < exempt_count; i++) {
-        if (strcmp(bin_name, frozen_exempt_binaries[i]) == 0) {
-            return 1;
-        }
+    int n = (int)(sizeof(frozen_exempt_binaries) / sizeof(frozen_exempt_binaries[0]));
+    for (int i = 0; i < n; i++) {
+        if (strcmp(bin_name, frozen_exempt_binaries[i]) == 0) return 1;
     }
     return 0;
 }
 
-/* ── Operator Signature Mechanism ────────────────────────────────────────── */
-static const uint8_t OPERATOR_KEY[32] = {0};
-
+/* ── Operator Signature Verification (Ed25519) ───────────────────────────── */
+/*
+ * The operator signs the allowed_symbols[] array text using Ed25519.
+ * The signature is appended to this source file as:
+ *   // ---SIGNATURE--- <128-hex-char Ed25519 signature>
+ *
+ * Any addition to allowed_symbols[] that is not in base_whitelist[]
+ * MUST be accompanied by a valid operator signature, or the build fails.
+ *
+ * To re-sign after editing allowed_symbols[]:
+ *   1. Extract the array text between the first '{' and matching '}'
+ *      after "allowed_symbols" in this source file.
+ *   2. Write that text to a file, sign with operator Ed25519 private key:
+ *        openssl pkeyutl -sign -inkey operator.priv -rawin -in msg.txt \
+ *          -out sig.bin
+ *   3. Hex-encode sig.bin (128 hex chars) and update ---SIGNATURE--- below.
+ */
 static int verify_signature_mechanism(void) {
     const char *src_file = "enforce-link-time-symbol-whitelist.c";
     FILE *f = fopen(src_file, "r");
-    if (!f) {
-        f = fopen("/home/vehir/spec2c/enforce-link-time-symbol-whitelist.c", "r");
-    }
-    if (!f) {
-        return 0;
-    }
+    if (!f) f = fopen("/home/vehir/spec2c/enforce-link-time-symbol-whitelist.c", "r");
+    if (!f) return 0;
 
     fseek(f, 0, SEEK_END);
     long sz = ftell(f);
     fseek(f, 0, SEEK_SET);
-    if (sz <= 0) {
-        fclose(f);
-        return 0;
-    }
+    if (sz <= 0) { fclose(f); return 0; }
 
-    char *file_content = malloc(sz + 1);
-    if (!file_content) {
-        fclose(f);
-        return 0;
-    }
-
-    size_t n = fread(file_content, 1, sz, f);
-    file_content[n] = '\0';
+    char *fc = malloc((size_t)sz + 1);
+    if (!fc) { fclose(f); return 0; }
+    size_t n = fread(fc, 1, (size_t)sz, f);
+    fc[n] = '\0';
     fclose(f);
 
-    // Find allowed_symbols inside file_content
-    char *start = strstr(file_content, "allowed_symbols");
-    if (!start) {
-        free(file_content);
-        return 0;
-    }
+    /* Extract allowed_symbols[] array body */
+    char *start = strstr(fc, "allowed_symbols[]");
+    if (!start) { free(fc); return 0; }
     start = strchr(start, '{');
-    if (!start) {
-        free(file_content);
-        return 0;
-    }
-    start++; // skip '{'
+    if (!start) { free(fc); return 0; }
+    start++;
     char *end = strchr(start, '}');
-    if (!end) {
-        free(file_content);
-        return 0;
-    }
+    if (!end) { free(fc); return 0; }
 
-    size_t len = end - start;
-    char *array_text = malloc(len + 1);
-    if (!array_text) {
-        free(file_content);
-        return 0;
-    }
-    memcpy(array_text, start, len);
-    array_text[len] = '\0';
+    size_t body_len = (size_t)(end - start);
+    char *body = malloc(body_len + 1);
+    if (!body) { free(fc); return 0; }
+    memcpy(body, start, body_len);
+    body[body_len] = '\0';
 
-    // Compute SHA-256 of array_text
-    uint8_t hash1[32];
-    compute_sha256_hash_into_bytes((const uint8_t *)array_text, len, hash1);
-    free(array_text);
-
-    // Concat with OPERATOR_KEY
-    uint8_t concat[64];
-    memcpy(concat, hash1, 32);
-    memcpy(concat + 32, OPERATOR_KEY, 32);
-
-    uint8_t hash2[32];
-    compute_sha256_hash_into_bytes(concat, 64, hash2);
-
-    char expected_sig[65];
-    for (int i = 0; i < 32; i++) {
-        sprintf(expected_sig + i*2, "%02x", hash2[i]);
-    }
-    expected_sig[64] = '\0';
-
-    // Look for signature marker
-    char *sig_marker = strstr(file_content, "---SIG" "NATURE---");
-    char found_sig[65] = {0};
+    /* Look for ---SIGNATURE--- in the file */
+    char *sig_marker = strstr(fc, "---SIG" "NATURE---");
+    char found_sig[129] = {0};
     if (sig_marker) {
-        char *p = sig_marker + 15; // len of signature marker
+        char *p = sig_marker + 15; /* skip "---SIGNATURE---" (15 chars) */
         int hex_count = 0;
-        while (*p && hex_count < 64) {
+        while (*p && hex_count < 128) {
             char c = *p;
             if ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
                 found_sig[hex_count++] = c;
@@ -332,158 +303,180 @@ static int verify_signature_mechanism(void) {
         }
         found_sig[hex_count] = '\0';
     }
+    free(fc);
 
-    free(file_content);
-
-    // Convert found_sig to lowercase
+    /* Normalise found_sig to lowercase */
     for (int i = 0; found_sig[i]; i++) {
-        if (found_sig[i] >= 'A' && found_sig[i] <= 'Z') {
-            found_sig[i] = found_sig[i] - 'A' + 'a';
-        }
+        if (found_sig[i] >= 'A' && found_sig[i] <= 'Z')
+            found_sig[i] = (char)(found_sig[i] - 'A' + 'a');
     }
 
-    // Check additions
-    int allowed_qty_symbols = sizeof(allowed_symbols) / sizeof(allowed_symbols[0]);
-    int base_qty_symbols = sizeof(base_whitelist) / sizeof(base_whitelist[0]);
-    
-    for (int i = 0; i < allowed_qty_symbols; i++) {
+    /* Check whether allowed_symbols[] has any additions beyond base_whitelist[] */
+    int allowed_count = (int)(sizeof(allowed_symbols) / sizeof(allowed_symbols[0]));
+    int base_count    = (int)(sizeof(base_whitelist)  / sizeof(base_whitelist[0]));
+    int has_additions = 0;
+    for (int i = 0; i < allowed_count; i++) {
         const char *sym = allowed_symbols[i];
         int found = 0;
-        for (int j = 0; j < base_qty_symbols; j++) {
-            if (strcmp(sym, base_whitelist[j]) == 0) {
-                found = 1;
-                break;
-            }
+        for (int j = 0; j < base_count; j++) {
+            if (strcmp(sym, base_whitelist[j]) == 0) { found = 1; break; }
         }
-        if (!found) {
-            // Addition!
-            int sig_valid = 0;
-            if (sig_marker && strcmp(found_sig, expected_sig) == 0) {
-                sig_valid = 1;
-            }
-            if (!sig_valid) {
-                fprintf(stderr, "EXPECTED: %s, FOUND: %s\n", expected_sig, found_sig);
-                fprintf(stderr, "UNSIGNED ALLOW: %s rejected\n", sym);
-                return 0; // Signature verification failed
-            }
-        }
+        if (!found) { has_additions = 1; break; }
     }
 
-    return 1; // Signature verification passed (or no additions)
+    if (!has_additions) {
+        free(body);
+        return 1; /* No additions — no signature required */
+    }
+
+    /* Verify Ed25519 signature over body */
+    if (found_sig[0] == '\0') {
+        fprintf(stderr, "UNSIGNED ADDITION: whitelist additions require operator Ed25519 signature\n");
+        free(body);
+        return 0;
+    }
+    int rc = verify_signature(OPERATOR_PUBKEY_HEX, found_sig,
+                              (const unsigned char *)body, body_len);
+    if (rc != 0) {
+        fprintf(stderr, "INVALID SIGNATURE: whitelist signature verification failed\n");
+        free(body);
+        return 0;
+    }
+    free(body);
+    return 1;
 }
 
-/* ── Symbol Whitelist Check Logic ─────────────────────────────────────────── */
-static int is_allowed_symbol(const char *sym, const char *bin_name) {
-    // 1. If it is ipm-enforce, it is allowed to have libc functions except banned ones (like strncmp, strlen, regcomp, regexec)
-    if (strcmp(bin_name, "ipm-enforce") == 0) {
-        if (strcmp(sym, "strncmp") == 0 || strcmp(sym, "strlen") == 0 ||
-            strcmp(sym, "regcomp") == 0 || strcmp(sym, "regexec") == 0) {
-            return 0;
-        }
-        return 1;
-    }
-
-    // 2. Verify against the allowed_symbols list
-    int allowed_count = sizeof(allowed_symbols) / sizeof(allowed_symbols[0]);
-    for (int i = 0; i < allowed_count; i++) {
-        if (strcmp(sym, allowed_symbols[i]) == 0) {
-            return 1;
-        }
-    }
-
-    return 0;
-}
-
+/* ── Direct ELF64 Symbol Scanner (no fork, no exec, no pipe) ─────────────── */
+/*
+ * Reads the binary at binary_path directly, walks SHT_DYNSYM and SHT_SYMTAB
+ * sections, and returns 1 if any SHN_UNDEF symbol is not on the whitelist.
+ */
 static int run_whitelist_check(const char *binary_path, const char *bin_name) {
-    int pipefd[2];
-    if (pipe(pipefd) == -1) {
-        perror("pipe");
+    FILE *f = fopen(binary_path, "rb");
+    if (!f) {
+        fprintf(stderr, "ENFORCE: cannot open %s\n", binary_path);
         return 1;
     }
 
-    pid_t pid = fork();
-    if (pid == -1) {
-        perror("fork");
+    /* Read ELF header */
+    Elf64_Ehdr ehdr;
+    if (fread(&ehdr, sizeof(ehdr), 1, f) != 1) {
+        fprintf(stderr, "ENFORCE: cannot read ELF header of %s\n", binary_path);
+        fclose(f);
         return 1;
     }
 
-    if (pid == 0) {
-        // Child: redirect stdout to pipe
-        dup2(pipefd[1], STDOUT_FILENO);
-        close(pipefd[0]);
-        close(pipefd[1]);
-
-        // Mute stderr to avoid polluting outputs
-        int dev_null = open("/dev/null", O_WRONLY);
-        if (dev_null != -1) {
-            dup2(dev_null, STDERR_FILENO);
-            close(dev_null);
-        }
-
-        execlp("readelf", "readelf", "-W", "--dyn-syms", binary_path, NULL);
-        exit(127);
+    /* Verify ELF magic */
+    if (ehdr.e_ident[0] != 0x7f || ehdr.e_ident[1] != 'E' ||
+        ehdr.e_ident[2] != 'L'  || ehdr.e_ident[3] != 'F') {
+        fprintf(stderr, "ENFORCE: %s is not an ELF binary\n", binary_path);
+        fclose(f);
+        return 1;
     }
 
-    // Parent
-    close(pipefd[1]);
+    /* Only handle 64-bit little-endian ELF */
+    if (ehdr.e_ident[EI_CLASS] != ELFCLASS64 ||
+        ehdr.e_ident[EI_DATA]  != ELFDATA2LSB) {
+        fprintf(stderr, "ENFORCE: %s is not ELF64 LE\n", binary_path);
+        fclose(f);
+        return 1;
+    }
 
-    char line[1024];
-    int line_len = 0;
-    char ch;
+    if (ehdr.e_shentsize != sizeof(Elf64_Shdr)) {
+        fprintf(stderr, "ENFORCE: unexpected section header size in %s\n", binary_path);
+        fclose(f);
+        return 1;
+    }
+
+    /* Load section headers */
+    if (fseek(f, (long)ehdr.e_shoff, SEEK_SET) != 0) {
+        fprintf(stderr, "ENFORCE: cannot seek to shdr in %s\n", binary_path);
+        fclose(f);
+        return 1;
+    }
+
+    Elf64_Shdr *shdrs = malloc((size_t)ehdr.e_shnum * sizeof(Elf64_Shdr));
+    if (!shdrs) { fclose(f); return 1; }
+    if (fread(shdrs, sizeof(Elf64_Shdr), ehdr.e_shnum, f) != ehdr.e_shnum) {
+        fprintf(stderr, "ENFORCE: cannot read section headers of %s\n", binary_path);
+        free(shdrs);
+        fclose(f);
+        return 1;
+    }
+
     int has_violation = 0;
 
-    while (read(pipefd[0], &ch, 1) > 0) {
-        if (ch == '\n' || line_len >= 1023) {
-            line[line_len] = '\0';
+    /* Walk section headers looking for SHT_DYNSYM (and optionally SHT_SYMTAB) */
+    for (int si = 0; si < (int)ehdr.e_shnum && !has_violation; si++) {
+        Elf64_Shdr *sh = &shdrs[si];
+        if (sh->sh_type != SHT_DYNSYM && sh->sh_type != SHT_SYMTAB) continue;
+        if (sh->sh_size == 0 || sh->sh_entsize == 0) continue;
 
-            // Tokenize by space/tabs
-            char *cols[32];
-            int col_count = 0;
-            char *p = line;
-            while (*p) {
-                while (*p && (*p == ' ' || *p == '\t' || *p == '\r' || *p == '\n')) {
-                    *p = '\0';
-                    p++;
-                }
-                if (*p) {
-                    cols[col_count++] = p;
-                    if (col_count >= 32) break;
-                    while (*p && *p != ' ' && *p != '\t' && *p != '\r' && *p != '\n') {
-                        p++;
-                    }
-                }
+        /* Load associated string table */
+        if (sh->sh_link >= ehdr.e_shnum) continue;
+        Elf64_Shdr *strtab_sh = &shdrs[sh->sh_link];
+
+        if (strtab_sh->sh_size == 0) continue;
+        char *strtab = malloc(strtab_sh->sh_size);
+        if (!strtab) continue;
+        if (fseek(f, (long)strtab_sh->sh_offset, SEEK_SET) != 0 ||
+            fread(strtab, 1, strtab_sh->sh_size, f) != strtab_sh->sh_size) {
+            free(strtab);
+            continue;
+        }
+
+        /* Load symbol table */
+        size_t sym_count = sh->sh_size / sh->sh_entsize;
+        Elf64_Sym *syms = malloc(sh->sh_size);
+        if (!syms) { free(strtab); continue; }
+        if (fseek(f, (long)sh->sh_offset, SEEK_SET) != 0 ||
+            fread(syms, sh->sh_entsize, sym_count, f) != sym_count) {
+            free(syms);
+            free(strtab);
+            continue;
+        }
+
+        /* Check each undefined (SHN_UNDEF) symbol */
+        for (size_t ki = 0; ki < sym_count; ki++) {
+            Elf64_Sym *sym = &syms[ki];
+            if (sym->st_shndx != SHN_UNDEF) continue;
+            if (sym->st_name >= strtab_sh->sh_size) continue;
+
+            const char *name = strtab + sym->st_name;
+            if (name[0] == '\0') continue;
+
+            /* Strip @GLIBC_... version suffix */
+            char name_buf[256];
+            size_t ni = 0;
+            while (name[ni] && name[ni] != '@' && ni < sizeof(name_buf) - 1) {
+                name_buf[ni] = name[ni];
+                ni++;
             }
+            name_buf[ni] = '\0';
 
-            // UND symbols are represented by "UND" in the Ndx column (index 6 in 8+ column layout)
-            if (col_count >= 8 && strcmp(cols[6], "UND") == 0) {
-                char *sym = cols[7];
-                // Strip @GLIBC_... or other suffix if present
-                char *at = strchr(sym, '@');
-                if (at) {
-                    *at = '\0';
-                }
-
-                if (!is_allowed_symbol(sym, bin_name)) {
-                    fprintf(stderr, "BANNED SYMBOL: %s in %s\n", sym, binary_path);
+            /* Check against whitelist */
+            int allowed_count = (int)(sizeof(allowed_symbols) / sizeof(allowed_symbols[0]));
+            int ok = 0;
+            for (int wi = 0; wi < allowed_count; wi++) {
+                if (strcmp(name_buf, allowed_symbols[wi]) == 0) { ok = 1; break; }
+            }
+            if (!ok) {
+                /* ipm-enforce is exempt (checked via bootstrap hash), but must
+                   pass if it somehow reaches this path without hash exemption */
+                if (strcmp(bin_name, "ipm-enforce") != 0) {
+                    fprintf(stderr, "BANNED SYMBOL: %s in %s\n", name_buf, binary_path);
                     has_violation = 1;
                 }
             }
-
-            line_len = 0;
-        } else {
-            line[line_len++] = ch;
         }
+
+        free(syms);
+        free(strtab);
     }
 
-    close(pipefd[0]);
-
-    int status;
-    waitpid(pid, &status, 0);
-
-    if (has_violation) {
-        return 1;
-    }
-    return 0;
+    free(shdrs);
+    fclose(f);
+    return has_violation;
 }
 
 int main(int argc, char **argv) {
@@ -494,30 +487,23 @@ int main(int argc, char **argv) {
 
     const char *binary_path = argv[1];
     const char *bin_name = strrchr(binary_path, '/');
-    if (bin_name) {
-        bin_name++;
-    } else {
-        bin_name = binary_path;
-    }
+    bin_name = bin_name ? bin_name + 1 : binary_path;
 
-    // Check exemption for binaries in the exempt set
+    /* Exempt bootstrapped binaries — pass only if source hashes match */
     if (check_frozen_exempt_binaries(bin_name)) {
-        if (check_s2c_enforce_exemption()) {
-            return 0; // Exempt, succeeds silently
-        }
+        if (check_s2c_enforce_exemption()) return 0;
     }
 
-    // Verify signature mechanism first at startup
-    if (!verify_signature_mechanism()) {
-        return 1; // Signature verification failed
-    }
+    /* Verify operator signature on whitelist before running any check */
+    if (!verify_signature_mechanism()) return 1;
 
-    // Run dynamic symbol check
-    if (run_whitelist_check(binary_path, bin_name)) {
-        return 1;
-    }
+    /* Run ELF symbol scan */
+    if (run_whitelist_check(binary_path, bin_name)) return 1;
 
     return 0;
 }
 
-// ---SIGNATURE--- 9468cfe9ee9b2d94d3f2b37f1fa42382725791c398bf7a48aa54bae09092c186
+/* Include Ed25519 verify-only implementation (no fork, no exec, no pipe) */
+#include "verifysignature.c"
+
+// ---SIGNATURE--- dd32bad1b77bbbecff1dc258342af1faea32c6d2f67d3a17de1945b3bc2655883b5aa65d3a455ad5d4d1b6ee71f33832f1c52e41a95164481efdebdd87484805
