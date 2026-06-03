@@ -1,5 +1,5 @@
 {
-  "description": "IPM enforcer — validates file/directory names against SOUL naming rules via FFI",
+  "description": "IPM enforcer — validates names via FFI with CLI argument and proper exit codes",
   "package_name": "enforce-naming-rules-via-ffi",
   "module_name": "enforce-naming-rules-via-ffi",
   "extern_imports": [
@@ -18,23 +18,37 @@
       "return_type": "i32",
       "execution_instructions": [
         {"instruction_type": "variable_declaration", "variable_name": "errors", "variable_type": "i32", "assignment_operation": "literal", "source_target": 0},
-        {"instruction_type": "variable_declaration", "variable_name": "srcdir", "variable_type": "str", "assignment_operation": "literal", "source_target": "./src"},
-        {"instruction_type": "scan_directory_entries", "directory_path": "srcdir", "entry_variable": "entry", "name_variable": "fname",
-          "body_instructions": [
-            {"instruction_type": "function_invocation", "invocation_name": "check_name_following_soul_rules",
-             "invocation_arguments": [
-               {"kind": "str", "value": "file"},
-               {"kind": "var", "value": "_name"},
-               {"kind": "var", "value": "_name"}
-             ],
-             "result_assignment_variable": "err", "result_type": "str"},
-            {"instruction_type": "conditional_branch", "condition_operation": "is_not_null", "condition_target": "err",
-              "branch_on_success": [
-                {"instruction_type": "return_statement", "return_payload": {"execution_status": "failure", "error_code": "name violation"}}
+
+        {"instruction_type": "function_invocation", "invocation_name": "get_cli_arg",
+         "invocation_arguments": [{"kind": "var", "value": "1"}],
+         "result_assignment_variable": "srcdir", "result_type": "str"},
+
+        {"instruction_type": "conditional_branch", "condition_operation": "is_not_null", "condition_target": "srcdir",
+          "branch_on_success": [
+            {"instruction_type": "scan_directory_entries", "directory_path": "srcdir", "entry_variable": "entry", "name_variable": "fname",
+              "body_instructions": [
+                {"instruction_type": "function_invocation", "invocation_name": "check_name_following_soul_rules",
+                 "invocation_arguments": [
+                   {"kind": "str", "value": "file"},
+                   {"kind": "var", "value": "_name"},
+                   {"kind": "var", "value": "_name"}
+                 ],
+                 "result_assignment_variable": "err", "result_type": "str"},
+                {"instruction_type": "conditional_branch", "condition_operation": "is_not_null", "condition_target": "err",
+                  "branch_on_success": [
+                    {"instruction_type": "function_invocation", "invocation_name": "system_exit",
+                     "invocation_arguments": [{"kind": "str", "value": "1"}]}
+                  ]
+                }
               ]
             }
+          ],
+          "branch_on_failure": [
+            {"instruction_type": "function_invocation", "invocation_name": "system_exit",
+             "invocation_arguments": [{"kind": "str", "value": "1"}]}
           ]
         },
+
         {"instruction_type": "return_statement", "return_payload": {"value": "0"}}
       ]
     }

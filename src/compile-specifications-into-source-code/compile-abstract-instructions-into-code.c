@@ -54,8 +54,11 @@ static void emit_function_body_into_output(cJSON *fn, FILE *out, int is_library,
     if (!body || !cJSON_IsArray(body)) return;
     const char *ret = extract_json_field_string_value(fn, "return_type");
     if (modname && modname[0]) fprintf(out, "// @ipm:%s:%s\n", modname, name);
-    fprintf(out, "%s%s %s(", is_library ? "" : (has_modname ? "" : "static "),
-        resolve_function_return_type_code(ret), name);
+    if (name && !strcmp(name, "main"))
+        fprintf(out, "int main(int argc, char **argv) {\n");
+    else
+        fprintf(out, "%s%s %s(", is_library ? "" : (has_modname ? "" : "static "),
+            resolve_function_return_type_code(ret), name);
     if (params && cJSON_IsArray(params)) {
         for (int p = 0; p < cJSON_GetArraySize(params); p++) {
             cJSON *par = cJSON_GetArrayItem(params, p);
