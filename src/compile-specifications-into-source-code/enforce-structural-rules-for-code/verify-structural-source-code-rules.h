@@ -20,6 +20,15 @@ extern char banned_patterns[32][64];
 typedef struct { int depth, in_str, in_char, in_comment; } brace_state_t;
 void clear_brace_tracking_for_function(brace_state_t *state);
 void count_open_close_brace_pairs(const char *line, brace_state_t *state);
+
+typedef struct {
+    char name[128];
+    char file[256];
+} fn_entry_t;
+typedef struct {
+    char name[64];
+    int count;
+} inc_entry_t;
 void pull_function_name_from_definition(const char *line, char *out, size_t sz);
 int  check_for_banned_keyword_pattern(const char *line);
 int  detect_hardcoded_file_path_string(const char *line);

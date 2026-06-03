@@ -127,7 +127,7 @@ int check_non_source_file_allowlist(const char *name) {
         if (!strcmp(non_source_files[i], name)) return 1;
     return 0;
 }
-static void recursive_scan_inside_source_tree(const char *dirpath,
+void recursive_scan_inside_source_tree(const char *dirpath,
     fn_entry_t *fns, int *fn_qty, inc_entry_t *incs, int *inc_qty) {
     DIR *d = opendir(dirpath); if (!d) return;
     int file_cnt = 0;
