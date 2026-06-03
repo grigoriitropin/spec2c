@@ -97,7 +97,8 @@ void initialize_naming_rules_enforcer_ffi(const char *srcdir) {
 }
 
 const char *match_exemption_table_name_ffi(const char *name) {
-    return match_name_against_exemption_table(name);
+    const char *r = match_name_against_exemption_table(name);
+    return r ? r : "";
 }
 
 int check_bootstrap_source_whitelist_ffi(const char *name, const char *sub, const char *dirpath) {
