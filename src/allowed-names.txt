@@ -279,4 +279,5 @@ write_text_string_into_file
 emit_report_error_then_exit
 extracted-codegen-helper-functions-here
 emit_iteration_loop_with_count
-resolve_alu_operand_value
+resolve_data_value_from_operand
+resolve_data_value_from_operand
