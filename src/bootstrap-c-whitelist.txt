@@ -33,3 +33,4 @@ check-naming-rules-for-ffi.c
 validate-type-name-against-whitelist.c
 ffi-function-export-layer-here/enforce-ffi-function-export-layer.c
 structural-rule-checker-batch-two/structural-rule-checker-batch-two.c
+validate-ipm-file-via-ffi-batch-three.c
