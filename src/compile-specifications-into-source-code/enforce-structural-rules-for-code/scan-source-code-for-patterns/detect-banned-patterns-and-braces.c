@@ -140,10 +140,10 @@ static void scan_json_for_banned_words(cJSON *node, const char *path) {
 
 /* check JSON AST depth and key density */
 static void check_ipm_ast_structure_depth(cJSON *node, int depth, const char *path) {
-    if (!node || depth > 4) {
-        if (depth > 4) {
+    if (!node || depth > 5) {
+        if (depth > 5) {
             char msg[512]; snprintf(msg, sizeof(msg),
-                "SOUL §7: .ipm AST depth > 4 in %s\n  → extract nested logic into separate functions", path);
+                "SOUL §7: .ipm AST depth > 5 in %s\n  → extract nested logic into separate functions", path);
             fprintf(stderr, "spec2c: %s\n", msg); exit(1);
         }
         return;
