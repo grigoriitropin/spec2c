@@ -62,7 +62,10 @@ static void emit_bootstrap_central_dispatcher_func(cJSON *inst, FILE *out, int i
     }
 }
 
-typedef struct { const char *type; instr_hdlr handler; } dispatch_entry_t;
+typedef struct {
+    const char *type;
+    instr_hdlr handler;
+} dispatch_entry_t;
 static const dispatch_entry_t INSTR_HANDLERS[] = {
     {"access_json_field",         emit_bootstrap_central_dispatcher_func},
     {"conditional_branch",        emit_bootstrap_central_dispatcher_func},
