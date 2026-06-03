@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // AUTO-GENERATED — SHA256 hashes of bootstrap files, compiled into binary
 #define BOOTSTRAP_HASH_COUNT 38
 static const char *hash_file_names[] = {
@@ -46,7 +47,7 @@ static const char *hash_sha256_values[] = {
     "bce53c2d0f262782e3658b94642f5160a8b960f4861551dce762be103b2d0a0d",
     "0547ba8ebac1df4214322119e92faf18ccb1bc369e9ea6c6d63d645233cd0a9a",
     "658bd2d7ce7e89b60d00e47b92e82c343907161142e80df92aeea09af6130b11",
-    "d1192aefcc720fcda6033830c390d1da3e19820935ebe9a3ed5dce9807e29bc9",
+    "6b08818301babb13d43ba3b2af0b0574ef642961417c1dbb1f103db209e25add",
     "85fcaed99daa96fe1f4fbc23662c2066d98ddb1919f0970d7cdf288625c02978",
     "8687e10bad6101167c10eaf24b485b588b6d2185b1832407439e116642722cec",
     "6c04bc6f315e4230e82a4380d1285961b6823bbb31519e416a3db51c3dce1058",
@@ -61,7 +62,7 @@ static const char *hash_sha256_values[] = {
     "06ef447fcbf4660e59c3410ccc3dece9a1ff6376bd65817da8aec5ac9f54d0b2",
     "5470276fa7b5a1b44e56ec87ad9e3b6f70344e6f23223e1d5a956b947fa59c92",
     "45234c44ac272f448fbc14e65cc9cb0ce3fba735eab6eddf59a779438701050d",
-    "0a2a4f1ca4675ca96b5f8bb85cd60724ab3f3d316bd5fba4cc5b8458a59166e0",
+    "41b836be5ed0feaf130e0a05f82345b444224d3beadc946b20d01e7118d6f63a",
     "fae9a9a1a91f547e42cdaeace8f8247bfae5219fa43ae23453de7d464bf6be42",
     "d294e6c33b2c48f35bcbadab89646a6c8a7da30b70689bc4acc0a2faae77813a",
     "725202704ba2459b176f27d0a2ff194757c7198f65ac083c1ffdefa927aa8f0b",

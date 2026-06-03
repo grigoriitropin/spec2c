@@ -19,7 +19,7 @@ runtime-for-generated-ipm-code.c 7 0
 runtime-for-generated-ipm-code.h 83 26
 scan-patterns-against-source-code.c 229 7
 share-check-types-and-declarations.h 95 18
-share-type-definitions-across-files.h 57 19
+share-type-definitions-across-files.h 58 19
 soul-naming-forbidden-words-list.h 14 0
 soul-rules-for-naming-validation.h 58 2
 vehir-shared-abstraction-wrapper-code.c 135 7

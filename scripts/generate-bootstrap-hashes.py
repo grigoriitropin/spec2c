@@ -44,6 +44,7 @@ for name in names:
     hashes.append((name, '0' * 64))
 
 with open(OUTPUT, 'w') as f:
+    f.write('// SPDX-License-Identifier: Apache-2.0\n')
     f.write('// AUTO-GENERATED — SHA256 hashes of bootstrap files, compiled into binary\n')
     f.write(f'#define BOOTSTRAP_HASH_COUNT {len(hashes)}\n')
     f.write('static const char *hash_file_names[] = {\n')

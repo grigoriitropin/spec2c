@@ -36,17 +36,19 @@ void tokenize_string_into_slice_loop(cJSON *inst, FILE *out, int indent, const c
     (void)indent;
     if (!src[0] || !sep[0]) return;
     fprintf(out, "  {\n");
-    fprintf(out, "    char *_zsrc = (char *)%s;\n", src);
+    fprintf(out, "    const char *_zsrc = %s;\n", src);
     fprintf(out, "    while (*_zsrc) {\n");
-    fprintf(out, "      char *_zend = _zsrc;\n");
+    fprintf(out, "      const char *_zend = _zsrc;\n");
     fprintf(out, "      while (*_zend && *_zend != '%s') _zend++;\n", sep);
     if (len[0]) fprintf(out, "      int %s = _zend - _zsrc;\n", len);
-    fprintf(out, "      char _zsave = *_zend;\n");
-    fprintf(out, "      *_zend = 0;\n");
     if (tok[0]) fprintf(out, "      const char *%s = _zsrc;\n", tok);
-    if (body) generate_code_from_ast_instructions(body, out, 3, rt);
-    fprintf(out, "      *_zend = _zsave;\n");
-    fprintf(out, "      if (!_zsave) break;\n");
+    {
+        const char *prev_slice = current_slice_length_variable;
+        current_slice_length_variable = len;
+        if (body) generate_code_from_ast_instructions(body, out, 3, rt);
+        current_slice_length_variable = prev_slice;
+    }
+    fprintf(out, "      if (!*_zend) break;\n");
     fprintf(out, "      _zsrc = _zend + 1;\n");
     fprintf(out, "    }\n");
     fprintf(out, "  }\n");

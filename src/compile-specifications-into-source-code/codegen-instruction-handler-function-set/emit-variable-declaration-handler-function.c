@@ -2,6 +2,8 @@
 // spec2c codegen — C bootstrap: 3 primitives + dispatcher
 #include "../shared-type-declarations-across-modules/share-type-definitions-across-files.h"
 
+const char *current_slice_length_variable = NULL;
+
 typedef void (*instr_hdlr)(cJSON *inst, FILE *out, int indent, const char *return_type);
 
 static void emit_formatted_code_primitive_handler(cJSON *inst, FILE *out) {
@@ -53,6 +55,9 @@ static void emit_conditional_branch_code_primitive(cJSON *inst, FILE *out, int i
         fprintf(out, "if (cJSON_HasObjectItem(%s, \"%s\")) {\n", tgt, cv ? cv : "");
     else if (!strcmp(op, "is_not_null"))
         fprintf(out, "if (%s != NULL) {\n", tgt);
+    else if (current_slice_length_variable && current_slice_length_variable[0])
+        fprintf(out, "if ((int)%s == (int)strlen(\"%s\") && strncmp(%s, \"%s\", %s) == 0) {\n",
+            current_slice_length_variable, cv ? cv : "", tgt, cv ? cv : "", current_slice_length_variable);
     else
         fprintf(out, "if (strcmp(%s, \"%s\") == 0) {\n", tgt, cv ? cv : "");
     cJSON *bon = cJSON_GetObjectItemCaseSensitive(inst, "branch_on_success");

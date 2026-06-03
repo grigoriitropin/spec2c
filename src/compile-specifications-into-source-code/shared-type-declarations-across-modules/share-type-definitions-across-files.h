@@ -55,3 +55,4 @@ void emit_iteration_instruction_code_block(cJSON *inst, FILE *out, int indent, c
 int emit_report_error_then_exit(cJSON *inst, FILE *out);
 void emit_iteration_loop_with_count(cJSON *inst, FILE *out, int indent, const char *rt);
 void tokenize_string_into_slice_loop(cJSON *inst, FILE *out, int indent, const char *rt);
+extern const char *current_slice_length_variable;
