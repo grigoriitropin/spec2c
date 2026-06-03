@@ -246,5 +246,6 @@ search_file_using_name_recursive
 search_file_using_name_recursive
 bootstrap-freeze-data-compiled-into
 emit_extern_imports_into_output
-crypto_sha256_compute
+compute_sha256_hash_into_bytes
 compute_file_sha256_hex_digest
+compute_sha256_hash_into_bytes

@@ -137,7 +137,7 @@ static const uint32_t K[64] = {
     0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2
 };
 
-void crypto_sha256_compute(const uint8_t *data, uint32_t len, uint8_t out[32]) {
+void compute_sha256_hash_into_bytes(const uint8_t *data, uint32_t len, uint8_t out[32]) {
     uint32_t h[8] = {0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19};
     uint32_t w[64];
     uint64_t bits = (uint64_t)len * 8;
@@ -204,7 +204,7 @@ char *compute_file_sha256_hex_digest(const char *path) {
     size_t n = fread(buf, 1, (size_t)sz, f);
     fclose(f);
     uint8_t hash[32];
-    crypto_sha256_compute(buf, (uint32_t)n, hash);
+    compute_sha256_hash_into_bytes(buf, (uint32_t)n, hash);
     free(buf);
     char *hex = malloc(65);
     if (!hex) return NULL;
