@@ -272,3 +272,8 @@ emit_builtin_call_when_matched
 emit_builtin_call_when_matched
 emit_report_error_then_exit
 emit_report_error_then_exit
+enforce-ffi-exports
+count_lines_in_file_ffi
+check_bootstrap_whitelist_ffi
+check_file_content_for_violations
+check_line_density_in_file
