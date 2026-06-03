@@ -196,7 +196,7 @@ static void emit_scan_directory_with_body(cJSON *inst, FILE *out, int indent) {
     cJSON *jrec = cJSON_GetObjectItemCaseSensitive(inst, "recursive");
     int recursive = jrec && (cJSON_IsTrue(jrec) || (cJSON_IsNumber(jrec) && jrec->valueint));
     if (!dp[0]) return;
-    const char *fn = recursive ? "list_all_files_recursively_inside_path" : "list_files_inside_directory_path";
+    const char *fn = recursive ? "list_files_under_path_recursively" : "list_files_inside_directory_path";
     fprintf(out, "  cJSON *_entries = %s(%s);\n", fn, dp);
     fprintf(out, "  if (_entries) {\n");
     fprintf(out, "    for (int _i = 0; _i < cJSON_GetArraySize(_entries); _i++) {\n");

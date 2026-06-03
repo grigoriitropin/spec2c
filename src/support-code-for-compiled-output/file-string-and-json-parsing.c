@@ -125,14 +125,14 @@ cJSON *list_files_inside_directory_path(const char *path) {
 }
 
 /* Recursive variant — collects files from subdirectories into flat array */
-cJSON *list_all_files_recursively_inside_path(const char *path) {
+cJSON *list_files_under_path_recursively(const char *path) {
     cJSON *arr = list_files_inside_directory_path(path);
     if (!arr) return NULL;
     cJSON *entry = NULL; int idx = 0;
     while ((entry = cJSON_GetArrayItem(arr, idx)) != NULL) {
         if (cJSON_IsTrue(cJSON_GetObjectItemCaseSensitive(entry, "is_dir"))) {
             const char *sub = cJSON_GetObjectItemCaseSensitive(entry, "path")->valuestring;
-            cJSON *sub_arr = list_all_files_recursively_inside_path(sub);
+            cJSON *sub_arr = list_files_under_path_recursively(sub);
             if (sub_arr) {
                 for (int si = 0; si < cJSON_GetArraySize(sub_arr); si++)
                     cJSON_AddItemToArray(arr, cJSON_Duplicate(cJSON_GetArrayItem(sub_arr, si), 1));
