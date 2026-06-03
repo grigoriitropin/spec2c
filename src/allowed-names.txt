@@ -211,3 +211,4 @@ check_ipm_ast_depth_limits
 validate-ipm-content-structure-deeply
 execute-full-compilation-pipeline-flow
 compile-function-definitions-into-code
+generate-code-from-instruction-ast
