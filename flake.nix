@@ -118,6 +118,7 @@
         buildPhase = ''
           runHook preBuild
 
+            dfa_gen.c \
           spec2c enforce-naming-rules-via-ffi.ipm > ipm_enforce_gen.c
             dfa_gen.c \n          spec2c check-banned-patterns-pure-ipm.ipm > dfa_gen.c
           sed -i "s/int main(/int execute_dfa_banned_patterns(/" dfa_gen.c
@@ -139,6 +140,11 @@
           sed -i '/const char \*err =/!s/char \*err =/const char *err =/' ipm_enforce_gen.c
           sed -i '/const char \*err =/!s/char \*err =/const char *err =/' ipm_enforce_gen.c
           sed -i 's/int errors = 0;/int errors = 0; (void)errors;/' ipm_enforce_gen.c
+          spec2c check-banned-patterns-pure-ipm.ipm > dfa_gen.c
+          sed -i "s/int main(/int execute_dfa_banned_patterns(/" dfa_gen.c
+          sed -i "/^{.ok/d" dfa_gen.c
+          sed -i "1i#include <stdio.h>\n#include <stdlib.h>\n#include <cjson/cJSON.h>" dfa_gen.c
+
 
           $CC ${builtins.toString cflags} \
             -Isrc \
