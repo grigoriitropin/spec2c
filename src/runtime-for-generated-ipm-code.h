@@ -28,6 +28,8 @@ typedef struct {
 string read_entire_file_into_string(const char *path);
 void   write_text_string_into_file(const char *path, const char *content);
 cJSON* list_files_inside_directory_path(const char *path);
+void   crypto_sha256_compute(const uint8_t *data, uint32_t len, uint8_t out[32]);
+char*  compute_file_sha256_hex_digest(const char *path);
 
 /* JSON */
 json_object* convert_text_into_json_object(string content);
