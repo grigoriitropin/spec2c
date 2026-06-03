@@ -299,3 +299,4 @@ load_non_source_file_allowlist
 check_non_source_file_allowlist
 handle_new_function_definition_entry
 verify_line_for_banned_hardcoded
+recursive_scan_source_directory
