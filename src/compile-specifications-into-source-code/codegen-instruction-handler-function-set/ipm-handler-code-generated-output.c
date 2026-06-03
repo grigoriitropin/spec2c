@@ -6,7 +6,10 @@
 
 // @ipm:spec-handler-definition-compendium-one:emit_json_field_access_handler
 void emit_json_field_access_handler(cJSON * inst, FILE * out, int indent, char * return_type) {
-    (void)inst; (void)out; (void)indent; (void)return_type;
+    (void)inst;
+    (void)out;
+    (void)indent;
+    (void)return_type;
     (void)indent; (void)return_type;
   const char *vn = cJSON_GetObjectItemCaseSensitive(inst,"variable_name") ? cJSON_GetObjectItemCaseSensitive(inst,"variable_name")->valuestring : "";
   const char *vt = cJSON_GetObjectItemCaseSensitive(inst,"variable_type") ? cJSON_GetObjectItemCaseSensitive(inst,"variable_type")->valuestring : "";
@@ -25,14 +28,20 @@ void emit_json_field_access_handler(cJSON * inst, FILE * out, int indent, char *
 
 // @ipm:spec-handler-definition-compendium-one:emit_return_statement_handler_code
 void emit_return_statement_handler_code(cJSON * inst, FILE * out, int indent, char * return_type) {
-    (void)inst; (void)out; (void)indent; (void)return_type;
+    (void)inst;
+    (void)out;
+    (void)indent;
+    (void)return_type;
     (void)indent; (void)return_type;
   fprintf(out, "return;\n");
 }
 
 // @ipm:spec-handler-definition-compendium-one:emit_function_invocation_handler_code
 void emit_function_invocation_handler_code(cJSON * inst, FILE * out, int indent, char * return_type) {
-    (void)inst; (void)out; (void)indent; (void)return_type;
+    (void)inst;
+    (void)out;
+    (void)indent;
+    (void)return_type;
     (void)indent; (void)return_type;
   const char *fn = cJSON_GetObjectItemCaseSensitive(inst,"invocation_name") ? cJSON_GetObjectItemCaseSensitive(inst,"invocation_name")->valuestring : "";
   const char *rv = cJSON_GetObjectItemCaseSensitive(inst,"result_assignment_variable") ? cJSON_GetObjectItemCaseSensitive(inst,"result_assignment_variable")->valuestring : "";
@@ -46,7 +55,10 @@ void emit_function_invocation_handler_code(cJSON * inst, FILE * out, int indent,
 
 // @ipm:spec-handler-definition-compendium-one:emit_iterate_collection_handler_code
 void emit_iterate_collection_handler_code(cJSON * inst, FILE * out, int indent, char * return_type) {
-    (void)inst; (void)out; (void)indent; (void)return_type;
+    (void)inst;
+    (void)out;
+    (void)indent;
+    (void)return_type;
     (void)indent; (void)return_type;
   const char *col = cJSON_GetObjectItemCaseSensitive(inst,"collection_variable") ? cJSON_GetObjectItemCaseSensitive(inst,"collection_variable")->valuestring : "";
   const char *itm = cJSON_GetObjectItemCaseSensitive(inst,"item_variable") ? cJSON_GetObjectItemCaseSensitive(inst,"item_variable")->valuestring : "";
@@ -63,7 +75,10 @@ void emit_iterate_collection_handler_code(cJSON * inst, FILE * out, int indent, 
 
 // @ipm:spec-handler-definition-compendium-one:emit_object_keys_iterate_handler
 void emit_object_keys_iterate_handler(cJSON * inst, FILE * out, int indent, char * return_type) {
-    (void)inst; (void)out; (void)indent; (void)return_type;
+    (void)inst;
+    (void)out;
+    (void)indent;
+    (void)return_type;
     (void)indent; (void)return_type;
   const char *col = cJSON_GetObjectItemCaseSensitive(inst,"collection_variable") ? cJSON_GetObjectItemCaseSensitive(inst,"collection_variable")->valuestring : "";
   const char *key = cJSON_GetObjectItemCaseSensitive(inst,"key_variable") ? cJSON_GetObjectItemCaseSensitive(inst,"key_variable")->valuestring : "";
@@ -84,7 +99,10 @@ void emit_object_keys_iterate_handler(cJSON * inst, FILE * out, int indent, char
 
 // @ipm:spec-handler-definition-compendium-one:emit_tokenizer_loop_handler_code
 void emit_tokenizer_loop_handler_code(cJSON * inst, FILE * out, int indent, char * return_type) {
-    (void)inst; (void)out; (void)indent; (void)return_type;
+    (void)inst;
+    (void)out;
+    (void)indent;
+    (void)return_type;
     (void)indent; (void)return_type;
   const char *src = cJSON_GetObjectItemCaseSensitive(inst,"source_string") ? cJSON_GetObjectItemCaseSensitive(inst,"source_string")->valuestring : "";
   const char *sep = cJSON_GetObjectItemCaseSensitive(inst,"separator") ? cJSON_GetObjectItemCaseSensitive(inst,"separator")->valuestring : "";
@@ -106,7 +124,10 @@ void emit_tokenizer_loop_handler_code(cJSON * inst, FILE * out, int indent, char
 
 // @ipm:spec-handler-definition-compendium-one:emit_count_loop_handler_code
 void emit_count_loop_handler_code(cJSON * inst, FILE * out, int indent, char * return_type) {
-    (void)inst; (void)out; (void)indent; (void)return_type;
+    (void)inst;
+    (void)out;
+    (void)indent;
+    (void)return_type;
     (void)indent; (void)return_type;
   const char *cv = cJSON_GetObjectItemCaseSensitive(inst,"counter_variable") ? cJSON_GetObjectItemCaseSensitive(inst,"counter_variable")->valuestring : "";
   const char *lv = cJSON_GetObjectItemCaseSensitive(inst,"limit_variable") ? cJSON_GetObjectItemCaseSensitive(inst,"limit_variable")->valuestring : "";
@@ -122,7 +143,10 @@ void emit_count_loop_handler_code(cJSON * inst, FILE * out, int indent, char * r
 
 // @ipm:spec-handler-definition-compendium-one:emit_branch_condition_handler_code
 void emit_branch_condition_handler_code(cJSON * inst, FILE * out, int indent, char * return_type) {
-    (void)inst; (void)out; (void)indent; (void)return_type;
+    (void)inst;
+    (void)out;
+    (void)indent;
+    (void)return_type;
     (void)indent; (void)return_type;
   const char *op = cJSON_GetObjectItemCaseSensitive(inst,"condition_operation") ? cJSON_GetObjectItemCaseSensitive(inst,"condition_operation")->valuestring : "";
   const char *tgt = cJSON_GetObjectItemCaseSensitive(inst,"condition_target") ? cJSON_GetObjectItemCaseSensitive(inst,"condition_target")->valuestring : "";
@@ -147,7 +171,10 @@ void emit_branch_condition_handler_code(cJSON * inst, FILE * out, int indent, ch
 
 // @ipm:spec-handler-definition-compendium-one:emit_variable_decl_handler_code
 void emit_variable_decl_handler_code(cJSON * inst, FILE * out, int indent, char * return_type) {
-    (void)inst; (void)out; (void)indent; (void)return_type;
+    (void)inst;
+    (void)out;
+    (void)indent;
+    (void)return_type;
     (void)indent; (void)return_type;
   const char *vn = cJSON_GetObjectItemCaseSensitive(inst,"variable_name") ? cJSON_GetObjectItemCaseSensitive(inst,"variable_name")->valuestring : "";
   const char *vt = cJSON_GetObjectItemCaseSensitive(inst,"variable_type") ? cJSON_GetObjectItemCaseSensitive(inst,"variable_type")->valuestring : "";
