@@ -19,7 +19,7 @@ void emit_json_field_access_handler(cJSON * inst, FILE * out, int indent, char *
     }
   } else {
   }
-  return 0;
+  return;
 }
 
 // @ipm:spec-handler-definition-compendium-one:emit_return_statement_handler_code
@@ -38,7 +38,7 @@ void emit_function_invocation_handler_code(cJSON * inst, FILE * out, int indent,
   } else {
     fprintf(out, "%s();\n", fn);
   }
-  return 0;
+  return;
 }
 
 // @ipm:spec-handler-definition-compendium-one:emit_iterate_collection_handler_code
@@ -54,7 +54,7 @@ void emit_iterate_collection_handler_code(cJSON * inst, FILE * out, int indent, 
     fprintf(out, "}\n");
   } else {
   }
-  return 0;
+  return;
 }
 
 // @ipm:spec-handler-definition-compendium-one:emit_object_keys_iterate_handler
@@ -74,7 +74,7 @@ void emit_object_keys_iterate_handler(cJSON * inst, FILE * out, int indent, char
     fprintf(out, "}\n");
   } else {
   }
-  return 0;
+  return;
 }
 
 // @ipm:spec-handler-definition-compendium-one:emit_tokenizer_loop_handler_code
@@ -95,7 +95,7 @@ void emit_tokenizer_loop_handler_code(cJSON * inst, FILE * out, int indent, char
     fprintf(out, "}\n");
   } else {
   }
-  return 0;
+  return;
 }
 
 // @ipm:spec-handler-definition-compendium-one:emit_count_loop_handler_code
@@ -110,7 +110,7 @@ void emit_count_loop_handler_code(cJSON * inst, FILE * out, int indent, char * r
     fprintf(out, "}\n");
   } else {
   }
-  return 0;
+  return;
 }
 
 // @ipm:spec-handler-definition-compendium-one:emit_branch_condition_handler_code
@@ -134,7 +134,7 @@ void emit_branch_condition_handler_code(cJSON * inst, FILE * out, int indent, ch
   fprintf(out, "  cJSON *bof = cJSON_GetObjectItemCaseSensitive(inst, \"branch_on_failure\");\n");
   fprintf(out, "  if (bof) generate_code_from_ast_instructions(bof, out, indent + 1, return_type);\n");
   fprintf(out, "}\n");
-  return 0;
+  return;
 }
 
 // @ipm:spec-handler-definition-compendium-one:emit_variable_decl_handler_code
@@ -148,6 +148,6 @@ void emit_variable_decl_handler_code(cJSON * inst, FILE * out, int indent, char 
     fprintf(out, "  %s %s = %s(%s);\n", vt, vn, op, src);
   } else {
   }
-  return 0;
+  return;
 }
 
