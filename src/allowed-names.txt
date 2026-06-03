@@ -285,3 +285,4 @@ enforce-ffi-function-export-layer
 check_banned_pattern_inside_file
 check_hardcoded_path_inside_file
 check_line_density_inside_file
+check_file_line_limit_ffi
