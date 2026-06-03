@@ -39,7 +39,11 @@ static void match_and_increment_header_count(const char *path, const char *name)
         if (sscanf(line, " #include \"%127[^\"]\"", h) == 1) {
             int found = 0;
             for (int i = 0; i < hdr_total; i++)
-                if (!strcmp(hdr_names[i], h)) { hdr_counts[i]++; found = 1; break; }
+                if (!strcmp(hdr_names[i], h)) {
+                    hdr_counts[i]++;
+                    found = 1;
+                    break;
+                }
             if (!found && hdr_total < 128) {
                 snprintf(hdr_names[hdr_total], 128, "%s", h);
                 hdr_counts[hdr_total++] = 1;
@@ -102,7 +106,11 @@ const char *check_dead_code_across_files(const char *dirpath) {
         if (!strcmp(fn_names[i], "main")) continue;
         int called = 0;
         void search_calls(const char *dp) {
-            DIR *d = opendir(dp); if (!d || called) { if (d) closedir(d); return; }
+            DIR *d = opendir(dp);
+            if (!d || called) {
+                if (d) closedir(d);
+                return;
+            }
             struct dirent *de;
             while ((de = readdir(d)) != NULL && !called) {
                 if (de->d_name[0] == '.') continue;
