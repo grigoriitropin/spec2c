@@ -15,7 +15,24 @@ void read_allowed_names_from_file(const char *srcdir);
 void read_banned_patterns_from_file(const char *srcdir);
 extern int banned_patterns_count;
 extern char banned_patterns[32][64];
-typedef struct { int depth, in_str, in_char, in_comment; } brace_state_t;
+typedef struct {
+    int depth, in_str, in_char, in_comment;
+} brace_state_t;
+
+typedef struct {
+    char name[128];
+    char file[256];
+} fn_entry_t;
+
+typedef struct {
+    char name[64];
+    int count;
+} inc_entry_t;
+
+void check_single_file_for_violations(const char *sub, int is_c, int is_source,
+    fn_entry_t *fns, int *fn_qty, inc_entry_t *incs, int *inc_qty);
+void search_for_unused_function_code(fn_entry_t *fns, int fn_qty, const char *srcdir);
+
 void clear_brace_tracking_for_function(brace_state_t *state);
 void count_open_close_brace_pairs(const char *line, brace_state_t *state);
 void pull_function_name_from_definition(const char *line, char *out, size_t sz);
@@ -26,11 +43,11 @@ void verify_ipm_names_across_sources(const char *srcdir);
 void load_bootstrap_whitelist_from_disk(const char *srcdir);
 void load_non_source_file_allowlist(const char *srcdir);
 int check_non_source_file_allowlist(const char *name);
-int  match_name_against_bootstrap_list(const char *basename);
+int match_name_against_bootstrap_list(const char *basename);
 void enforce_bootstrap_code_freeze_check(const char *srcdir);
 void load_operator_signed_exemption_table(const char *srcdir);
 const char *match_name_against_exemption_table(const char *name);
-
+int check_name_against_allowed_whitelist(const char *name);
 #endif
 
 

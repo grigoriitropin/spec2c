@@ -1,1 +1,611 @@
-{"description": "IPM enforcer — validates source files against structural and naming rules", "package_name": "enforce-naming-rules-via-ffi", "module_name": "enforce-naming-rules-via-ffi", "extern_imports": [{"name": "validate_soul_naming_rule_check", "return_type": "i32", "arguments": [{"name": "name_arg", "type": "str"}]}, {"name": "detect_any_hardcoded_filesystem_paths", "return_type": "i32", "arguments": [{"name": "path", "type": "str"}]}, {"name": "check_each_line_token_density", "return_type": "i32", "arguments": [{"name": "path", "type": "str"}]}, {"name": "check_ipm_file_validation_ffi", "return_type": "str", "arguments": [{"name": "path", "type": "str"}]}, {"name": "scan_every_byte_search_patterns", "return_type": "void", "arguments": [{"name": "content", "type": "str"}]}, {"name": "locate_all_function_body_blocks", "return_type": "i32", "arguments": [{"name": "path", "type": "str"}]}, {"name": "find_every_main_function_block", "return_type": "i32", "arguments": [{"name": "path", "type": "str"}]}, {"name": "read_entire_file_into_slice", "return_type": "slice", "arguments": [{"name": "path", "type": "str"}]}, {"name": "report_invalid_format_and_exit", "return_type": "void", "arguments": []}], "function_definitions": {"main": {"return_type": "i32", "execution_instructions": [{"instruction_type": "variable_declaration", "variable_name": "errors", "variable_type": "i32", "assignment_operation": "literal", "source_target": 0}, {"instruction_type": "variable_declaration", "variable_name": "total_main", "variable_type": "i32", "assignment_operation": "literal", "source_target": 0}, {"instruction_type": "variable_declaration", "variable_name": "file_count", "variable_type": "i32", "assignment_operation": "literal", "source_target": 0}, {"instruction_type": "function_invocation", "invocation_name": "get_cli_arg", "invocation_arguments": [{"kind": "var", "value": "1"}], "result_assignment_variable": "srcdir", "result_type": "str"}, {"instruction_type": "conditional_branch", "condition_operation": "is_not_null", "condition_target": "srcdir", "branch_on_success": [{"instruction_type": "scan_directory_entries", "directory_path": "srcdir", "entry_variable": "entry", "name_variable": "fname", "body_instructions": [{"instruction_type": "variable_declaration", "variable_name": "is_ipm", "variable_type": "i32", "assignment_operation": "literal", "source_target": 0}, {"instruction_type": "variable_declaration", "variable_name": "ipm_0", "variable_type": "i32", "assignment_operation": "literal", "source_target": 0}, {"instruction_type": "variable_declaration", "variable_name": "ipm_1", "variable_type": "i32", "assignment_operation": "literal", "source_target": 0}, {"instruction_type": "variable_declaration", "variable_name": "ipm_2", "variable_type": "i32", "assignment_operation": "literal", "source_target": 0}, {"instruction_type": "variable_declaration", "variable_name": "ipm_3", "variable_type": "i32", "assignment_operation": "literal", "source_target": 0}, {"instruction_type": "iterate_over_bytes", "collection": "_name", "item_variable": "byte", "index_variable": "i", "body": [{"instruction_type": "conditional_branch", "condition_type": "numeric_compare", "operator": "==", "lhs": {"value": "ipm_0"}, "rhs": {"value": "1"}, "branch_on_success": [{"instruction_type": "conditional_branch", "condition_type": "numeric_compare", "operator": "==", "lhs": {"value": "byte"}, "rhs": {"value": "46"}, "branch_on_success": [{"instruction_type": "alu_operation", "operator": "+", "target": "ipm_1", "lhs": {"value": "0"}, "rhs": {"value": "1"}}], "branch_on_failure": [{"instruction_type": "alu_operation", "operator": "-", "target": "ipm_0", "lhs": {"value": "ipm_0"}, "rhs": {"value": "ipm_0"}}]}]}, {"instruction_type": "conditional_branch", "condition_type": "numeric_compare", "operator": "==", "lhs": {"value": "ipm_1"}, "rhs": {"value": "1"}, "branch_on_success": [{"instruction_type": "conditional_branch", "condition_type": "numeric_compare", "operator": "==", "lhs": {"value": "byte"}, "rhs": {"value": "105"}, "branch_on_success": [{"instruction_type": "alu_operation", "operator": "+", "target": "ipm_2", "lhs": {"value": "0"}, "rhs": {"value": "1"}}], "branch_on_failure": [{"instruction_type": "alu_operation", "operator": "-", "target": "ipm_1", "lhs": {"value": "ipm_1"}, "rhs": {"value": "ipm_1"}}]}]}, {"instruction_type": "conditional_branch", "condition_type": "numeric_compare", "operator": "==", "lhs": {"value": "ipm_2"}, "rhs": {"value": "1"}, "branch_on_success": [{"instruction_type": "conditional_branch", "condition_type": "numeric_compare", "operator": "==", "lhs": {"value": "byte"}, "rhs": {"value": "112"}, "branch_on_success": [{"instruction_type": "alu_operation", "operator": "+", "target": "ipm_3", "lhs": {"value": "0"}, "rhs": {"value": "1"}}], "branch_on_failure": [{"instruction_type": "alu_operation", "operator": "-", "target": "ipm_2", "lhs": {"value": "ipm_2"}, "rhs": {"value": "ipm_2"}}]}]}, {"instruction_type": "conditional_branch", "condition_type": "numeric_compare", "operator": "==", "lhs": {"value": "ipm_3"}, "rhs": {"value": "1"}, "branch_on_success": [{"instruction_type": "conditional_branch", "condition_type": "numeric_compare", "operator": "==", "lhs": {"value": "byte"}, "rhs": {"value": "109"}, "branch_on_success": [{"instruction_type": "alu_operation", "operator": "+", "target": "is_ipm", "lhs": {"value": "0"}, "rhs": {"value": "1"}}], "branch_on_failure": [{"instruction_type": "alu_operation", "operator": "-", "target": "ipm_3", "lhs": {"value": "ipm_3"}, "rhs": {"value": "ipm_3"}}]}]}, {"instruction_type": "conditional_branch", "condition_type": "numeric_compare", "operator": "==", "lhs": {"value": "byte"}, "rhs": {"value": "46"}, "branch_on_success": [{"instruction_type": "alu_operation", "operator": "+", "target": "ipm_0", "lhs": {"value": "0"}, "rhs": {"value": "1"}}]}]}, {"instruction_type": "variable_declaration", "variable_name": "path", "variable_type": "str", "assignment_operation": "variable", "source_target": "cJSON_GetObjectItemCaseSensitive(_entry, \"path\")->valuestring"}, {"instruction_type": "function_invocation", "invocation_name": "read_entire_file_into_slice", "invocation_arguments": [{"kind": "var", "value": "path"}], "result_assignment_variable": "raw_content", "result_type": "slice"}, {"instruction_type": "conditional_branch", "condition_operation": "is_not_null", "condition_target": "raw_content", "branch_on_success": [{"instruction_type": "iterate_over_bytes", "collection": "raw_content", "item_variable": "byte", "index_variable": "bi", "body": [{"instruction_type": "conditional_branch", "condition_type": "numeric_compare", "operator": "==", "lhs": {"value": "byte"}, "rhs": {"value": "0"}, "branch_on_success": [{"instruction_type": "function_invocation", "invocation_name": "report_invalid_format_and_exit", "invocation_arguments": []}]}]}]}, {"instruction_type": "conditional_branch", "condition_type": "numeric_compare", "operator": "==", "lhs": {"value": "is_ipm"}, "rhs": {"value": "0"}, "branch_on_success": [{"instruction_type": "alu_operation", "operator": "+", "target": "file_count", "lhs": {"value": "file_count"}, "rhs": {"value": "1"}}]}, {"instruction_type": "function_invocation", "invocation_name": "validate_soul_naming_rule_check", "invocation_arguments": [{"kind": "var", "value": "_name"}], "result_assignment_variable": "err", "result_type": "i32"}, {"instruction_type": "conditional_branch", "condition_operation": "is_not_null", "condition_target": "err", "branch_on_success": [{"instruction_type": "function_invocation", "invocation_name": "report_error_and_exit", "invocation_arguments": [{"kind": "var", "value": "_name"}, {"kind": "str", "value": "naming violation"}, {"kind": "str", "value": "rename to exactly 5 words describing WHAT it does"}]}]}, {"instruction_type": "function_invocation", "invocation_name": "detect_any_hardcoded_filesystem_paths", "invocation_arguments": [{"kind": "var", "value": "path"}], "result_assignment_variable": "err2", "result_type": "i32"}, {"instruction_type": "conditional_branch", "condition_operation": "is_not_null", "condition_target": "err2", "branch_on_success": [{"instruction_type": "function_invocation", "invocation_name": "report_error_and_exit", "invocation_arguments": [{"kind": "var", "value": "_name"}, {"kind": "str", "value": "has hardcoded path"}, {"kind": "str", "value": "resolve paths at runtime, never hardcode"}]}]}, {"instruction_type": "function_invocation", "invocation_name": "check_each_line_token_density", "invocation_arguments": [{"kind": "var", "value": "path"}], "result_assignment_variable": "err3", "result_type": "i32"}, {"instruction_type": "conditional_branch", "condition_operation": "is_not_null", "condition_target": "err3", "branch_on_success": [{"instruction_type": "function_invocation", "invocation_name": "report_error_and_exit", "invocation_arguments": [{"kind": "var", "value": "_name"}, {"kind": "str", "value": "line too dense"}, {"kind": "str", "value": "split the line into multiple statements (max 3 control tokens)"}]}]}, {"instruction_type": "function_invocation", "invocation_name": "read_entire_file_into_slice", "invocation_arguments": [{"kind": "var", "value": "path"}], "result_assignment_variable": "file_content", "result_type": "slice"}, {"instruction_type": "conditional_branch", "condition_operation": "is_not_null", "condition_target": "file_content", "branch_on_success": [{"instruction_type": "iterate_over_bytes", "collection": "file_content", "item_variable": "byte", "index_variable": "bi", "body": [{"instruction_type": "conditional_branch", "condition_type": "numeric_compare", "operator": "==", "lhs": {"value": "byte"}, "rhs": {"value": "0"}, "branch_on_success": [{"instruction_type": "function_invocation", "invocation_name": "report_invalid_format_and_exit", "invocation_arguments": []}]}]}, {"instruction_type": "function_invocation", "invocation_name": "scan_every_byte_search_patterns", "invocation_arguments": [{"kind": "var", "value": "(const char *)file_content.data"}]}]}, {"instruction_type": "function_invocation", "invocation_name": "locate_all_function_body_blocks", "invocation_arguments": [{"kind": "var", "value": "path"}], "result_assignment_variable": "err5", "result_type": "i32"}, {"instruction_type": "conditional_branch", "condition_operation": "is_not_null", "condition_target": "err5", "branch_on_success": [{"instruction_type": "function_invocation", "invocation_name": "report_error_and_exit", "invocation_arguments": [{"kind": "var", "value": "_name"}, {"kind": "str", "value": "too many functions"}, {"kind": "str", "value": "extract functions into a new .c file (max 10)"}]}]}, {"instruction_type": "conditional_branch", "condition_type": "numeric_compare", "operator": "!=", "lhs": {"value": "is_ipm"}, "rhs": {"value": "0"}, "branch_on_success": [{"instruction_type": "function_invocation", "invocation_name": "check_ipm_file_validation_ffi", "invocation_arguments": [{"kind": "var", "value": "path"}], "result_assignment_variable": "err8", "result_type": "str"}, {"instruction_type": "conditional_branch", "condition_operation": "is_not_null", "condition_target": "err8", "branch_on_success": [{"instruction_type": "function_invocation", "invocation_name": "report_error_and_exit", "invocation_arguments": [{"kind": "var", "value": "_name"}, {"kind": "str", "value": "IPM validation failed"}, {"kind": "str", "value": "fix the IPM specification"}]}]}]}, {"instruction_type": "function_invocation", "invocation_name": "find_every_main_function_block", "invocation_arguments": [{"kind": "var", "value": "path"}], "result_assignment_variable": "has_main", "result_type": "i32"}, {"instruction_type": "conditional_branch", "condition_type": "numeric_compare", "operator": "!=", "lhs": {"value": "has_main"}, "rhs": {"value": "0"}, "branch_on_success": [{"instruction_type": "alu_operation", "operator": "+", "target": "total_main", "lhs": {"value": "total_main"}, "rhs": {"value": "1"}}]}], "recursive": true}, {"instruction_type": "conditional_branch", "condition_type": "numeric_compare", "operator": "!=", "lhs": {"value": "file_count"}, "rhs": {"value": "0"}, "branch_on_success": [{"instruction_type": "conditional_branch", "condition_type": "numeric_compare", "operator": "==", "lhs": {"value": "total_main"}, "rhs": {"value": "0"}, "branch_on_success": [{"instruction_type": "function_invocation", "invocation_name": "report_error_and_exit", "invocation_arguments": [{"kind": "var", "value": "srcdir"}, {"kind": "str", "value": "wrong main count"}, {"kind": "str", "value": "at least one main() required across all files"}]}]}]}], "branch_on_failure": [{"instruction_type": "function_invocation", "invocation_name": "system_exit", "invocation_arguments": [{"kind": "str", "value": "1"}]}]}, {"instruction_type": "return_statement", "return_payload": {"value": "0"}}]}}}
+{
+  "description": "IPM enforcer — validates source files against structural and naming rules",
+  "package_name": "enforce-naming-rules-via-ffi",
+  "module_name": "enforce-naming-rules-via-ffi",
+  "extern_imports": [
+    {
+      "name": "initialize_naming_rules_enforcer_ffi",
+      "return_type": "void",
+      "arguments": [
+        {
+          "name": "srcdir",
+          "type": "str"
+        }
+      ]
+    },
+    {
+      "name": "match_exemption_table_name_ffi",
+      "return_type": "str",
+      "arguments": [
+        {
+          "name": "name",
+          "type": "str"
+        }
+      ]
+    },
+    {
+      "name": "check_bootstrap_source_whitelist_ffi",
+      "return_type": "i32",
+      "arguments": [
+        {
+          "name": "name",
+          "type": "str"
+        },
+        {
+          "name": "sub",
+          "type": "str"
+        },
+        {
+          "name": "dirpath",
+          "type": "str"
+        }
+      ]
+    },
+    {
+      "name": "validate_file_stem_dfa_ffi",
+      "return_type": "i32",
+      "arguments": [
+        {
+          "name": "fullname",
+          "type": "str"
+        }
+      ]
+    },
+    {
+      "name": "report_file_naming_error_ffi",
+      "return_type": "void",
+      "arguments": [
+        {
+          "name": "fullname",
+          "type": "str"
+        },
+        {
+          "name": "path",
+          "type": "str"
+        },
+        {
+          "name": "err_code",
+          "type": "i32"
+        }
+      ]
+    },
+    {
+      "name": "check_directory_file_limits_ffi",
+      "return_type": "void",
+      "arguments": [
+        {
+          "name": "dirpath",
+          "type": "str"
+        },
+        {
+          "name": "file_cnt",
+          "type": "i32"
+        },
+        {
+          "name": "dir_cnt",
+          "type": "i32"
+        }
+      ]
+    },
+    {
+      "name": "check_single_file_rules_ffi",
+      "return_type": "void",
+      "arguments": [
+        {
+          "name": "sub",
+          "type": "str"
+        },
+        {
+          "name": "fullname",
+          "type": "str"
+        }
+      ]
+    },
+    {
+      "name": "check_project_main_count_ffi",
+      "return_type": "void",
+      "arguments": [
+        {
+          "name": "srcdir",
+          "type": "str"
+        }
+      ]
+    },
+    {
+      "name": "system_exit",
+      "return_type": "void",
+      "arguments": [
+        {
+          "name": "code",
+          "type": "str"
+        }
+      ]
+    }
+  ],
+  "function_definitions": {
+    "scan_recursive_dir": {
+      "return_type": "i32",
+      "parameter_definitions": [
+        {
+          "parameter_name": "dirpath",
+          "parameter_type": "str"
+        }
+      ],
+      "execution_instructions": [
+        {
+          "instruction_type": "variable_declaration",
+          "variable_name": "file_cnt",
+          "variable_type": "i32",
+          "assignment_operation": "literal",
+          "source_target": 0
+        },
+        {
+          "instruction_type": "variable_declaration",
+          "variable_name": "dir_cnt",
+          "variable_type": "i32",
+          "assignment_operation": "literal",
+          "source_target": 0
+        },
+        {
+          "instruction_type": "scan_directory_entries",
+          "directory_path": "dirpath",
+          "entry_variable": "entry",
+          "name_variable": "fname",
+          "body_instructions": [
+            {
+              "instruction_type": "variable_declaration",
+              "variable_name": "sub_path",
+              "variable_type": "str",
+              "assignment_operation": "variable",
+              "source_target": "cJSON_GetObjectItemCaseSensitive(_entry, \"path\")->valuestring"
+            },
+            {
+              "instruction_type": "function_invocation",
+              "invocation_name": "match_exemption_table_name_ffi",
+              "invocation_arguments": [
+                {
+                  "kind": "var",
+                  "value": "_name"
+                }
+              ],
+              "result_assignment_variable": "ex_scan",
+              "result_type": "str"
+            },
+            {
+              "instruction_type": "conditional_branch",
+              "condition_operation": "equals",
+              "condition_target": "ex_scan",
+              "condition_value": "subtree-skip",
+              "branch_on_success": [
+                {
+                  "instruction_type": "return_statement",
+                  "return_payload": {
+                    "value": "0"
+                  }
+                }
+              ]
+            },
+            {
+              "instruction_type": "conditional_branch",
+              "condition_operation": "is_null",
+              "condition_target": "ex_scan",
+              "branch_on_success": [
+                {
+                  "instruction_type": "variable_declaration",
+                  "variable_name": "is_dir",
+                  "variable_type": "i32",
+                  "assignment_operation": "variable",
+                  "source_target": "cJSON_IsTrue(cJSON_GetObjectItemCaseSensitive(_entry, \"is_dir\"))"
+                },
+                {
+                  "instruction_type": "conditional_branch",
+                  "condition_type": "numeric_compare",
+                  "operator": "!=",
+                  "lhs": {
+                    "value": "is_dir"
+                  },
+                  "rhs": {
+                    "value": "0"
+                  },
+                  "branch_on_success": [
+                    {
+                      "instruction_type": "variable_declaration",
+                      "variable_name": "is_root_dir",
+                      "variable_type": "i32",
+                      "assignment_operation": "literal",
+                      "source_target": 0
+                    },
+                    {
+                      "instruction_type": "conditional_branch",
+                      "condition_operation": "equals",
+                      "condition_target": "dirpath",
+                      "condition_value": ".",
+                      "branch_on_success": [
+                        {
+                          "instruction_type": "alu_operation",
+                          "operator": "+",
+                          "target": "is_root_dir",
+                          "lhs": {
+                            "value": "0"
+                          },
+                          "rhs": {
+                            "value": "1"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "instruction_type": "variable_declaration",
+                      "variable_name": "is_src_dir",
+                      "variable_type": "i32",
+                      "assignment_operation": "literal",
+                      "source_target": 0
+                    },
+                    {
+                      "instruction_type": "conditional_branch",
+                      "condition_operation": "equals",
+                      "condition_target": "_name",
+                      "condition_value": "src",
+                      "branch_on_success": [
+                        {
+                          "instruction_type": "alu_operation",
+                          "operator": "+",
+                          "target": "is_src_dir",
+                          "lhs": {
+                            "value": "0"
+                          },
+                          "rhs": {
+                            "value": "1"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "instruction_type": "variable_declaration",
+                      "variable_name": "should_recurse",
+                      "variable_type": "i32",
+                      "assignment_operation": "literal",
+                      "source_target": 1
+                    },
+                    {
+                      "instruction_type": "conditional_branch",
+                      "condition_type": "numeric_compare",
+                      "operator": "==",
+                      "lhs": {
+                        "value": "is_root_dir"
+                      },
+                      "rhs": {
+                        "value": "1"
+                      },
+                      "branch_on_success": [
+                        {
+                          "instruction_type": "conditional_branch",
+                          "condition_type": "numeric_compare",
+                          "operator": "==",
+                          "lhs": {
+                            "value": "is_src_dir"
+                          },
+                          "rhs": {
+                            "value": "0"
+                          },
+                          "branch_on_success": [
+                            {
+                              "instruction_type": "alu_operation",
+                              "operator": "-",
+                              "target": "should_recurse",
+                              "lhs": {
+                                "value": "should_recurse"
+                              },
+                              "rhs": {
+                                "value": "should_recurse"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "instruction_type": "conditional_branch",
+                      "condition_type": "numeric_compare",
+                      "operator": "!=",
+                      "lhs": {
+                        "value": "should_recurse"
+                      },
+                      "rhs": {
+                        "value": "0"
+                      },
+                      "branch_on_success": [
+                        {
+                          "instruction_type": "function_invocation",
+                          "invocation_name": "scan_recursive_dir",
+                          "invocation_arguments": [
+                            {
+                              "kind": "var",
+                              "value": "sub_path"
+                            }
+                          ],
+                          "result_type": "i32"
+                        },
+                        {
+                          "instruction_type": "alu_operation",
+                          "operator": "+",
+                          "target": "dir_cnt",
+                          "lhs": {
+                            "value": "dir_cnt"
+                          },
+                          "rhs": {
+                            "value": "1"
+                          }
+                        }
+                      ]
+                    }
+                  ],
+                  "branch_on_failure": [
+                    {
+                      "instruction_type": "variable_declaration",
+                      "variable_name": "should_process_file",
+                      "variable_type": "i32",
+                      "assignment_operation": "literal",
+                      "source_target": 1
+                    },
+                    {
+                      "instruction_type": "conditional_branch",
+                      "condition_operation": "equals",
+                      "condition_target": "dirpath",
+                      "condition_value": ".",
+                      "branch_on_success": [
+                        {
+                          "instruction_type": "variable_declaration",
+                          "variable_name": "has_evil",
+                          "variable_type": "i32",
+                          "assignment_operation": "variable",
+                          "source_target": "strstr(_name, \"evil\") != NULL"
+                        },
+                        {
+                          "instruction_type": "conditional_branch",
+                          "condition_type": "numeric_compare",
+                          "operator": "==",
+                          "lhs": {
+                            "value": "has_evil"
+                          },
+                          "rhs": {
+                            "value": "0"
+                          },
+                          "branch_on_success": [
+                            {
+                              "instruction_type": "alu_operation",
+                              "operator": "-",
+                              "target": "should_process_file",
+                              "lhs": {
+                                "value": "should_process_file"
+                              },
+                              "rhs": {
+                                "value": "should_process_file"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "instruction_type": "conditional_branch",
+                      "condition_type": "numeric_compare",
+                      "operator": "!=",
+                      "lhs": {
+                        "value": "should_process_file"
+                      },
+                      "rhs": {
+                        "value": "0"
+                      },
+                      "branch_on_success": [
+                        {
+                          "instruction_type": "function_invocation",
+                          "invocation_name": "check_bootstrap_source_whitelist_ffi",
+                          "invocation_arguments": [
+                            {
+                              "kind": "var",
+                              "value": "_name"
+                            },
+                            {
+                              "kind": "var",
+                              "value": "sub_path"
+                            },
+                            {
+                              "kind": "var",
+                              "value": "dirpath"
+                            }
+                          ],
+                          "result_assignment_variable": "skip_file",
+                          "result_type": "i32"
+                        },
+                        {
+                          "instruction_type": "conditional_branch",
+                          "condition_type": "numeric_compare",
+                          "operator": "==",
+                          "lhs": {
+                            "value": "skip_file"
+                          },
+                          "rhs": {
+                            "value": "0"
+                          },
+                          "branch_on_success": [
+                            {
+                              "instruction_type": "alu_operation",
+                              "operator": "+",
+                              "target": "file_cnt",
+                              "lhs": {
+                                "value": "file_cnt"
+                              },
+                              "rhs": {
+                                "value": "1"
+                              }
+                            },
+                            {
+                              "instruction_type": "function_invocation",
+                              "invocation_name": "validate_file_stem_dfa_ffi",
+                              "invocation_arguments": [
+                                {
+                                  "kind": "var",
+                                  "value": "_name"
+                                }
+                              ],
+                              "result_assignment_variable": "naming_err",
+                              "result_type": "i32"
+                            },
+                            {
+                              "instruction_type": "conditional_branch",
+                              "condition_type": "numeric_compare",
+                              "operator": "!=",
+                              "lhs": {
+                                "value": "naming_err"
+                              },
+                              "rhs": {
+                                "value": "0"
+                              },
+                              "branch_on_success": [
+                                {
+                                  "instruction_type": "function_invocation",
+                                  "invocation_name": "report_file_naming_error_ffi",
+                                  "invocation_arguments": [
+                                    {
+                                      "kind": "var",
+                                      "value": "_name"
+                                    },
+                                    {
+                                      "kind": "var",
+                                      "value": "sub_path"
+                                    },
+                                    {
+                                      "kind": "var",
+                                      "value": "naming_err"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "instruction_type": "function_invocation",
+                              "invocation_name": "check_single_file_rules_ffi",
+                              "invocation_arguments": [
+                                {
+                                  "kind": "var",
+                                  "value": "sub_path"
+                                },
+                                {
+                                  "kind": "var",
+                                  "value": "_name"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "recursive": false
+        },
+        {
+          "instruction_type": "function_invocation",
+          "invocation_name": "check_directory_file_limits_ffi",
+          "invocation_arguments": [
+            {
+              "kind": "var",
+              "value": "dirpath"
+            },
+            {
+              "kind": "var",
+              "value": "file_cnt"
+            },
+            {
+              "kind": "var",
+              "value": "dir_cnt"
+            }
+          ]
+        },
+        {
+          "instruction_type": "return_statement",
+          "return_payload": {
+            "value": "0"
+          }
+        }
+      ]
+    },
+    "main": {
+      "return_type": "i32",
+      "execution_instructions": [
+        {
+          "instruction_type": "function_invocation",
+          "invocation_name": "get_cli_arg",
+          "invocation_arguments": [
+            {
+              "kind": "var",
+              "value": "1"
+            }
+          ],
+          "result_assignment_variable": "srcdir",
+          "result_type": "str"
+        },
+        {
+          "instruction_type": "conditional_branch",
+          "condition_operation": "is_not_null",
+          "condition_target": "srcdir",
+          "branch_on_success": [
+            {
+              "instruction_type": "function_invocation",
+              "invocation_name": "initialize_naming_rules_enforcer_ffi",
+              "invocation_arguments": [
+                {
+                  "kind": "var",
+                  "value": "srcdir"
+                }
+              ]
+            },
+            {
+              "instruction_type": "function_invocation",
+              "invocation_name": "scan_recursive_dir",
+              "invocation_arguments": [
+                {
+                  "kind": "var",
+                  "value": "srcdir"
+                }
+              ],
+              "result_type": "i32"
+            },
+            {
+              "instruction_type": "function_invocation",
+              "invocation_name": "check_project_main_count_ffi",
+              "invocation_arguments": [
+                {
+                  "kind": "var",
+                  "value": "srcdir"
+                }
+              ]
+            }
+          ],
+          "branch_on_failure": [
+            {
+              "instruction_type": "function_invocation",
+              "invocation_name": "system_exit",
+              "invocation_arguments": [
+                {
+                  "kind": "str",
+                  "value": "1"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "instruction_type": "return_statement",
+          "return_payload": {
+            "value": "0"
+          }
+        }
+      ]
+    }
+  }
+}

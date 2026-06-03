@@ -53,6 +53,7 @@
       ];
       runtime_src = [
         "src/runtime-for-generated-ipm-code.c"
+        "src/runtime-weak-stub-symbol-overrides/runtime-weak-stubs-part-two.c"
         "src/compile-specifications-into-source-code/enforce-structural-rules-for-code/scan-source-code-for-patterns/check-naming-rules-for-ffi.c"
         "src/support-code-for-compiled-output/file-string-and-json-parsing.c"
         "src/support-code-for-compiled-output/hash-table-and-substitution-code.c"
@@ -207,11 +208,11 @@
             -c path_obj/path.c -o path_obj/path.o
 
           # Naming rules validator
-          spec2c modules/rules/validate-soul-naming-rule-check.ipm --library -o naming_obj/naming.c
+          spec2c modules/rules/validate-file-stem-naming-dfa.ipm --library -o naming_obj/naming.c
           sed -i '/^{"ok"/d' naming_obj/naming.c
-          sed -i 's/void validate_soul_naming_rule_check/int validate_soul_naming_rule_check/' naming_obj/validate_soul_naming_rule_check.h
+          sed -i 's/void validate_file_stem_naming_dfa/int validate_file_stem_naming_dfa/' naming_obj/validate-file-stem-naming-dfa.h
           sed -i 's/(char \* name_arg)/(const char *name_arg)/g' naming_obj/naming.c
-          sed -i 's/(char \* name_arg)/(const char *name_arg)/g' naming_obj/validate_soul_naming_rule_check.h
+          sed -i 's/(char \* name_arg)/(const char *name_arg)/g' naming_obj/validate-file-stem-naming-dfa.h
           sed -i 's/const char \*_name = "[^"]*";//' naming_obj/naming.c
           $CC ${builtins.toString cflags} \
             -Isrc -I${S} -I${S}/shared-type-declarations-across-modules \
@@ -248,30 +249,15 @@
           sed -i '/^{"ok"/d' ipm_enforce_gen.c
           sed -i '/enforce_naming_rules_via_ffi\.h"/d' ipm_enforce_gen.c
           sed -i '1i#include "runtime-for-generated-ipm-code.h"' ipm_enforce_gen.c
-          sed -i 's/extern char \* check_name_following_soul_rules(char \*/extern const char * check_name_following_soul_rules(const char */' ipm_enforce_gen.c
-          sed -i 's/scan_every_byte_search_patterns(char \*/scan_every_byte_search_patterns(const char */' ipm_enforce_gen.c
-          # Fix all extern const-correctness: char *path → const char *path
-          sed -i 's/extern \(.*\)(char \* path)/extern \1(const char *path)/' ipm_enforce_gen.c
-          sed -i 's/extern \(.*\)(char \* dirpath)/extern \1(const char *dirpath)/' ipm_enforce_gen.c
-          sed -i 's/extern char \* check_name_following_soul_rules(char \*/extern const char * check_name_following_soul_rules(const char */' ipm_enforce_gen.c
-          sed -i 's/, char \* name, char \* fp/, const char *name, const char *fp/' ipm_enforce_gen.c
-          sed -i 's/extern int validate_soul_naming_rule_check(char \*/extern int validate_soul_naming_rule_check(const char */' ipm_enforce_gen.c
-          # Fix result variable types
-          for i in 0 1 2 3 4 5 6 7 8; do sed -i "s/char \*bp$i =/int bp$i =/" ipm_enforce_gen.c; done
-          sed -i '/const char \*err/!s/char \* *err =/int err =/' ipm_enforce_gen.c
-          sed -i 's/if (err != NULL)/if (err)/' ipm_enforce_gen.c
-          sed -i 's/char \*err0 =/const char *err0 =/' ipm_enforce_gen.c
-          sed -i 's/char \*err2 =/int err2 =/' ipm_enforce_gen.c
-          sed -i 's/if (err2 != NULL)/if (err2)/' ipm_enforce_gen.c
-          sed -i 's/char \*err3 =/int err3 =/' ipm_enforce_gen.c
-          sed -i 's/if (err3 != NULL)/if (err3)/' ipm_enforce_gen.c
-          sed -i 's/char \*err5 =/int err5 =/' ipm_enforce_gen.c
-          sed -i 's/if (err5 != NULL)/if (err5)/' ipm_enforce_gen.c
-          sed -i 's/char \* *has_main =/int has_main =/' ipm_enforce_gen.c
-          sed -i 's/if (has_main != NULL)/if (has_main)/' ipm_enforce_gen.c
-          sed -i 's/if (err3 != NULL)/if (err3)/' ipm_enforce_gen.c
-          sed -i '/const char \*err =/!s/char \*err =/const char *err =/' ipm_enforce_gen.c
-          sed -i '/const char \*err =/!s/char \*err =/const char *err =/' ipm_enforce_gen.c
+          sed -i 's/extern void initialize_naming_rules_enforcer_ffi(char \*/extern void initialize_naming_rules_enforcer_ffi(const char */' ipm_enforce_gen.c
+          sed -i 's/extern char \* match_exemption_table_name_ffi(char \*/extern const char * match_exemption_table_name_ffi(const char */' ipm_enforce_gen.c
+          sed -i 's/extern int check_bootstrap_source_whitelist_ffi(char \* name, char \* sub, char \* dirpath)/extern int check_bootstrap_source_whitelist_ffi(const char *name, const char *sub, const char *dirpath)/' ipm_enforce_gen.c
+          sed -i 's/extern int validate_file_stem_dfa_ffi(char \*/extern int validate_file_stem_dfa_ffi(const char */' ipm_enforce_gen.c
+          sed -i 's/extern void report_file_naming_error_ffi(char \* fullname, char \* path, int/extern void report_file_naming_error_ffi(const char *fullname, const char *path, int/' ipm_enforce_gen.c
+          sed -i 's/extern void check_directory_file_limits_ffi(char \*/extern void check_directory_file_limits_ffi(const char */' ipm_enforce_gen.c
+          sed -i 's/extern void check_single_file_rules_ffi(char \* sub, char \* fullname)/extern void check_single_file_rules_ffi(const char *sub, const char *fullname)/' ipm_enforce_gen.c
+          sed -i 's/extern void check_project_main_count_ffi(char \*/extern void check_project_main_count_ffi(const char */' ipm_enforce_gen.c
+          sed -i 's/extern void system_exit(char \*/extern void system_exit(const char */' ipm_enforce_gen.c
           sed -i 's/int errors = 0;/int errors = 0; (void)errors;/' ipm_enforce_gen.c
 
           $CC ${builtins.toString cflags} \
@@ -288,6 +274,10 @@
             src/support-code-for-compiled-output/structural-rule-checker-batch-two/structural-rule-checker-batch-two.c \
             src/support-code-for-compiled-output/ipm-file-validator-ffi-batch/ipm-file-validator-ffi-batch.c \
             src/support-code-for-compiled-output/validate-type-name-against-whitelist/validate-type-name-against-whitelist.c \
+            src/compile-specifications-into-source-code/enforce-structural-rules-for-code/enforce-naming-whitelist-and-validation.c \
+            src/compile-specifications-into-source-code/enforce-structural-rules-for-code/operator-signed-exemption-name-table/load-operator-signed-exemption-table.c \
+            src/compile-specifications-into-source-code/enforce-structural-rules-for-code/scan-source-code-for-patterns/enforce-bootstrap-code-file-whitelist.c \
+            verify-ed25519-digital-signature-key.c \
             src/compile-specifications-into-source-code/enforce-structural-rules-for-code/scan-source-code-for-patterns/check-naming-rules-for-ffi.c \
             src/compile-specifications-into-source-code/enforce-structural-rules-for-code/scan-source-code-for-patterns/ffi-function-export-layer-here/enforce-ffi-function-export-layer.c \
             src/support-code-for-compiled-output/remaining-rules-ffi-batch-four/remaining-rules-ffi-batch-four.c \

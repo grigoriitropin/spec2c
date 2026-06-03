@@ -15,10 +15,14 @@ def read_whitelist():
                 names.append(line)
     return names
 
-def find_file(basename):
+def find_file(name):
+    p = os.path.join(SRC_DIR, name)
+    if os.path.exists(p):
+        return p
+    base = os.path.basename(name)
     for root, dirs, files in os.walk(SRC_DIR):
-        if basename in files:
-            return os.path.join(root, basename)
+        if base in files:
+            return os.path.join(root, base)
     return None
 
 def sha256_hex(path):

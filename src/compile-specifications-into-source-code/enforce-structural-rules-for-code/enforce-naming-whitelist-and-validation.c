@@ -72,7 +72,7 @@ static int skip_name_validation_for_keywords(const char *name) {
            !strcmp(name, "if") || !strcmp(name, "switch");
 }
 
-static int check_name_against_allowed_whitelist(const char *name) {
+int check_name_against_allowed_whitelist(const char *name) {
     if (skip_name_validation_for_keywords(name)) return 1;
     for (int i = 0; i < allowed_qty; i++)
         if (!strcmp(allowed[i].name, name)) return 1;
