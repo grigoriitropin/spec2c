@@ -62,3 +62,4 @@ void scan_each_directory_with_checks(const char *dirpath,
 int  count_lines_within_source_file(const char *path);
 
 #endif
+int match_type_against_strict_whitelist(const char *t);

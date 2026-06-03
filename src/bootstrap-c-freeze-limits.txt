@@ -25,4 +25,4 @@ soul-rules-for-naming-validation.h 58 2
 vehir-shared-abstraction-wrapper-code.c 135 7
 vehir-shared-abstraction-wrapper-code.h 53 8
 verify-structural-source-code-rules.c 421 15
-verify-structural-source-code-rules.h 64 18
+verify-structural-source-code-rules.h 65 18
