@@ -142,7 +142,7 @@
             -Isrc/support-code-for-compiled-output \
             -I${S}/enforce-structural-rules-for-code \
             -I${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns \
-            ipm_enforce_gen.c \
+            ipm_enforce_gen.c -lcjson \
             -Isrc \
             -I${S} \
             -I${S}/shared-type-declarations-across-modules \
