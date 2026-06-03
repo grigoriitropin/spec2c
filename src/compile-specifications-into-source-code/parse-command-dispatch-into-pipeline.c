@@ -117,7 +117,7 @@ int main(int argc, char *argv[]) {
 
 /* ── IPM/JSON specification validator (12 rules, SOUL §7 + §10) ───── */
 static void validate_ipm_source_for_hardcoded(cJSON *spec_json);
-static void validate_ipm_strict_types_in_function(cJSON *fn) {
+static void validate_ipm_function_strict_types(cJSON *fn) {
     cJSON *pars = cJSON_GetObjectItemCaseSensitive(fn, "parameter_definitions");
     if (pars && cJSON_IsArray(pars)) {
         for (int pi = 0; pi < cJSON_GetArraySize(pars); pi++) {
@@ -172,7 +172,7 @@ static int enforce_ipm_specification_validation_rules(const char *spec_text, cJS
             }
             /* validate function name */
             if (fn->string)             verify_name_complies_with_soul(fn->string);
-            validate_ipm_strict_types_in_function(fn);
+            validate_ipm_function_strict_types(fn);
             fn = fn->next;
         }
     }
