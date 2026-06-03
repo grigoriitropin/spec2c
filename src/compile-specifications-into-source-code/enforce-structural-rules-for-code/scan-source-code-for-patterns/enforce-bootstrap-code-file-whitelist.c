@@ -100,3 +100,4 @@ void enforce_bootstrap_code_freeze_check(const char *srcdir) {
         }
     }
 }
+// rebuild
