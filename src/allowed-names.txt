@@ -48,6 +48,7 @@ codegen-instruction-handler-function-set
 collect_function_names_from_file
 common-support-code-for-spec2c
 compare_hash_table_key_entries
+compare_slice_against_bytes
 compile-abstract-instructions-into-code
 compile-function-definitions-into-code
 compile-specifications-into-source-code
@@ -129,6 +130,7 @@ emit_variable_declaration_code_line
 emit_variable_declaration_into_output
 enforce-bootstrap-code-file-whitelist
 enforce-ffi-function-export-layer
+enforce-link-time-symbol-whitelist
 enforce-naming-whitelist-and-validation
 enforce-structural-rules-for-code
 enforce_all_source_code_rules

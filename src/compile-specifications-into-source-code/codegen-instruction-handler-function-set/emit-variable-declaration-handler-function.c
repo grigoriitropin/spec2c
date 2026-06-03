@@ -56,8 +56,7 @@ static void emit_conditional_branch_code_primitive(cJSON *inst, FILE *out, int i
     else if (!strcmp(op, "is_not_null"))
         fprintf(out, "if (IS_NOT_NULL(%s)) {\n", tgt);
     else if (current_slice_length_variable && current_slice_length_variable[0])
-        fprintf(out, "if ((int)%s == (int)(sizeof(\"%s\") - 1) && strncmp(%s, \"%s\", %s) == 0) {\n",
-            current_slice_length_variable, cv ? cv : "", tgt, cv ? cv : "", current_slice_length_variable);
+        fprintf(out, "if (compare_slice_against_bytes((const uint8_t*)(%s), %s, \"%s\") == 0) {\n", tgt, current_slice_length_variable, cv ? cv : "");
     else
         fprintf(out, "if (strcmp(%s, \"%s\") == 0) {\n", tgt, cv ? cv : "");
     cJSON *bon = cJSON_GetObjectItemCaseSensitive(inst, "branch_on_success");

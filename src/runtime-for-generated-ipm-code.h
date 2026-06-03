@@ -100,13 +100,17 @@ void terminate_with_json_error_output(const char *function_name, const char *ins
 void builtin_fatal_error_and_exit(const char *msg);
 void print_error_into_stderr_output(const char *msg);
 void terminate_with_status_return_code(int code);
-void report_invalid_format_and_exit(void);
+static inline void report_invalid_format_and_exit(void) {
+    fprintf(stderr, "FATAL: Binary format detected\n");
+    exit(1);
+}
 
 /* Type mapping */
 const char* resolve_spec_type_into_lang(const char *type_name);
 
 /* Regex */
 int match_pattern_against_text_string(Slice text, const char *pattern);
+int compare_slice_against_bytes(const uint8_t *data, uint32_t len, const char *pattern);
 
 /* CLI argument access (set by auto-generated main) */
 extern int g_argc;

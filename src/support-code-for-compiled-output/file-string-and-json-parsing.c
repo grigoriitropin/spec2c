@@ -81,9 +81,13 @@ void terminate_with_json_error_output(const char *function_name, const char *ins
 }
 
 
-void report_invalid_format_and_exit(void) {
-    fprintf(stderr, "FATAL: Binary format detected\n");
-    exit(1);
+int compare_slice_against_bytes(const uint8_t *data, uint32_t len, const char *pattern) {
+    uint32_t plen = 0;
+    while (pattern[plen]) plen++;
+    if (len != plen) return 1;
+    for (uint32_t i = 0; i < len; i++)
+        if (data[i] != (uint8_t)pattern[i]) return 1;
+    return 0;
 }
 
 int match_pattern_against_text_string(Slice text, const char *pattern) {

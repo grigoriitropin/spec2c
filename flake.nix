@@ -12,6 +12,7 @@
   in {
     packages = forAllSystems (system: let
       pkgs = pkgsFor system;
+      s2e-pkgs = pkgs;
       cflags = [ "-O2" "-Wall" "-Wextra" "-Werror" "-std=c2x" "-D_POSIX_C_SOURCE=200809L"
                  "-fno-ident" "-frandom-seed=spec2c" "-Wl,--build-id=none" ];
       S = "src/compile-specifications-into-source-code";
@@ -61,6 +62,17 @@
           cp s2c-enforce $out/bin/
           runHook postInstall
         '';
+        doCheck = true;
+        checkPhase = ''
+          runHook preCheck
+          cc -O2 -I. enforce-link-time-symbol-whitelist.c -o enforce-link-time-symbol-whitelist
+          mkdir -p $out/bin
+          cp s2c-enforce $out/bin/
+          for bin in $out/bin/*; do
+            ./enforce-link-time-symbol-whitelist "$bin" || exit 1
+          done
+          runHook postCheck
+        '';
       };
 
       # ── spec2c compiler (enforcement gate inline) ─────────────────
@@ -106,6 +118,17 @@
           cp skeleton.json $out/share/spec2c/
           cp -r templates $out/share/spec2c/
           runHook postInstall
+        '';
+        doCheck = true;
+        checkPhase = ''
+          runHook preCheck
+          cc -O2 -I. enforce-link-time-symbol-whitelist.c -o enforce-link-time-symbol-whitelist
+          mkdir -p $out/bin
+          cp spec2c s2c_enforce $out/bin/
+          for bin in $out/bin/*; do
+            ./enforce-link-time-symbol-whitelist "$bin" || exit 1
+          done
+          runHook postCheck
         '';
       };
 
@@ -269,6 +292,17 @@
           mkdir -p $out/bin
           cp ipm-enforce $out/bin/
           runHook postInstall
+        '';
+        doCheck = true;
+        checkPhase = ''
+          runHook preCheck
+          cc -O2 -I. enforce-link-time-symbol-whitelist.c -o enforce-link-time-symbol-whitelist
+          mkdir -p $out/bin
+          cp ipm-enforce $out/bin/
+          for bin in $out/bin/*; do
+            ./enforce-link-time-symbol-whitelist "$bin" || exit 1
+          done
+          runHook postCheck
         '';
       };
 
