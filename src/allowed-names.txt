@@ -325,3 +325,4 @@ match_and_increment_header_count
 store_function_definition_into_path
 match_and_increment_header_count
 store_function_definition_into_path
+emit_alu_operation_into_output
