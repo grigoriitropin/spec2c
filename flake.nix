@@ -210,9 +210,9 @@
           # Naming rules validator
           spec2c modules/rules/validate-file-stem-naming-dfa.ipm --library -o naming_obj/naming.c
           sed -i '/^{"ok"/d' naming_obj/naming.c
-          sed -i 's/void validate_file_stem_naming_dfa/int validate_file_stem_naming_dfa/' naming_obj/validate-file-stem-naming-dfa.h
+          sed -i 's/void validate_file_stem_naming_dfa/int validate_file_stem_naming_dfa/' naming_obj/validate_file_stem_naming_dfa.h
           sed -i 's/(char \* name_arg)/(const char *name_arg)/g' naming_obj/naming.c
-          sed -i 's/(char \* name_arg)/(const char *name_arg)/g' naming_obj/validate-file-stem-naming-dfa.h
+          sed -i 's/(char \* name_arg)/(const char *name_arg)/g' naming_obj/validate_file_stem_naming_dfa.h
           sed -i 's/const char \*_name = "[^"]*";//' naming_obj/naming.c
           $CC ${builtins.toString cflags} \
             -Isrc -I${S} -I${S}/shared-type-declarations-across-modules \
