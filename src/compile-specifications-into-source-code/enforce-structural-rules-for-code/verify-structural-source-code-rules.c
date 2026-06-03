@@ -105,14 +105,6 @@ static int detect_function_definition_start_line(const char *line) {
     if (match_name_against_stdlib_list(first)) return 0;
     return 1;
 }
-typedef struct {
-    char name[128];
-    char file[256];
-} fn_entry_t;
-typedef struct {
-    char name[64];
-    int count;
-} inc_entry_t;
 static void check_include_headers_for_file(const char *sub, inc_entry_t *incs, int *inc_qty);
 static void check_line_density_within_source(const char *line, const char *sub, int file_line) {
     int in_str = 0, in_char = 0, in_comment = 0, tokens = 0;

@@ -37,3 +37,7 @@ void enforce_bootstrap_code_freeze_check(const char *srcdir);
 
 
 int match_type_against_strict_whitelist(const char *t);
+typedef struct { char name[128]; char file[256]; } fn_entry_t;
+typedef struct { char name[64]; int count; } inc_entry_t;
+void check_single_file_for_violations(const char *sub, int is_c, int is_source, fn_entry_t *fns, int *fn_qty, inc_entry_t *incs, int *inc_qty);
+void scan_each_directory_with_checks(const char *dirpath, fn_entry_t *fns, int *fn_qty, inc_entry_t *incs, int *inc_qty);
