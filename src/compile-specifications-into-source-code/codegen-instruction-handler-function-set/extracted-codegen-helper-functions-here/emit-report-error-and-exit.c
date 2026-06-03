@@ -25,3 +25,26 @@ void emit_iteration_loop_with_count(cJSON *inst, FILE *out, int indent, const ch
     if (body) generate_code_from_ast_instructions(body, out, indent + 2, rt);
     fprintf(out, "  }\n");
 }
+
+void emit_string_token_iteration_const(cJSON *inst, FILE *out, int indent, const char *rt) {
+    const char *src = extract_json_field_string_value(inst, "source_string");
+    const char *sep = extract_json_field_string_value(inst, "separator");
+    const char *tok = extract_json_field_string_value(inst, "token_variable");
+    const char *len = extract_json_field_string_value(inst, "length_variable");
+    cJSON *body = cJSON_GetObjectItemCaseSensitive(inst, "body");
+    if (!src[0] || !sep[0]) return;
+    const char *s = "";
+    for (int fi = 0; fi < indent; fi++) { s = "  "; (void)s; }
+    fprintf(out, "  {\n");
+    fprintf(out, "    const char *_zsrc = %s;\n", src);
+    fprintf(out, "    while (*_zsrc) {\n");
+    fprintf(out, "      const char *_zend = _zsrc;\n");
+    fprintf(out, "      while (*_zend && *_zend != '%s') _zend++;\n", sep);
+    if (tok[0]) fprintf(out, "      const char *%s = _zsrc;\n", tok);
+    if (len[0]) fprintf(out, "      int %s = _zend - _zsrc;\n", len);
+    if (body) generate_code_from_ast_instructions(body, out, indent + 3, rt);
+    fprintf(out, "      if (!*_zend) break;\n");
+    fprintf(out, "      _zsrc = _zend + 1;\n");
+    fprintf(out, "    }\n");
+    fprintf(out, "  }\n");
+}

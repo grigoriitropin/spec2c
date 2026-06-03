@@ -281,27 +281,7 @@ static void emit_bootstrap_central_dispatcher_func(cJSON *inst, FILE *out, int i
     if (!strcmp(ty, "variable_declaration")) { emit_variable_declaration_code_line(inst, out, indent); return; }
     if (!strcmp(ty, "alu_operation")) { emit_alu_operation_into_output(inst, out); return; }
     if (!strcmp(ty, "scan_directory_entries")) { emit_scan_directory_with_body(inst, out, indent); return; }
-    if (!strcmp(ty, "iterate_over_string_tokens")) {
-        const char *src = extract_json_field_string_value(inst, "source_string");
-        const char *sep = extract_json_field_string_value(inst, "separator");
-        const char *tok = extract_json_field_string_value(inst, "token_variable");
-        const char *len = extract_json_field_string_value(inst, "length_variable");
-        cJSON *body = cJSON_GetObjectItemCaseSensitive(inst, "body");
-        if (!src[0] || !sep[0]) return;
-        fprintf(out, "  {\n");
-        fprintf(out, "    const char *_src = %s;\n", src);
-        fprintf(out, "    while (*_src) {\n");
-        fprintf(out, "      const char *_end = _src;\n");
-        fprintf(out, "      while (*_end && *_end != '%s') _end++;\n", sep);
-        if (tok[0]) fprintf(out, "      const char *%s = _src;\n", tok);
-        if (len[0]) fprintf(out, "      int %s = _end - _src;\n", len);
-        if (body) generate_code_from_ast_instructions(body, out, indent + 3, return_type);
-        fprintf(out, "      if (!*_end) break;\n");
-        fprintf(out, "      _src = _end + 1;\n");
-        fprintf(out, "    }\n");
-        fprintf(out, "  }\n");
-        return;
-    }
+    if (!strcmp(ty, "iterate_over_string_tokens")) { emit_string_token_iteration_const(inst, out, indent, return_type); return; }
 }
 
 typedef struct {

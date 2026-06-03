@@ -54,3 +54,4 @@ void emit_return_statement_code_block(cJSON *inst, FILE *out, const char *return
 void emit_iteration_instruction_code_block(cJSON *inst, FILE *out, int indent, const char *return_type);
 int emit_report_error_then_exit(cJSON *inst, FILE *out);
 void emit_iteration_loop_with_count(cJSON *inst, FILE *out, int indent, const char *rt);
+void emit_string_token_iteration_const(cJSON *inst, FILE *out, int indent, const char *rt);
