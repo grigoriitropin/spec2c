@@ -276,8 +276,9 @@ enforce-ffi-function-export-layer
 count_lines_inside_file_ffi
 check_bootstrap_whitelist_for_ffi
 check_file_content_for_violations
-verify_line_density_for_file_content
+verify_file_line_density_count
 enforce-ffi-function-export-layer
 count_lines_inside_file_ffi
 check_bootstrap_whitelist_for_ffi
-verify_line_density_for_file_content
+verify_file_line_density_count
+verify_file_line_density_count
