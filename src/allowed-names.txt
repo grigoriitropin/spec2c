@@ -245,3 +245,4 @@ enforce_bootstrap_code_freeze_check
 search_file_using_name_recursive
 search_file_using_name_recursive
 bootstrap-freeze-data-compiled-into
+emit_extern_imports_into_output
