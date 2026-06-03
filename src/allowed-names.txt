@@ -280,3 +280,4 @@ extracted-codegen-helper-functions-here
 emit_iteration_loop_with_count
 tokenize_string_into_slice_loop
 list-files-under-path-recursively
+list_files_under_path_recursively
