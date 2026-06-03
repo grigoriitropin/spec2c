@@ -102,6 +102,22 @@ static void emit_function_invocation_with_arguments(cJSON *inst, FILE *out, int 
     fprintf(out, ");\n");
 }
 
+static void emit_scan_directory_with_body(cJSON *inst, FILE *out, int indent) {
+    const char *dp = extract_json_field_string_value(inst, "directory_path");
+    if (!dp[0]) return;
+    fprintf(out, "  cJSON *_entries = list_files_inside_directory_path(%s);\n", dp);
+    fprintf(out, "  if (_entries) {\n");
+    fprintf(out, "    for (int _i = 0; _i < cJSON_GetArraySize(_entries); _i++) {\n");
+    fprintf(out, "      cJSON *_entry = cJSON_GetArrayItem(_entries, _i);\n");
+    fprintf(out, "      const char *_name = cJSON_GetObjectItemCaseSensitive(_entry, \"name\")->valuestring;\n");
+    /* compile-time body processing */
+    cJSON *body = cJSON_GetObjectItemCaseSensitive(inst, "body_instructions");
+    if (body) generate_code_from_ast_instructions(body, out, indent + 3, "i32");
+    fprintf(out, "    }\n");
+    fprintf(out, "    cJSON_Delete(_entries);\n");
+    fprintf(out, "  }\n");
+}
+
 static void emit_bootstrap_central_dispatcher_func(cJSON *inst, FILE *out, int indent, const char *return_type) {
     (void)indent;
     const char *ty = extract_json_field_string_value(inst, "instruction_type");
@@ -109,6 +125,7 @@ static void emit_bootstrap_central_dispatcher_func(cJSON *inst, FILE *out, int i
     if (!strcmp(ty, "conditional_branch")) { emit_conditional_branch_code_primitive(inst, out, indent, return_type); return; }
     if (!strcmp(ty, "function_invocation")) { emit_function_invocation_with_arguments(inst, out, indent); return; }
     if (!strcmp(ty, "variable_declaration")) { emit_variable_declaration_code_line(inst, out, indent); return; }
+    if (!strcmp(ty, "scan_directory_entries")) { emit_scan_directory_with_body(inst, out, indent); return; }
 }
 
 typedef struct {

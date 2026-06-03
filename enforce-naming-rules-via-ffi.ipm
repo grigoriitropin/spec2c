@@ -17,7 +17,7 @@
     "main": {
       "return_type": "i32",
       "execution_instructions": [
-        {"instruction_type": "variable_declaration", "variable_name": "errors", "variable_type": "i32", "assignment_operation": "literal", "source_target": "0"},
+        {"instruction_type": "variable_declaration", "variable_name": "errors", "variable_type": "i32", "assignment_operation": "literal", "source_target": 0},
         {"instruction_type": "variable_declaration", "variable_name": "srcdir", "variable_type": "str", "assignment_operation": "literal", "source_target": "./src"},
         {"instruction_type": "scan_directory_entries", "directory_path": "srcdir", "entry_variable": "entry", "name_variable": "fname",
           "body_instructions": [
