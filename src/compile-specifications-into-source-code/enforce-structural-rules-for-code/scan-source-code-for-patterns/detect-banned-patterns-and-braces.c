@@ -204,6 +204,37 @@ static void check_ipm_ast_depth_limits(cJSON *node, int depth, const char *path)
     }
 }
 
+static void validate_single_ipm_file_content(const char *sp,
+    char allowed_imports[64][128], int n_allowed)
+{
+    FILE *f = fopen(sp, "r"); if (!f) return;
+    fseek(f, 0, SEEK_END); long sz = ftell(f); fseek(f, 0, SEEK_SET);
+    if (sz <= 0 || sz > 65536) { fclose(f); return; }
+    char *txt = malloc(sz + 1);
+    if (!txt) { fclose(f); return; }
+    (void)!fread(txt, 1, sz, f); fclose(f); txt[sz] = 0;
+    cJSON *root = cJSON_Parse(txt); free(txt);
+    if (!root) return;
+
+    scan_json_for_banned_words(root, sp);
+    check_ipm_ast_depth_limits(root, 0, sp);
+
+    cJSON *pkg = cJSON_GetObjectItemCaseSensitive(root, "package_name");
+    if (pkg && cJSON_IsString(pkg)) validate_single_ipm_name_value(pkg->valuestring, "package_name", sp);
+    cJSON *mod = cJSON_GetObjectItemCaseSensitive(root, "module_name");
+    if (mod && cJSON_IsString(mod)) validate_single_ipm_name_value(mod->valuestring, "module_name", sp);
+    cJSON *funcs = cJSON_GetObjectItemCaseSensitive(root, "function_definitions");
+    if (funcs && cJSON_IsObject(funcs)) {
+        cJSON *fn = funcs->child;
+        while (fn) { validate_single_ipm_name_value(fn->string, "function", sp); fn = fn->next; }
+    }
+
+    check_ipm_imports_against_whitelist(root, sp, allowed_imports, n_allowed);
+    check_ipm_cli_flag_docs(root, sp);
+
+    cJSON_Delete(root);
+}
+
 void verify_ipm_names_across_sources(const char *srcdir) {
     char allowed_imports[64][128]; int n_allowed = 0;
     load_ipm_import_whitelist_file(srcdir, allowed_imports, &n_allowed);
@@ -223,28 +254,7 @@ void verify_ipm_names_across_sources(const char *srcdir) {
             char fname[256]; snprintf(fname, sizeof(fname), "%s", de2->d_name);
             fname[nl - 4] = 0;
             validate_single_ipm_name_value(fname, "file", sp);
-            FILE *f = fopen(sp, "r"); if (!f) continue;
-            fseek(f, 0, SEEK_END); long sz = ftell(f); fseek(f, 0, SEEK_SET);
-            if (sz <= 0 || sz > 65536) { fclose(f); continue; }
-            char *txt = malloc(sz + 1);
-            if (!txt) { fclose(f); continue; }
-            (void)!fread(txt, 1, sz, f); fclose(f); txt[sz] = 0;
-            cJSON *root = cJSON_Parse(txt); free(txt);
-            if (!root) continue;
-            scan_json_for_banned_words(root, sp);
-            check_ipm_ast_depth_limits(root, 0, sp);
-            cJSON *pkg = cJSON_GetObjectItemCaseSensitive(root, "package_name");
-            if (pkg && cJSON_IsString(pkg)) validate_single_ipm_name_value(pkg->valuestring, "package_name", sp);
-            cJSON *mod = cJSON_GetObjectItemCaseSensitive(root, "module_name");
-            if (mod && cJSON_IsString(mod)) validate_single_ipm_name_value(mod->valuestring, "module_name", sp);
-            cJSON *funcs = cJSON_GetObjectItemCaseSensitive(root, "function_definitions");
-            if (funcs && cJSON_IsObject(funcs)) {
-                cJSON *fn = funcs->child;
-                while (fn) { validate_single_ipm_name_value(fn->string, "function", sp); fn = fn->next; }
-            }
-            check_ipm_imports_against_whitelist(root, sp, allowed_imports, n_allowed);
-            check_ipm_cli_flag_docs(root, sp);
-            cJSON_Delete(root);
+            validate_single_ipm_file_content(sp, allowed_imports, n_allowed);
         }
         closedir(dd);
         if (ipm_cnt > 3) {

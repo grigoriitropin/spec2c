@@ -215,3 +215,4 @@ generate-code-from-instruction-ast
 ipm-compiler-definition-spec-directory
 ipm-compiler-definition-spec-directory
 check_ipm_ast_depth_limits
+validate_single_ipm_file_content
