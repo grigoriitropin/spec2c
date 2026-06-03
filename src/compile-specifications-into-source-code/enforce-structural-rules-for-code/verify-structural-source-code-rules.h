@@ -37,4 +37,3 @@ void enforce_bootstrap_code_freeze_check(const char *srcdir);
 
 
 int match_type_against_strict_whitelist(const char *t);
-void recursive_scan_inside_source_tree(const char *dirpath, fn_entry_t *fns, int *fn_qty, inc_entry_t *incs, int *inc_qty);

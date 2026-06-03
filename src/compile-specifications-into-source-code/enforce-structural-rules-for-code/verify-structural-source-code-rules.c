@@ -262,6 +262,7 @@ static void search_for_unused_function_code(fn_entry_t *fns, int fn_qty, const c
 static void scan_source_for_undocumented_flags(const char *srcdir);
 
 
+static void recursive_scan_inside_source_tree(const char *dirpath, fn_entry_t *fns, int *fn_qty, inc_entry_t *incs, int *inc_qty);
 void enforce_all_source_code_rules(const char *srcdir) {
     read_allowed_names_from_file(srcdir);
     read_banned_patterns_from_file(srcdir);
