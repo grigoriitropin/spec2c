@@ -116,12 +116,23 @@
         buildPhase = ''
           runHook preBuild
 
-          # Step 1: compile IPM enforcer spec → C
+          # Step 1: compile IPM enforcer spec → C, strip trailing JSON
           mkdir -p $TMPDIR/build
-          spec2c enforce-naming-rules-via-ffi.ipm > $TMPDIR/build/ipm_enforce_gen.c
+          spec2c enforce-naming-rules-via-ffi.ipm | sed 's/{"ok":true.*//' > $TMPDIR/build/ipm_enforce_gen.c
+          # Remove duplicate includes and non-existent headers
+          sed -i '/"enforce-naming-rules-via-ffi.h"/d' $TMPDIR/build/ipm_enforce_gen.c
+          # Add runtime header
+          sed -i '1i#include "runtime-for-generated-ipm-code.h"' $TMPDIR/build/ipm_enforce_gen.c
 
           # Step 2: compile generated C with runtime
-          cc -O2 -Wall -Werror -std=c2x \
+          cc ${builtins.toString cflags} \
+            -Isrc \
+            -I${S} \
+            -I${S}/shared-type-declarations-across-modules \
+            -Isrc/support-code-for-compiled-output \
+            -I${S}/enforce-structural-rules-for-code \
+            -I${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns \
+            $TMPDIR/build/ipm_enforce_gen.c \
             -Isrc \
             -I${S} \
             -I${S}/shared-type-declarations-across-modules \
