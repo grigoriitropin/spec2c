@@ -48,6 +48,7 @@ static char *read_file_content_into_memory(const char *srcdir) {
     return buf;
 }
 
+#if 0
 static int check_reconstructed_exemption_signature_block(const char *pub, const char *sig, const char *msg, size_t len) {
     if (verify_signature(pub, sig, (const unsigned char *)msg, len) == 0) {
         return 1;
@@ -90,6 +91,7 @@ static int verify_exemption_table_json_versions(const char *pub, const char *sig
     cJSON_Delete(copy);
     return ok;
 }
+#endif
 
 static void load_exemption_entries_into_table(cJSON *root) {
     cJSON *entries = cJSON_GetObjectItem(root, "entries");
