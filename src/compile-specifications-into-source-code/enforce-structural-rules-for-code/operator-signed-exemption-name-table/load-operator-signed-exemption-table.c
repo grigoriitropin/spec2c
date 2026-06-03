@@ -39,38 +39,39 @@ static char *read_file_content_into_memory(const char *srcdir) {
 
 void load_operator_signed_exemption_table(const char *srcdir) {
     char *content = read_file_content_into_memory(srcdir);
-    if (!content) {
+    if (!content)
         report_fatal_error_and_exit("cannot read operator-signed-exemption-name-table.json");
-    }
     cJSON *root = cJSON_Parse(content);
-    if (!root) {
-        free(content);
-        report_fatal_error_and_exit("cannot parse operator-signed-exemption-name-table.json");
-    }
+    if (!root) { free(content);
+        report_fatal_error_and_exit("cannot parse operator-signed-exemption-name-table.json"); }
     cJSON *pub_obj = cJSON_GetObjectItem(root, "public_key_hex");
     cJSON *sig_obj = cJSON_GetObjectItem(root, "signature_hex");
-    if (!pub_obj || !sig_obj || !pub_obj->valuestring || !sig_obj->valuestring) {
-        cJSON_Delete(root); free(content);
-        report_fatal_error_and_exit("operator-signed-exemption-name-table.json missing pubkey/sig");
-    }
+    if (!pub_obj || !sig_obj || !pub_obj->valuestring || !sig_obj->valuestring)
+        { cJSON_Delete(root); free(content);
+          report_fatal_error_and_exit("operator-signed-exemption-name-table.json missing pubkey/sig"); }
     char pk_hex[128]; snprintf(pk_hex, sizeof(pk_hex), "%s", pub_obj->valuestring);
     char sig_hex[256]; snprintf(sig_hex, sizeof(sig_hex), "%s", sig_obj->valuestring);
-    /* Reconstruct signed payload: JSON minus signature_hex + signed_bytes_sha256 */
-    cJSON_DeleteItemFromObject(root, "signed_bytes_sha256");
-    cJSON_DeleteItemFromObject(root, "signature_hex");
-    char *payload = cJSON_PrintUnformatted(root);
-    cJSON_Delete(root); free(content);
-    if (!payload) report_fatal_error_and_exit("cannot serialize exemption payload");
-    if (verify_signature(pk_hex, sig_hex, (unsigned char *)payload, strlen(payload)) != 0) {
-        free(payload);
+    /* Reconstruct signed bytes: raw file minus signature_hex + signed_bytes_sha256 fields */
+    char signed_bytes[4096]; int sb_len = 0;
+    const char *p = content;
+    while (*p) {
+        if (!strncmp(p, ",\"signature_hex\":", 17) || !strncmp(p, ",\"signed_bytes_sha256\":", 23)) {
+            while (*p && *p != '"') p++;
+            if (*p == '"') { p++; while (*p && *p != '"') p++; if (*p == '"') p++; }
+            while (*p && *p != '"') p++;
+            if (*p == '"') { p++; while (*p && *p != '"') p++; if (*p == '"') p++; }
+        } else {
+            if (sb_len < 4095) signed_bytes[sb_len++] = *p;
+            p++;
+        }
+    }
+    signed_bytes[sb_len] = 0;
+    /* Verify */
+    if (verify_signature(pk_hex, sig_hex, (unsigned char *)signed_bytes, sb_len) != 0) {
+        cJSON_Delete(root); free(content);
         report_fatal_error_and_exit("exemption table: Ed25519 signature invalid");
     }
-    free(payload);
-    /* Reload entries from scratch */
-    content = read_file_content_into_memory(srcdir);
-    if (!content) return;
-    root = cJSON_Parse(content);
-    if (!root) { free(content); return; }
+    /* Load entries */
     cJSON *entries = cJSON_GetObjectItem(root, "entries");
     if (entries) {
         int sz = cJSON_GetArraySize(entries);
