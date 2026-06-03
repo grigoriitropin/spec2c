@@ -216,5 +216,4 @@ ipm-compiler-definition-spec-directory
 ipm-compiler-definition-spec-directory
 check_ipm_ast_depth_limits
 validate_single_ipm_file_content
-emit_strtok_loop_into_code
-emit_count_loop_into_code
+emit_new_standard_loop_code
