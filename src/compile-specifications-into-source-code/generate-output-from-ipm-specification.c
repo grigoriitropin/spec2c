@@ -43,9 +43,10 @@ void write_component_header_with_prototypes(const ipm_spec_t *spec, const char *
     FILE *hdr = fopen(hdr_path, "w");
     if (!hdr) report_fatal_error_and_exit("cannot open header file");
 
-    char guard[256];
-    snprintf(guard, sizeof(guard), "%s_H", modname);
-    for (char *p = guard; *p; p++) if (*p == '-') *p = '_';
+    char guard[256]; int gk = 0;
+    while (modname[gk]) { guard[gk] = (modname[gk] == '-') ? '_' : modname[gk]; gk++; }
+    guard[gk] = 0;
+    snprintf(guard + gk, sizeof(guard) - gk, "_H");
 
     fprintf(hdr, "/* Auto-generated from %s.ipm */\n", modname);
     fprintf(hdr, "#ifndef %s\n#define %s\n\n", guard, guard);
@@ -131,9 +132,12 @@ void handle_ipm_spec_emit_code(const ipm_spec_t *spec, const char *out_path, int
     const char *modname = extract_json_field_string_value(spec->meta, "module_name");
     if (modname[0] && out_path) {
         char hdr_path[4096];
+        char cmod[256]; int ck = 0;
+        while (modname[ck]) { cmod[ck] = (modname[ck] == '-') ? '_' : modname[ck]; ck++; }
+        cmod[ck] = 0;
         const char *slash = strrchr(out_path, '/');
         int dirlen = slash ? (int)(slash - out_path + 1) : 0;
-        snprintf(hdr_path, sizeof(hdr_path), "%.*s%s.h", dirlen, out_path, modname);
+        snprintf(hdr_path, sizeof(hdr_path), "%.*s%s.h", dirlen, out_path, cmod);
         write_component_header_with_prototypes(spec, hdr_path);
     }
 
@@ -141,8 +145,11 @@ void handle_ipm_spec_emit_code(const ipm_spec_t *spec, const char *out_path, int
     if (!out_fp) report_fatal_error_and_exit("cannot open output file");
 
     if (modname[0]) {
+        char cname[256]; int ci = 0;
+        while (modname[ci]) { cname[ci] = (modname[ci] == '-') ? '_' : modname[ci]; ci++; }
+        cname[ci] = 0;
         fprintf(out_fp, "#include <string.h>\n#include <stdio.h>\n#include <stdlib.h>\n#include <cjson/cJSON.h>\n");
-        fprintf(out_fp, "#include \"%s.h\"\n\n", modname);
+        fprintf(out_fp, "#include \"%s.h\"\n\n", cname);
     }
 
     subst_t subs[SUBST_MAX]; int nsubs = 0;
