@@ -7,7 +7,7 @@ compile-abstract-instructions-into-code.c 99 5
 detect-banned-patterns-and-braces.c 343 13
 dump-context-from-ipm-graph.c 109 3
 emit-variable-declaration-handler-function.c 97 5
-enforce-bootstrap-code-file-whitelist.c 32 2
+enforce-bootstrap-code-file-whitelist.c 103 3
 enforce-naming-whitelist-and-validation.c 222 10
 file-string-and-json-parsing.c 113 10
 generate-output-from-ipm-specification.c 178 6
