@@ -5,3 +5,8 @@ bootstrap-c-whitelist.txt
 ipm-imports.whitelist
 README.md
 allowed-non-source-files.txt
+flake.nix
+flake.lock
+skeleton.json
+source-manifest.json
+LICENSE
