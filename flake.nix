@@ -139,14 +139,12 @@
             -Isrc/support-code-for-compiled-output \
             -I${S}/enforce-structural-rules-for-code \
             -I${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns \
-            $TMPDIR/build/ipm_enforce_gen.c \
             -Isrc \
             -I${S} \
             -I${S}/shared-type-declarations-across-modules \
             -Isrc/support-code-for-compiled-output \
             -I${S}/enforce-structural-rules-for-code \
             -I${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns \
-            $TMPDIR/build/ipm_enforce_gen.c \
             src/support-code-for-compiled-output/file-string-and-json-parsing.c \
             src/support-code-for-compiled-output/hash-table-and-substitution-code.c \
             src/support-code-for-compiled-output/buffer-output-and-command-launch.c \
