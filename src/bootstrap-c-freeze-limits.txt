@@ -4,7 +4,7 @@ check-source-conformance-entry-point.c 298 10
 compile-abstract-instructions-into-code.c 152 5
 detect-banned-patterns-and-braces.c 413 13
 dump-context-from-ipm-graph.c 109 3
-emit-variable-declaration-handler-function.c 332 5
+emit-variable-declaration-handler-function.c 342 5
 enforce-bootstrap-code-file-whitelist.c 145 4
 enforce-naming-whitelist-and-validation.c 224 10
 file-string-and-json-parsing.c 241 10

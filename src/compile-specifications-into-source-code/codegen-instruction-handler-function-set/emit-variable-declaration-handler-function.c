@@ -281,16 +281,25 @@ static void emit_bootstrap_central_dispatcher_func(cJSON *inst, FILE *out, int i
     if (!strcmp(ty, "variable_declaration")) { emit_variable_declaration_code_line(inst, out, indent); return; }
     if (!strcmp(ty, "alu_operation")) { emit_alu_operation_into_output(inst, out); return; }
     if (!strcmp(ty, "scan_directory_entries")) { emit_scan_directory_with_body(inst, out, indent); return; }
-    if (!strcmp(ty, "return_statement")) {
-        if (return_type && !return_type[0]) return;
-        if (return_type && !strcmp(return_type, "void")) return;
-        cJSON *rp = cJSON_GetObjectItemCaseSensitive(inst, "return_payload");
-        if (rp && !cJSON_IsObject(rp))
-            fprintf(out, "  return %s;\n", rp->valuestring);
-        else if (rp && cJSON_IsObject(rp))
-            fprintf(out, "  return %s;\n", extract_json_field_string_value(rp, "value"));
-        else
-            fprintf(out, "  return 0;\n");
+    if (!strcmp(ty, "iterate_over_string_tokens")) {
+        const char *src = extract_json_field_string_value(inst, "source_string");
+        const char *sep = extract_json_field_string_value(inst, "separator");
+        const char *tok = extract_json_field_string_value(inst, "token_variable");
+        const char *len = extract_json_field_string_value(inst, "length_variable");
+        cJSON *body = cJSON_GetObjectItemCaseSensitive(inst, "body");
+        if (!src[0] || !sep[0]) return;
+        fprintf(out, "  {\n");
+        fprintf(out, "    const char *_src = %s;\n", src);
+        fprintf(out, "    while (*_src) {\n");
+        fprintf(out, "      const char *_end = _src;\n");
+        fprintf(out, "      while (*_end && *_end != '%s') _end++;\n", sep);
+        if (tok[0]) fprintf(out, "      const char *%s = _src;\n", tok);
+        if (len[0]) fprintf(out, "      int %s = _end - _src;\n", len);
+        if (body) generate_code_from_ast_instructions(body, out, indent + 3, return_type);
+        fprintf(out, "      if (!*_end) break;\n");
+        fprintf(out, "      _src = _end + 1;\n");
+        fprintf(out, "    }\n");
+        fprintf(out, "  }\n");
         return;
     }
 }
@@ -309,6 +318,7 @@ static const dispatch_entry_t INSTR_HANDLERS[] = {
     {"iterate_over_collection",   emit_bootstrap_central_dispatcher_func},
     {"iterate_over_object_keys",  emit_bootstrap_central_dispatcher_func},
     {"iterate_over_bytes",        emit_bootstrap_central_dispatcher_func},
+    {"iterate_over_string_tokens", emit_bootstrap_central_dispatcher_func},
     {"read_file_content",         emit_bootstrap_central_dispatcher_func},
     {"return_statement",          emit_bootstrap_central_dispatcher_func},
     {"scan_directory_entries",    emit_bootstrap_central_dispatcher_func},
