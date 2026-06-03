@@ -220,47 +220,38 @@ static void check_ipm_ast_depth_limits(cJSON *node, int depth, const char *path)
     }
 }
 
+static int match_type_against_strict_whitelist(const char *t) {
+    return !strcmp(t, "u8") || !strcmp(t, "u32") || !strcmp(t, "u64") ||
+           !strcmp(t, "i32") || !strcmp(t, "i64") ||
+           !strcmp(t, "u8_ptr") || !strcmp(t, "ptr") ||
+           !strcmp(t, "str") || !strcmp(t, "cjson") ||
+           !strcmp(t, "string") || !strcmp(t, "json_object") || !strcmp(t, "json_array") ||
+           !strcmp(t, "void") || !strcmp(t, "file_handle") ||
+           !strcmp(t, "float") || !strcmp(t, "boolean") ||
+           !strcmp(t, "int") || !strcmp(t, "db_handle") ||
+           !strcmp(t, "subst_table") || !strcmp(t, "string_buffer");
+}
+
 static void validate_ipm_type_name_strictly(cJSON *node, const char *path) {
     if (!node) return;
     if (cJSON_IsObject(node)) {
         cJSON *vt = cJSON_GetObjectItemCaseSensitive(node, "variable_type");
         if (vt && cJSON_IsString(vt) && vt->valuestring[0]) {
-            const char *t = vt->valuestring;
-            /* only explicit-width or domain types allowed */
-            if (!strcmp(t, "u8") || !strcmp(t, "u32") || !strcmp(t, "u64") ||
-                !strcmp(t, "i32") || !strcmp(t, "i64") ||
-                !strcmp(t, "u8_ptr") || !strcmp(t, "ptr") ||
-                !strcmp(t, "str") || !strcmp(t, "cjson") ||
-                !strcmp(t, "string") || !strcmp(t, "json_object") || !strcmp(t, "json_array") ||
-                !strcmp(t, "void") || !strcmp(t, "file_handle") ||
-                !strcmp(t, "float") || !strcmp(t, "boolean") ||
-                !strcmp(t, "int") || !strcmp(t, "db_handle") ||
-                !strcmp(t, "subst_table") || !strcmp(t, "string_buffer"))
-                {} /* allowed */
-            else {
+            if (!match_type_against_strict_whitelist(vt->valuestring)) {
                 char msg[512]; snprintf(msg, sizeof(msg),
                     "SOUL §7: strict type violation — '%s' is not an allowed type in %s\n"
-                    "  → use u32, i32, u64, str, cjson, ptr, or other explicitly-sized type", t, path);
+                    "  → use u32, i32, u64, str, cjson, ptr, or other explicitly-sized type",
+                    vt->valuestring, path);
                 fprintf(stderr, "spec2c: %s\n", msg); exit(1);
             }
         }
         cJSON *pt = cJSON_GetObjectItemCaseSensitive(node, "parameter_type");
         if (pt && cJSON_IsString(pt) && pt->valuestring[0]) {
-            const char *t = pt->valuestring;
-            if (!strcmp(t, "u8") || !strcmp(t, "u32") || !strcmp(t, "u64") ||
-                !strcmp(t, "i32") || !strcmp(t, "i64") ||
-                !strcmp(t, "u8_ptr") || !strcmp(t, "ptr") ||
-                !strcmp(t, "str") || !strcmp(t, "cjson") ||
-                !strcmp(t, "string") || !strcmp(t, "json_object") || !strcmp(t, "json_array") ||
-                !strcmp(t, "void") || !strcmp(t, "file_handle") ||
-                !strcmp(t, "float") || !strcmp(t, "boolean") ||
-                !strcmp(t, "int") || !strcmp(t, "db_handle") ||
-                !strcmp(t, "subst_table") || !strcmp(t, "string_buffer"))
-                {}
-            else {
+            if (!match_type_against_strict_whitelist(pt->valuestring)) {
                 char msg[512]; snprintf(msg, sizeof(msg),
                     "SOUL §7: strict type violation — '%s' is not an allowed parameter type in %s\n"
-                    "  → use u32, i32, u64, str, cjson, ptr, or other explicitly-sized type", t, path);
+                    "  → use u32, i32, u64, str, cjson, ptr, or other explicitly-sized type",
+                    pt->valuestring, path);
                 fprintf(stderr, "spec2c: %s\n", msg); exit(1);
             }
         }

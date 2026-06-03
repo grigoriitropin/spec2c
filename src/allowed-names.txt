@@ -261,3 +261,4 @@ check-naming-rules-for-ffi
 check_name_following_soul_rules
 validate_ipm_type_name_strictly
 validate_ipm_type_name_strictly
+match_type_against_strict_whitelist
