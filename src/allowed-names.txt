@@ -232,4 +232,4 @@ list_files_inside_directory_path
 emit_read_file_content_handler
 emit_scan_directory_entries_handler
 handler-file-input-output-scanning
-ipm-handler-file-io-code-generated
+file-input-output-handler-code
