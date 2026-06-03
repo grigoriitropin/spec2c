@@ -33,8 +33,12 @@ void load_bootstrap_whitelist_from_disk(const char *srcdir) {
 int match_name_against_bootstrap_list(const char *basename) {
     if (strstr(basename, "code-generated-output") || strstr(basename, "handler-code"))
         return 1;
-    for (int i = 0; i < whitelist_count_now; i++)
-        if (!strcmp(whitelist_names[i], basename)) return 1;
+    for (int i = 0; i < whitelist_count_now; i++) {
+        /* match against basename of whitelist entry (strip path prefix) */
+        const char *bn = strrchr(whitelist_names[i], '/');
+        bn = bn ? bn + 1 : whitelist_names[i];
+        if (!strcmp(bn, basename)) return 1;
+    }
     return 0;
 }
 
