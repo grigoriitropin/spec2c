@@ -29,7 +29,7 @@ static char hdr_names[128][128];
 static int  hdr_counts[128];
 static int  hdr_total;
 
-static void increment_header_count_on_match(const char *path, const char *name) {
+static void match_and_increment_header_count(const char *path, const char *name) {
     (void)name;
     char *c = read_entire_file_into_string(path); if (!c) return;
     char *line = c, *next;
@@ -53,7 +53,7 @@ static void increment_header_count_on_match(const char *path, const char *name) 
 
 const char *check_header_include_frequency_count(const char *dirpath) {
     hdr_total = 0;
-    iterate_source_files_with_callback(dirpath, increment_header_count_on_match);
+    iterate_source_files_with_callback(dirpath, match_and_increment_header_count);
     for (int i = 0; i < hdr_total; i++) {
         if (hdr_counts[i] > 5) {
             static char err[256];
