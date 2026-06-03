@@ -193,48 +193,24 @@ static void emit_function_invocation_with_arguments(cJSON *inst, FILE *out, int 
 static void emit_scan_directory_with_body(cJSON *inst, FILE *out, int indent) {
     const char *dp = extract_json_field_string_value(inst, "directory_path");
     cJSON *body = cJSON_GetObjectItemCaseSensitive(inst, "body_instructions");
-    cJSON *rec = cJSON_GetObjectItemCaseSensitive(inst, "recursive");
-    int recursive = rec && (cJSON_IsTrue(rec) || (cJSON_IsNumber(rec) && rec->valueint));
+    cJSON *jrec = cJSON_GetObjectItemCaseSensitive(inst, "recursive");
+    int recursive = jrec && (cJSON_IsTrue(jrec) || (cJSON_IsNumber(jrec) && jrec->valueint));
     if (!dp[0]) return;
-    if (recursive) {
-        /* Generate an inline recursive helper */
-        static int _scan_fn_id = 0;
-        _scan_fn_id++;
-        fprintf(out, "    {\n");
-        fprintf(out, "      void _scan_r%d(const char *_dirp) {\n", _scan_fn_id);
-        fprintf(out, "        cJSON *_el = list_files_inside_directory_path(_dirp);\n");
-        fprintf(out, "        if (_el) {\n");
-        fprintf(out, "          for (int _i = 0; _i < cJSON_GetArraySize(_el); _i++) {\n");
-        fprintf(out, "            cJSON *_entry = cJSON_GetArrayItem(_el, _i);\n");
-        fprintf(out, "            if (cJSON_IsTrue(cJSON_GetObjectItemCaseSensitive(_entry, \"is_dir\")))\n");
-        fprintf(out, "              _scan_r%d(cJSON_GetObjectItemCaseSensitive(_entry, \"path\")->valuestring);\n", _scan_fn_id);
-        fprintf(out, "            const char *_name = cJSON_GetObjectItemCaseSensitive(_entry, \"name\")->valuestring;\n");
-        fprintf(out, "            size_t _nl = strlen(_name);\n");
-        fprintf(out, "            if (_nl < 3) continue;\n");
-        fprintf(out, "            if (strcmp(_name + _nl - 2, \".c\") && strcmp(_name + _nl - 2, \".h\") &&\n");
-        fprintf(out, "                strcmp(_name + _nl - 4, \".ipm\")) continue;\n");
-        if (body) generate_code_from_ast_instructions(body, out, indent + 6, "i32");
-        fprintf(out, "          }\n");
-        fprintf(out, "          cJSON_Delete(_el);\n");
-        fprintf(out, "        }\n");
-        fprintf(out, "      }\n");
-        fprintf(out, "      _scan_r%d(%s);\n", _scan_fn_id, dp);
-        fprintf(out, "    }\n");
-    } else {
-        fprintf(out, "  cJSON *_entries = list_files_inside_directory_path(%s);\n", dp);
-        fprintf(out, "  if (_entries) {\n");
-        fprintf(out, "    for (int _i = 0; _i < cJSON_GetArraySize(_entries); _i++) {\n");
-        fprintf(out, "      cJSON *_entry = cJSON_GetArrayItem(_entries, _i);\n");
-        fprintf(out, "      const char *_name = cJSON_GetObjectItemCaseSensitive(_entry, \"name\")->valuestring;\n");
-        fprintf(out, "      size_t _nl = strlen(_name);\n");
-        fprintf(out, "      if (_nl < 3) continue;\n");
-        fprintf(out, "      if (strcmp(_name + _nl - 2, \".c\") && strcmp(_name + _nl - 2, \".h\") &&\n");
-        fprintf(out, "          strcmp(_name + _nl - 4, \".ipm\")) continue;\n");
-        if (body) generate_code_from_ast_instructions(body, out, indent + 3, "i32");
-        fprintf(out, "    }\n");
-        fprintf(out, "    cJSON_Delete(_entries);\n");
-        fprintf(out, "  }\n");
-    }
+    const char *fn = recursive ? "list_all_files_recursively_inside_path" : "list_files_inside_directory_path";
+    fprintf(out, "  cJSON *_entries = %s(%s);\n", fn, dp);
+    fprintf(out, "  if (_entries) {\n");
+    fprintf(out, "    for (int _i = 0; _i < cJSON_GetArraySize(_entries); _i++) {\n");
+    fprintf(out, "      cJSON *_entry = cJSON_GetArrayItem(_entries, _i);\n");
+    fprintf(out, "      const char *_name = cJSON_GetObjectItemCaseSensitive(_entry, \"name\")->valuestring;\n");
+    fprintf(out, "      size_t _nl = strlen(_name);\n");
+    fprintf(out, "      if (_nl < 3) continue;\n");
+    fprintf(out, "      if (strcmp(_name + _nl - 2, \".c\") && strcmp(_name + _nl - 2, \".h\") &&\n");
+    fprintf(out, "          strcmp(_name + _nl - 4, \".ipm\")) continue;\n");
+    if (body) generate_code_from_ast_instructions(body, out, indent + 3, "i32");
+    fprintf(out, "    }\n");
+    fprintf(out, "    cJSON_Delete(_entries);\n");
+    fprintf(out, "  }\n");
+}
 
 
 static void emit_alu_operation_into_output(cJSON *inst, FILE *out) {
