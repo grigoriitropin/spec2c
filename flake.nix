@@ -79,6 +79,7 @@
             ${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns/detect-banned-patterns-and-braces.c \
             ${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns/enforce-bootstrap-code-file-whitelist.c \
             ${builtins.toString runtime_src} \
+            verify-ed25519-digital-signature-key.c \
             -o s2c-enforce ${cjson-static}/lib/libcjson.a -lm
           runHook postBuild
         '';
