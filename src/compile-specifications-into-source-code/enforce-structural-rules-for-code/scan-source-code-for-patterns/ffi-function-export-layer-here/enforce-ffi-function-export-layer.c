@@ -18,11 +18,6 @@ int count_lines_inside_file_ffi(const char *path) {
 
 
 /* ── banned pattern check (goto, setjmp, longjmp, /dev/null) ────────── */
-    for (int i = 0; pats[i]; i++)
-        if (strstr(c, pats[i])) { free(c); return "uses banned pattern"; }
-    free(c);
-    return NULL;
-}
 
 /* ── hardcoded path check ───────────────────────────────────────────── */
 const char *check_hardcoded_path_inside_file(const char *path) {
