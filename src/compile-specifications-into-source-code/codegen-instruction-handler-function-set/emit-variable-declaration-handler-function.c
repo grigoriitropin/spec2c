@@ -42,7 +42,10 @@ static void emit_code_format_primitive_handler(cJSON *inst, FILE *out, int inden
 }
 
 /* ── Dispatch table: C bootstrap + IPM handlers ─────────────────────── */
-typedef struct { const char *type; instr_hdlr handler; } instr_dispatch_t;
+typedef struct {
+    const char *type;
+    instr_hdlr handler;
+} instr_dispatch_t;
 
 static const instr_dispatch_t INSTR_HANDLERS[] = {
     {"access_json_field",              emit_json_field_access_handler},
