@@ -14,13 +14,13 @@ static const char *banned_words_ffi[] = {
     "program","process","worker",NULL
 };
 
-static int check_word_is_banned_ffi(const char *w) {
+static int check_token_banned_word_test(const char *w) {
     for (int i = 0; banned_words_ffi[i]; i++)
         if (!strcmp(w, banned_words_ffi[i])) return 1;
     return 0;
 }
 
-static int validate_ipm_name_ffi(const char *name, char *err, size_t esz) {
+static int validate_ipm_naming_compliance_check(const char *name, char *err, size_t esz) {
     if (!name || !name[0] || !strcmp(name, "main")) return 1;
     char sep = strchr(name, '-') ? '-' : '_';
     char buf[256]; snprintf(buf, sizeof(buf), "%s", name);
@@ -33,7 +33,7 @@ static int validate_ipm_name_ffi(const char *name, char *err, size_t esz) {
         if ((int)strlen(tok) < 3) {
             snprintf(err, esz, "word '%s' too short (min 3)", tok); return 0;
         }
-        if (check_word_is_banned_ffi(tok)) {
+        if (check_token_banned_word_test(tok)) {
             snprintf(err, esz, "banned word '%s'", tok); return 0;
         }
         tok = strtok(NULL, sep_str);
@@ -45,13 +45,13 @@ static int validate_ipm_name_ffi(const char *name, char *err, size_t esz) {
 }
 
 /* walk JSON tree checking for banned words in ALL string values */
-static int scan_for_banned_words_ffi(cJSON *node, char *err, size_t esz) {
+static int banned_word_json_tree_scanner(cJSON *node, char *err, size_t esz) {
     if (!node) return 1;
     if (cJSON_IsString(node)) {
         char buf[256]; snprintf(buf, sizeof(buf), "%s", node->valuestring);
         char *tok = strtok(buf, " ");
         while (tok) {
-            if (check_word_is_banned_ffi(tok)) {
+            if (check_token_banned_word_test(tok)) {
                 snprintf(err, esz, "banned word '%s' in string", tok); return 0;
             }
             tok = strtok(NULL, " ");
@@ -60,17 +60,17 @@ static int scan_for_banned_words_ffi(cJSON *node, char *err, size_t esz) {
     }
     if (cJSON_IsArray(node)) {
         cJSON *c = node->child;
-        while (c) { if (!scan_for_banned_words_ffi(c, err, esz)) return 0; c = c->next; }
+        while (c) { if (!banned_word_json_tree_scanner(c, err, esz)) return 0; c = c->next; }
     }
     if (cJSON_IsObject(node)) {
         cJSON *c = node->child;
-        while (c) { if (!scan_for_banned_words_ffi(c, err, esz)) return 0; c = c->next; }
+        while (c) { if (!banned_word_json_tree_scanner(c, err, esz)) return 0; c = c->next; }
     }
     return 1;
 }
 
 /* check AST depth and object keys */
-static int check_ipm_structure_ffi(cJSON *node, int depth, char *err, size_t esz) {
+static int validate_ipm_structure_limits_check(cJSON *node, int depth, char *err, size_t esz) {
     if (!node || depth > 20) {
         if (depth > 20) { snprintf(err, esz, "AST depth > 20"); return 0; }
         return 1;
@@ -80,12 +80,12 @@ static int check_ipm_structure_ffi(cJSON *node, int depth, char *err, size_t esz
         while (c) { keys++; c = c->next; }
         if (keys > 7) { snprintf(err, esz, "object has %d keys (max 7)", keys); return 0; }
         c = node->child;
-        while (c) { if (!check_ipm_structure_ffi(c, depth+1, err, esz)) return 0; c = c->next; }
+        while (c) { if (!validate_ipm_structure_limits_check(c, depth+1, err, esz)) return 0; c = c->next; }
     } else if (cJSON_IsArray(node)) {
         cJSON *c = node->child;
         while (c) {
             if (cJSON_IsArray(c)) { snprintf(err, esz, "nested array"); return 0; }
-            if (!check_ipm_structure_ffi(c, depth+1, err, esz)) return 0;
+            if (!validate_ipm_structure_limits_check(c, depth+1, err, esz)) return 0;
             c = c->next;
         }
     }
@@ -102,27 +102,27 @@ const char *check_ipm_file_validation_ffi(const char *path) {
 
     /* check package/module/function names */
     cJSON *pkg = cJSON_GetObjectItemCaseSensitive(root, "package_name");
-    if (pkg && cJSON_IsString(pkg) && !validate_ipm_name_ffi(pkg->valuestring, err, sizeof(err)))
+    if (pkg && cJSON_IsString(pkg) && !validate_ipm_naming_compliance_check(pkg->valuestring, err, sizeof(err)))
         { cJSON_Delete(root); return err; }
     cJSON *mod = cJSON_GetObjectItemCaseSensitive(root, "module_name");
-    if (mod && cJSON_IsString(mod) && !validate_ipm_name_ffi(mod->valuestring, err, sizeof(err)))
+    if (mod && cJSON_IsString(mod) && !validate_ipm_naming_compliance_check(mod->valuestring, err, sizeof(err)))
         { cJSON_Delete(root); return err; }
     cJSON *funcs = cJSON_GetObjectItemCaseSensitive(root, "function_definitions");
     if (funcs && cJSON_IsObject(funcs)) {
         cJSON *fn = funcs->child;
         while (fn) {
-            if (fn->string && !validate_ipm_name_ffi(fn->string, err, sizeof(err)))
+            if (fn->string && !validate_ipm_naming_compliance_check(fn->string, err, sizeof(err)))
                 { cJSON_Delete(root); return err; }
             fn = fn->next;
         }
     }
 
     /* banned words in strings */
-    if (!scan_for_banned_words_ffi(root, err, sizeof(err)))
+    if (!banned_word_json_tree_scanner(root, err, sizeof(err)))
         { cJSON_Delete(root); return err; }
 
     /* structure checks */
-    if (!check_ipm_structure_ffi(root, 0, err, sizeof(err)))
+    if (!validate_ipm_structure_limits_check(root, 0, err, sizeof(err)))
         { cJSON_Delete(root); return err; }
 
     /* description required */
