@@ -43,10 +43,17 @@ void write_component_header_with_prototypes(const ipm_spec_t *spec, const char *
     FILE *hdr = fopen(hdr_path, "w");
     if (!hdr) report_fatal_error_and_exit("cannot open header file");
 
-    char guard[256]; int gk = 0;
-    while (modname[gk]) { guard[gk] = (modname[gk] == '-') ? '_' : modname[gk]; gk++; }
+    char guard[256];
+    int gk = 0;
+    while (modname[gk]) {
+        if (modname[gk] == '-')
+            guard[gk] = '_';
+        else
+            guard[gk] = modname[gk];
+        gk++;
+    }
     guard[gk] = 0;
-    snprintf(guard + gk, sizeof(guard) - gk, "_H");
+    strcat(guard, "_H");
 
     fprintf(hdr, "/* Auto-generated from %s.ipm */\n", modname);
     fprintf(hdr, "#ifndef %s\n#define %s\n\n", guard, guard);
