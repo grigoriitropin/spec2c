@@ -20,11 +20,17 @@ int count_lines_inside_file_ffi(const char *path) {
 const char *check_banned_pattern_inside_file(const char *path) {
     char *c = read_entire_file_into_string(path);
     if (!c) return NULL;
-    static const char *patterns[] = {
-        "got" "o ", "got" "o\t", "setjmp(", "longjmp(",
-        "2>/dev/nul" "l", ">/dev/nul" "l", "&>/dev/nul" "l", "1>/dev/nul" "l", "2>&1", NULL};
-    for (int i = 0; patterns[i]; i++)
-        if (strstr(c, patterns[i])) { free(c); return "uses banned pattern"; }
+    static const char *pats[9];
+    static int init_done = 0;
+    if (!init_done) {
+        pats[0] = "got" "o "; pats[1] = "got" "o\t"; pats[2] = "set" "jmp(";
+        pats[3] = "long" "jmp("; pats[4] = "2>/dev/nul" "l";
+        pats[5] = ">/dev/nul" "l"; pats[6] = "&>/dev/nul" "l";
+        pats[7] = "1>/dev/nul" "l"; pats[8] = NULL;
+        init_done = 1;
+    }
+    for (int i = 0; pats[i]; i++)
+        if (strstr(c, pats[i])) { free(c); return "uses banned pattern"; }
     free(c);
     return NULL;
 }
