@@ -10,8 +10,31 @@
 #include <cjson/cJSON.h>
 static int lint_mode = 0;
 static int lint_errors = 0;
-
-void report_violation_with_actionable_hint(enforce_err_t code, const char *a1,
+#define MAX_FILES_PER_DIR 3
+#define MAX_LINES_PER_FILE 400
+#define MAX_INCLUDES 5
+#define MAX_FUNCTIONS_PER_FILE 10
+#define MAX_LINES_PER_FUNCTION 50
+#define MAX_LINE_LENGTH 120
+typedef enum {
+    ERR_FILE_TOO_LONG,
+    ERR_TOO_MANY_FUNCTIONS,
+    ERR_FUNCTION_TOO_LONG,
+    ERR_TOO_MANY_FILES_IN_DIR,
+    ERR_BANNED_PATTERN,
+    ERR_HARDCODED_PATH,
+    ERR_HEADER_NOT_IN_WHITELIST,
+    ERR_HEADER_INCLUDED_TOO_OFTEN,
+    ERR_DEAD_CODE,
+    ERR_MAIN_COUNT,
+    ERR_FLAG_NOT_IN_HELP,
+    ERR_LINE_TOO_DENSE,
+    ERR_NOT_IN_BOOTSTRAP_WHITELIST
+} enforce_err_t;
+static void report_fatal_error_and_exit(const char *msg) {
+    fprintf(stderr, "spec2c: %s\n", msg); exit(1);
+}
+static void report_violation_with_actionable_hint(enforce_err_t code, const char *a1,
     int v1, int v2, const char *a2)
 {
     char buf[8448];
@@ -49,8 +72,15 @@ void report_violation_with_actionable_hint(enforce_err_t code, const char *a1,
     } else
         report_fatal_error_and_exit(buf);
 }
-
-
+static int count_lines_within_source_file(const char *path) {
+    FILE *f = fopen(path, "r"); if (!f) return -1;
+    int lines = 0, ch; while ((ch = fgetc(f)) != EOF) if (ch == '\n') lines++;
+    fclose(f); return lines;
+}
+static int match_source_code_header_filename(const char *name) {
+    size_t nl = strlen(name);
+    return nl > 2 && (!strcmp(name + nl - 2, ".c") || !strcmp(name + nl - 2, ".h"));
+}
 static int detect_function_definition_start_line(const char *line) {
     const char *s = line;
     while (*s == ' ' || *s == '\t') s++;
@@ -75,7 +105,15 @@ static int detect_function_definition_start_line(const char *line) {
     if (match_name_against_stdlib_list(first)) return 0;
     return 1;
 }
-void check_include_headers_for_file(const char *sub, inc_entry_t *incs, int *inc_qty);
+typedef struct {
+    char name[128];
+    char file[256];
+} fn_entry_t;
+typedef struct {
+    char name[64];
+    int count;
+} inc_entry_t;
+static void check_include_headers_for_file(const char *sub, inc_entry_t *incs, int *inc_qty);
 static void check_line_density_within_source(const char *line, const char *sub, int file_line) {
     int in_str = 0, in_char = 0, in_comment = 0, tokens = 0;
     for (const char *p = line; *p; p++) {
@@ -128,7 +166,7 @@ static void verify_line_for_banned_hardcoded(const char *line, const char *sub, 
     }
 }
 
-void check_single_file_for_violations(const char *sub, int is_c, int is_source,
+static void check_single_file_for_violations(const char *sub, int is_c, int is_source,
     fn_entry_t *fns, int *fn_qty, inc_entry_t *incs, int *inc_qty)
 {
     if (is_c) {
@@ -165,7 +203,7 @@ void check_single_file_for_violations(const char *sub, int is_c, int is_source,
     fclose(f);
     check_include_headers_for_file(sub, incs, inc_qty);
 }
-void check_include_headers_for_file(const char *sub, inc_entry_t *incs, int *inc_qty) {
+static void check_include_headers_for_file(const char *sub, inc_entry_t *incs, int *inc_qty) {
     FILE *f2 = fopen(sub, "r");
     if (f2) {
         char line[512];
@@ -226,13 +264,6 @@ static void search_for_unused_function_code(fn_entry_t *fns, int fn_qty, const c
 }
 static void scan_source_for_undocumented_flags(const char *srcdir);
 
-
-extern void scan_each_directory_with_checks(const char *dirpath, fn_entry_t *fns, int *fn_qty, inc_entry_t *incs, int *inc_qty);
-
-void report_fatal_error_and_exit(const char *msg) {
-    fprintf(stderr, "spec2c: %s\n", msg); exit(1);
-}
-
 void enforce_all_source_code_rules(const char *srcdir) {
     read_allowed_names_from_file(srcdir);
     read_banned_patterns_from_file(srcdir);
@@ -240,7 +271,50 @@ void enforce_all_source_code_rules(const char *srcdir) {
     load_bootstrap_whitelist_from_disk(srcdir);
     fn_entry_t fns[512]; int fn_qty = 0;
     inc_entry_t incs[128]; int inc_qty = 0;
-    scan_each_directory_with_checks(srcdir, fns, &fn_qty, incs, &inc_qty);
+    void scan_dir(const char *dirpath) {
+        DIR *d = opendir(dirpath); if (!d) return;
+        int file_cnt = 0;
+        struct dirent *de;
+        while ((de = readdir(d)) != NULL) {
+            if (de->d_name[0] == '.') continue;
+            char sub[8192]; snprintf(sub, sizeof(sub), "%s/%s", dirpath, de->d_name);
+            struct stat st;
+            if (stat(sub, &st) != 0) continue;
+            if (S_ISDIR(st.st_mode)) {
+                validate_name_against_soul_rules("directory", de->d_name, sub);
+                scan_dir(sub); continue;
+            }
+            if (!match_source_code_header_filename(de->d_name)) {
+                size_t dn_len = strlen(de->d_name);
+                int is_ipm = dn_len > 4 && !strcmp(de->d_name + dn_len - 4, ".ipm");
+                if (!is_ipm) {
+                    if (!check_non_source_file_allowlist(de->d_name)) {
+                        fprintf(stderr, "FATAL: non-source file in %s: %s\n", dirpath, de->d_name);
+                        exit(1);
+                    }
+                    continue;
+                }
+            }
+            if (!match_name_against_bootstrap_list(de->d_name)) {
+                size_t dn_len2 = strlen(de->d_name);
+                int is_ipm2 = dn_len2 > 4 && !strcmp(de->d_name + dn_len2 - 4, ".ipm");
+                if (!is_ipm2)
+                    report_violation_with_actionable_hint(ERR_NOT_IN_BOOTSTRAP_WHITELIST, sub, 0, 0, NULL);
+            }
+            file_cnt++;
+            char fname[256]; snprintf(fname, sizeof(fname), "%s", de->d_name);
+            char *dot = strrchr(fname, '.'); if (dot) *dot = 0;
+            validate_name_against_soul_rules("file", fname, sub);
+            int is_c = !strcmp(de->d_name + strlen(de->d_name) - 2, ".c");
+            int is_source = is_c || (strlen(de->d_name) > 4 && !strcmp(de->d_name + strlen(de->d_name) - 4, ".ipm"));
+            check_single_file_for_violations(sub, is_c, is_source, fns, &fn_qty, incs, &inc_qty);
+        }
+        closedir(d);
+        if (file_cnt > MAX_FILES_PER_DIR) {
+            report_violation_with_actionable_hint(ERR_TOO_MANY_FILES_IN_DIR, dirpath, file_cnt, MAX_FILES_PER_DIR, NULL);
+        }
+    }
+    scan_dir(srcdir);
     search_for_unused_function_code(fns, fn_qty, srcdir);
     int main_count = 0;
     for (int i = 0; i < fn_qty; i++)
