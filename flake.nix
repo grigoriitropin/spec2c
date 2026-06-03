@@ -130,8 +130,8 @@
           sed -i 's/char \*err1 =/const char *err1 =/' ipm_enforce_gen.c
           sed -i 's/char \*err2 =/const char *err2 =/' ipm_enforce_gen.c
           sed -i 's/char \*err3 =/const char *err3 =/' ipm_enforce_gen.c
-          sed -i 's/char \*err =/const char *err =/' ipm_enforce_gen.c
-          sed -i 's/char \*err =/const char *err =/' ipm_enforce_gen.c
+          sed -i '/const char \*err =/!s/char \*err =/const char *err =/' ipm_enforce_gen.c
+          sed -i '/const char \*err =/!s/char \*err =/const char *err =/' ipm_enforce_gen.c
           sed -i 's/int errors = 0;/int errors = 0; (void)errors;/' ipm_enforce_gen.c
 
           cc ${builtins.toString cflags} \
