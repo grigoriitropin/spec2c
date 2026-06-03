@@ -367,7 +367,7 @@ static void scan_source_for_undocumented_flags(const char *srcdir) {
 int main(int argc, char **argv) {
     const char *src_dir = "./src";
     for (int i = 1; i < argc; i++) {
-        else if (!strcmp(argv[i], "--lint"))
+        if (!strcmp(argv[i], "--lint"))
             lint_mode = 1;
         else
             src_dir = argv[i];
