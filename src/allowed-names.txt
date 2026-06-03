@@ -252,3 +252,4 @@ compute_sha256_hash_into_bytes
 solve_sha256_message_block_hash
 solve_sha256_message_block_hash
 compute-sha256-hash-for-files
+compute-file-sha-hash-digest
