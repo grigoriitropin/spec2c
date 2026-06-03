@@ -144,6 +144,32 @@ static int enforce_ipm_specification_validation_rules(const char *spec_text, cJS
             }
             /* validate function name */
             if (fn->string)             verify_name_complies_with_soul(fn->string);
+
+            /* strict type check */
+            cJSON *pars = cJSON_GetObjectItemCaseSensitive(fn, "parameter_definitions");
+            if (pars && cJSON_IsArray(pars)) {
+                for (int pi = 0; pi < cJSON_GetArraySize(pars); pi++) {
+                    cJSON *pt = cJSON_GetObjectItemCaseSensitive(
+                        cJSON_GetArrayItem(pars, pi), "parameter_type");
+                    if (pt && cJSON_IsString(pt) && pt->valuestring[0] &&
+                        !match_type_against_strict_whitelist(pt->valuestring))
+                        report_fatal_error_and_exit("strict type violation — parameter_type not in whitelist\n  → use u32,i32,u64,str,cjson,ptr");
+                }
+            }
+            if (body && cJSON_IsArray(body)) {
+                for (int bi = 0; bi < cJSON_GetArraySize(body); bi++) {
+                    cJSON *inst = cJSON_GetArrayItem(body, bi);
+                    if (!inst) continue;
+                    cJSON *vt = cJSON_GetObjectItemCaseSensitive(inst, "variable_type");
+                    if (vt && cJSON_IsString(vt) && vt->valuestring[0] &&
+                        !match_type_against_strict_whitelist(vt->valuestring))
+                        report_fatal_error_and_exit("strict type violation — variable_type not in whitelist\n  → use u32,i32,u64,str,cjson,ptr");
+                    cJSON *pt2 = cJSON_GetObjectItemCaseSensitive(inst, "parameter_type");
+                    if (pt2 && cJSON_IsString(pt2) && pt2->valuestring[0] &&
+                        !match_type_against_strict_whitelist(pt2->valuestring))
+                        report_fatal_error_and_exit("strict type violation — parameter_type not in whitelist\n  → use u32,i32,u64,str,cjson,ptr");
+                }
+            }
             fn = fn->next;
         }
     }
