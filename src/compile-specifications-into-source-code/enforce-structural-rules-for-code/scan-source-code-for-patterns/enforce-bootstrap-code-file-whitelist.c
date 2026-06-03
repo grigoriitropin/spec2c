@@ -56,7 +56,7 @@ int match_name_against_bootstrap_list(const char *basename) {
 }
 
 /* find a file by basename anywhere under dpath, fill found_path */
-static int search_file_by_name_recursive(const char *dpath, const char *target, char *out, size_t outsz) {
+static int search_file_using_name_recursive(const char *dpath, const char *target, char *out, size_t outsz) {
     DIR *d = opendir(dpath);
     if (!d) return 0;
     struct dirent *de;
@@ -66,7 +66,7 @@ static int search_file_by_name_recursive(const char *dpath, const char *target, 
         struct stat st;
         if (stat(sub, &st) != 0) continue;
         if (S_ISDIR(st.st_mode)) {
-            if (search_file_by_name_recursive(sub, target, out, outsz)) { closedir(d); return 1; }
+            if (search_file_using_name_recursive(sub, target, out, outsz)) { closedir(d); return 1; }
             continue;
         }
         if (!strcmp(de->d_name, target)) {
@@ -82,7 +82,7 @@ static int search_file_by_name_recursive(const char *dpath, const char *target, 
 void enforce_bootstrap_code_freeze_check(const char *srcdir) {
     for (int i = 0; i < freeze_count; i++) {
         char found[8192] = {0};
-        if (!search_file_by_name_recursive(srcdir, freeze_limits[i].name, found, sizeof(found)))
+        if (!search_file_using_name_recursive(srcdir, freeze_limits[i].name, found, sizeof(found)))
             continue;
         FILE *f2 = fopen(found, "r");
         if (!f2) continue;
