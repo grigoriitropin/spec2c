@@ -116,7 +116,6 @@ static void emit_function_invocation_with_arguments(cJSON *inst, FILE *out, int 
             }
         }
     }
-    }
     fprintf(out, ");\n");
 }
 
