@@ -85,19 +85,37 @@ static void emit_function_invocation_with_arguments(cJSON *inst, FILE *out, int 
     if (!fn[0]) return;
     if (rv[0]) fprintf(out, "  %s = ", rv);
     fprintf(out, "%s(", fn);
-    if (args && cJSON_IsObject(args)) {
-        cJSON *arg = args->child;
-        int first = 1;
-        while (arg) {
-            if (!first) fprintf(out, ", ");
-            /* treat as string literal (quoted) */
-            if (cJSON_IsString(arg))
-                fprintf(out, "%s", arg->valuestring);
-            else if (cJSON_IsNumber(arg))
-                fprintf(out, "%d", arg->valueint);
-            first = 0;
-            arg = arg->next;
+    if (args) {
+        if (cJSON_IsObject(args)) {
+            cJSON *arg = args->child;
+            int first = 1;
+            while (arg) {
+                if (!first) fprintf(out, ", ");
+                if (cJSON_IsString(arg))
+                    fprintf(out, "%s", arg->valuestring);
+                else if (cJSON_IsNumber(arg))
+                    fprintf(out, "%d", arg->valueint);
+                first = 0;
+                arg = arg->next;
+            }
+        } else if (cJSON_IsArray(args)) {
+            for (int ai = 0; ai < cJSON_GetArraySize(args); ai++) {
+                cJSON *arg = cJSON_GetArrayItem(args, ai);
+                if (!arg) continue;
+                if (ai > 0) fprintf(out, ", ");
+                if (cJSON_IsString(arg))
+                    fprintf(out, "%s", arg->valuestring);
+                else if (cJSON_IsObject(arg)) {
+                    const char *kind = extract_json_field_string_value(arg, "kind");
+                    const char *val = extract_json_field_string_value(arg, "value");
+                    if (!strcmp(kind, "str"))
+                        fprintf(out, "\"%s\"", val);
+                    else
+                        fprintf(out, "%s", val);
+                }
+            }
         }
+    }
     }
     fprintf(out, ");\n");
 }
