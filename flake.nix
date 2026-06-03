@@ -134,8 +134,8 @@
           sed -i '/^{"ok"/d' ipm_enforce_gen.c
           sed -i '/enforce_naming_rules_via_ffi\.h"/d' ipm_enforce_gen.c
           sed -i '1i#include "runtime-for-generated-ipm-code.h"' ipm_enforce_gen.c
-          sed -i '1iextern void scan_every_byte_search_patterns(const char *content);' ipm_enforce_gen.c
           sed -i 's/extern char \* check_name_following_soul_rules(char \*/extern const char * check_name_following_soul_rules(const char */' ipm_enforce_gen.c
+          sed -i 's/scan_every_byte_search_patterns(char \*/scan_every_byte_search_patterns(const char */' ipm_enforce_gen.c
           # Fix all extern const-correctness: char *path → const char *path
           sed -i 's/extern \(.*\)(char \* path)/extern \1(const char *path)/' ipm_enforce_gen.c
           sed -i 's/extern \(.*\)(char \* dirpath)/extern \1(const char *dirpath)/' ipm_enforce_gen.c
