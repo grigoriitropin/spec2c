@@ -81,7 +81,11 @@ const char *check_file_content_for_violations(const char *path) {
             }
             continue;
         }
-            if (!in_str && !in_char && *p == '/' && *(p+1) == '*') { in_comment = 1; p++; continue; }
+            if (!in_str && !in_char && *p == '/' && *(p+1) == '*') {
+                in_comment = 1;
+                p++;
+                continue;
+            }
             if (!in_str && !in_char && *p == '/' && *(p+1) == '/') break;
             if (*p == '\\' && *(p+1) != '\0') { p++; continue; }
             if (!in_char && *p == '"') in_str = !in_str;
