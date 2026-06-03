@@ -102,7 +102,7 @@ static const int hash_max_lines[] = {
     83,
     229,
     95,
-    57,
+    58,
     14,
     58,
     135,
