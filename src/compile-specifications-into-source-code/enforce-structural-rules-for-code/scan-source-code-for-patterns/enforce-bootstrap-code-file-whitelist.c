@@ -186,7 +186,3 @@ int count_lines_within_source_file(const char *path) {
     int lines = 0, ch; while ((ch = fgetc(f)) != EOF) if (ch == '\n') lines++;
     fclose(f); return lines;
 }
-int match_source_code_header_filename(const char *name) {
-    size_t nl = strlen(name);
-    return nl > 2 && (!strcmp(name + nl - 2, ".c") || !strcmp(name + nl - 2, ".h"));
-}
