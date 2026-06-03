@@ -78,7 +78,7 @@ static int check_name_against_allowed_whitelist(const char *name) {
     return 0;
 }
 
-static int count_stem_tokens_lowercase(const char *stem, const char *fullname, const char *path) {
+static int count_stem_tokens_lowercase_bytewise(const char *stem, const char *fullname, const char *path) {
     int tokens = 0, tok_len = 0;
     const char *p = stem;
     while (*p) {
@@ -135,7 +135,7 @@ int validate_file_stem_with_dfa(const char *stem, const char *fullname, const ch
                 "  → rename without leading '-'\n", fullname, path);
         return 1;
     }
-    int tokens = count_stem_tokens_lowercase(stem, fullname, path);
+    int tokens = count_stem_tokens_lowercase_bytewise(stem, fullname, path);
     if (tokens < 0) return 1;
     if (tokens < 5) {
         fprintf(stderr, "SOUL §10: file '%s' at %s has %d word(s) — at least 5 required\n"
