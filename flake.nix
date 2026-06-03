@@ -129,7 +129,6 @@
           sed -i 's/, char \* name, char \* fp/, const char *name, const char *fp/' ipm_enforce_gen.c
           # Fix result variable types
           sed -i 's/char \*err0 =/const char *err0 =/' ipm_enforce_gen.c
-            src/support-code-for-compiled-output/remaining-rules-ffi-batch-four/remaining-rules-ffi-batch-four.c \n          sed -i 's/char \*err1 =/const char *err1 =/' ipm_enforce_gen.c
           sed -i 's/char \*err2 =/const char *err2 =/' ipm_enforce_gen.c
           sed -i 's/char \*err3 =/const char *err3 =/' ipm_enforce_gen.c
           sed -i '/const char \*err =/!s/char \*err =/const char *err =/' ipm_enforce_gen.c
@@ -152,6 +151,7 @@
             src/support-code-for-compiled-output/validate-type-name-against-whitelist/validate-type-name-against-whitelist.c \
             src/compile-specifications-into-source-code/enforce-structural-rules-for-code/scan-source-code-for-patterns/check-naming-rules-for-ffi.c \
             src/compile-specifications-into-source-code/enforce-structural-rules-for-code/scan-source-code-for-patterns/ffi-function-export-layer-here/enforce-ffi-function-export-layer.c \
+            src/support-code-for-compiled-output/remaining-rules-ffi-batch-four/remaining-rules-ffi-batch-four.c \
             ipm_enforce_gen.c \
             -o ipm-enforce -lcjson
 
