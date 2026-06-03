@@ -106,6 +106,19 @@ static int emit_builtin_call_when_matched(cJSON *inst, FILE *out) {
         fprintf(out, "  exit(1);\n");
         return 1;
     }
+    if (!strcmp(fn, "report_error_and_exit")) {
+        const char *v[3] = {"", "violation", "fix the issue"};
+        if (args && cJSON_IsArray(args)) {
+            for (int ai = 0; ai < cJSON_GetArraySize(args) && ai < 3; ai++) {
+                cJSON *a = cJSON_GetArrayItem(args, ai);
+                if (cJSON_IsString(a)) v[ai] = a->valuestring;
+                else if (cJSON_IsObject(a)) v[ai] = extract_json_field_string_value(a, "value");
+            }
+        }
+        fprintf(out, "  fprintf(stderr, \"spec2c: SOUL §7: %%s — %%s\\n  → %%s\\n\", %s, \"%s\", \"%s\");\n", v[0], v[1], v[2]);
+        fprintf(out, "  exit(1);\n");
+        return 1;
+    }
     if (!strcmp(fn, "system_exit")) {
         int code = 0;
         if (args && cJSON_IsArray(args) && cJSON_GetArraySize(args) > 0) {
