@@ -93,6 +93,11 @@ static void emit_variable_declaration_code_line(cJSON *inst, FILE *out, int inde
             fprintf(out, "  %s %s = 0;\n", resolve_spec_type_into_lang(vt), vn);
         return;
     }
+    if (!strcmp(op, "variable")) {
+        fprintf(out, "  const char *%s = %s;\n", vn,
+            extract_json_field_string_value(inst, "source_target"));
+        return;
+    }
     fprintf(out, "%s %s = %s(%s);\n", vt, vn, op,
         extract_json_field_string_value(inst, "source_target"));
 }
