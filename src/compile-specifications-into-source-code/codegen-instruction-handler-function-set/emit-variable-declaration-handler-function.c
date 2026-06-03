@@ -81,6 +81,21 @@ static int emit_builtin_call_when_matched(cJSON *inst, FILE *out) {
     const char *fn = extract_json_field_string_value(inst, "invocation_name");
     const char *rv = extract_json_field_string_value(inst, "result_assignment_variable");
     cJSON *args = cJSON_GetObjectItemCaseSensitive(inst, "invocation_arguments");
+
+    if (!strcmp(fn, "report_error_and_exit")) {
+        const char *file = "", *msg = "violation", *fix = "fix the issue";
+        if (args && cJSON_IsArray(args)) {
+            if (cJSON_GetArraySize(args) > 0 && cJSON_IsString(cJSON_GetArrayItem(args, 0)))
+                file = cJSON_GetArrayItem(args, 0)->valuestring;
+            if (cJSON_GetArraySize(args) > 1 && cJSON_IsString(cJSON_GetArrayItem(args, 1)))
+                msg = cJSON_GetArrayItem(args, 1)->valuestring;
+            if (cJSON_GetArraySize(args) > 2 && cJSON_IsString(cJSON_GetArrayItem(args, 2)))
+                fix = cJSON_GetArrayItem(args, 2)->valuestring;
+        }
+        fprintf(out, "  fprintf(stderr, \"spec2c: SOUL §7: %%s — %%s\\n  → %%s\\n\", \"%s\", \"%s\", \"%s\");\n", file, msg, fix);
+        fprintf(out, "  exit(1);\n");
+        return 1;
+    }
     if (!strcmp(fn, "system_exit")) {
         int code = 0;
         if (args && cJSON_IsArray(args) && cJSON_GetArraySize(args) > 0) {

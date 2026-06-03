@@ -36,8 +36,12 @@
                  "result_assignment_variable": "err", "result_type": "str"},
                 {"instruction_type": "conditional_branch", "condition_operation": "is_not_null", "condition_target": "err",
                   "branch_on_success": [
-                    {"instruction_type": "function_invocation", "invocation_name": "system_exit",
-                     "invocation_arguments": [{"kind": "str", "value": "1"}]}
+                    {"instruction_type": "function_invocation", "invocation_name": "report_error_and_exit",
+                     "invocation_arguments": [
+                       {"kind": "var", "value": "_name"},
+                       {"kind": "str", "value": "naming violation"},
+                       {"kind": "str", "value": "rename to exactly 5 words describing WHAT it does"}
+                     ]}
                   ]
                 }
               ]
