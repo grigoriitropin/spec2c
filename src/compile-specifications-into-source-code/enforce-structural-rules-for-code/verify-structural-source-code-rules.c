@@ -184,7 +184,6 @@ static void check_single_file_for_violations(const char *sub, int is_c, int is_s
             if (in_func) {
                 func_lines++;
                 count_open_close_brace_pairs(line, &bstate);
-                        sub, func_lines, bstate.depth, line);
                 if (bstate.depth <= 0) {
                     if (func_lines > MAX_LINES_PER_FUNCTION) {
                         fclose(f); report_violation_with_actionable_hint(ERR_FUNCTION_TOO_LONG, sub, func_count, func_lines, NULL);
