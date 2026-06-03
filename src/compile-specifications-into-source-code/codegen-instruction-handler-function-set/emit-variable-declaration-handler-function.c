@@ -201,11 +201,6 @@ static void emit_field_access_into_output(cJSON *inst, FILE *out, int indent, co
         fprintf(out, "const char *%s = cJSON_GetObjectItemCaseSensitive(%s,\"%s\") ? cJSON_GetObjectItemCaseSensitive(%s,\"%s\")->valuestring : \"\";\n", vn, so, fn, so, fn);
     else fprintf(out, "cJSON *%s = cJSON_GetObjectItemCaseSensitive(%s, \"%s\");\n", vn, so, fn);
 }
-static void emit_dbexec_code_into_output(cJSON *inst, FILE *out, int indent, const char *rt) {
-    (void)indent; (void)rt;
-    const char *sql = extract_json_field_string_value(inst, "sql_query_string");
-    fprintf(out, "/* DB exec: %s */\n", sql ? sql : "?");
-}
 
 typedef struct {
     const char *type;
@@ -215,7 +210,7 @@ typedef struct {
 static const instr_dispatch_t INSTR_HANDLERS[] = {
     {"access_json_field",              emit_field_access_into_output},
     {"conditional_branch",             emit_branch_code_into_output},
-    {"database_execute_parameterized", emit_dbexec_code_into_output},
+    {"database_execute_parameterized", emit_new_standard_loop_code},
     {"for_count_loop",                 emit_new_standard_loop_code},
     {"function_invocation",            emit_invocation_code_into_output},
     {"iterate_over_collection",        emit_iterate_code_into_output},
