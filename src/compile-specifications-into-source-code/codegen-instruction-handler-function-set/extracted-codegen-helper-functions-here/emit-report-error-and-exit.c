@@ -27,14 +27,14 @@ void emit_iteration_loop_with_count(cJSON *inst, FILE *out, int indent, const ch
 }
 
 void tokenize_string_into_slice_loop(cJSON *inst, FILE *out, int indent, const char *rt) {
+    (void)rt;
     const char *src = extract_json_field_string_value(inst, "source_string");
     const char *sep = extract_json_field_string_value(inst, "separator");
     const char *tok = extract_json_field_string_value(inst, "token_variable");
     const char *len = extract_json_field_string_value(inst, "length_variable");
     cJSON *body = cJSON_GetObjectItemCaseSensitive(inst, "body");
     if (!src[0] || !sep[0]) return;
-    const char *s = "";
-    for (int fi = 0; fi < indent; fi++) { s = "  "; (void)s; }
+    (void)indent;
     fprintf(out, "  {\n");
     fprintf(out, "    const char *_zsrc = %s;\n", src);
     fprintf(out, "    while (*_zsrc) {\n");
