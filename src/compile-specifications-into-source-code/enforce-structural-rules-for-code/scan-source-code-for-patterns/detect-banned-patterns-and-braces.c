@@ -107,13 +107,20 @@ static void scan_json_for_banned_words(cJSON *node, const char *path) {
                     fprintf(stderr, "spec2c: %s\n", msg); exit(1);
                 }
         }
-        /* C-leak purge: forbid C patterns in IPM strings */
-        if (strstr(val, "#include") || strstr(val, "malloc(") ||
-            strstr(val, "free(") || strstr(val, "sizeof(")) {
-            char msg[512]; snprintf(msg, sizeof(msg),
-                "SOUL §7: C-leak detected — IPM string contains C code pattern in %s\n"
-                "  → remove #include, malloc, free, sizeof from IPM strings", path);
-            fprintf(stderr, "spec2c: %s\n", msg); exit(1);
+        /* C-leak purge: forbid C patterns in IPM strings (except codegen templates) */
+        if (cJSON_IsString(node) && node->string) {
+            const char *key = node->string;
+            /* allow C patterns in known codegen template fields */
+            if (strcmp(key, "template_str") && strcmp(key, "str") &&
+                strcmp(key, "code_format") && strcmp(key, "code")) {
+                if (strstr(val, "#include") || strstr(val, "malloc(") ||
+                    strstr(val, "free(") || strstr(val, "sizeof(")) {
+                    char msg[512]; snprintf(msg, sizeof(msg),
+                        "SOUL §7: C-leak detected — IPM string contains C code pattern in %s\n"
+                        "  → remove #include, malloc, free, sizeof from IPM strings", path);
+                    fprintf(stderr, "spec2c: %s\n", msg); exit(1);
+                }
+            }
         }
         return;
     }
