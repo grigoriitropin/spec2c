@@ -123,7 +123,7 @@
             -o s2c_enforce ${cjson-static}/lib/libcjson.a -lm
 
           # Step 2: Run enforcement gate (exits 1 on violation → build fails)
-          ./s2c_enforce ./src
+          ./s2c_enforce .
 
           # Step 3: Build spec2c
           cc ${builtins.toString cflags} ${builtins.toString inc} \
