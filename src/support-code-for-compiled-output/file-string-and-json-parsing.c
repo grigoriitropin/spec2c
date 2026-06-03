@@ -76,6 +76,10 @@ int match_pattern_against_text_string(const char *text, const char *pattern) {
 }
 
 const char *resolve_spec_type_into_lang(const char *t) {
+    if (!strcmp(t, "i32")) return "int";
+    if (!strcmp(t, "i64")) return "long long";
+    if (!strcmp(t, "str")) return "char *";
+    if (!strcmp(t, "u8")) return "uint8_t";
     if (!t) return "void *";
     if (!strcmp(t, "void")) return "void";
     if (!strcmp(t, "string")) return "char *";
@@ -90,6 +94,10 @@ const char *resolve_spec_type_into_lang(const char *t) {
     if (!strcmp(t, "file_handle")) return "FILE *";
     if (!strcmp(t, "u8_ptr")) return "const uint8_t *";
     if (!strcmp(t, "u32")) return "uint32_t";
+    if (!strcmp(t, "i32")) return "int";
+    if (!strcmp(t, "i64")) return "long long";
+    if (!strcmp(t, "str")) return "char *";
+    if (!strcmp(t, "u8")) return "uint8_t";
     return "void *";
 }
 

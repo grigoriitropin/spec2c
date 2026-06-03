@@ -24,7 +24,13 @@ void generate_code_from_ast_instructions(cJSON *instructions, FILE *out, int ind
 }
 
 static const char *resolve_function_return_type_code(const char *ret) {
+    if (!strcmp(ret, "i32")) return "int";
+    if (!strcmp(ret, "str")) return "char *";
+    if (!strcmp(ret, "i64")) return "long long";
     if (!ret[0]) return "void";
+    if (!strcmp(ret, "i32")) return "int";
+    if (!strcmp(ret, "str")) return "char *";
+    if (!strcmp(ret, "i64")) return "long long";
     if (!strcmp(ret, "void")) return "void";
     if (!strcmp(ret, "int")) return "int";
     if (!strcmp(ret, "double")) return "double";
@@ -35,6 +41,9 @@ static const char *resolve_function_return_type_code(const char *ret) {
     if (!strcmp(ret, "json_array")) return "cJSON *";
     if (!strcmp(ret, "db_handle")) return "struct vehir_db *";
     if (!strcmp(ret, "subst_table")) return "subst_table *";
+    if (!strcmp(ret, "i32")) return "int";
+    if (!strcmp(ret, "str")) return "char *";
+    if (!strcmp(ret, "i64")) return "long long";
     return "void";
 }
 
