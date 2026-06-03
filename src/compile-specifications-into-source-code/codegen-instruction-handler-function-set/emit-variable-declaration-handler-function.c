@@ -273,6 +273,16 @@ static void emit_bootstrap_central_dispatcher_func(cJSON *inst, FILE *out, int i
     if (!strcmp(ty, "variable_declaration")) { emit_variable_declaration_code_line(inst, out, indent); return; }
     if (!strcmp(ty, "alu_operation")) { emit_alu_operation_into_output(inst, out); return; }
     if (!strcmp(ty, "scan_directory_entries")) { emit_scan_directory_with_body(inst, out, indent); return; }
+    if (!strcmp(ty, "return_statement")) {
+        cJSON *rp = cJSON_GetObjectItemCaseSensitive(inst, "return_payload");
+        if (rp && !cJSON_IsObject(rp))
+            fprintf(out, "  return %s;\n", rp->valuestring);
+        else if (rp && cJSON_IsObject(rp))
+            fprintf(out, "  return %s;\n", extract_json_field_string_value(rp, "value"));
+        else
+            fprintf(out, "  return 0;\n");
+        return;
+    }
 }
 
 typedef struct {
