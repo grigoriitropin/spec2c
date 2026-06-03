@@ -264,7 +264,8 @@ static void validate_single_ipm_file_content(const char *sp,
             }
             fn = funcs->child;
             while (fn) { cJSON *b = cJSON_GetObjectItemCaseSensitive(fn, "execution_instructions");
-                if (b) scan_for_invocation_name_calls(b); fn = fn->next; }
+                if (b) { scan_for_invocation_name_calls(b); }
+                fn = fn->next; }
             fn = funcs->child;
             while (fn) {
                 if (strcmp(fn->string, "main")) {
