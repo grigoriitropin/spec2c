@@ -105,6 +105,14 @@ static int detect_function_definition_start_line(const char *line) {
     if (match_name_against_stdlib_list(first)) return 0;
     return 1;
 }
+typedef struct {
+    char name[128];
+    char file[256];
+} fn_entry_t;
+typedef struct {
+    char name[64];
+    int count;
+} inc_entry_t;
 static void check_include_headers_for_file(const char *sub, inc_entry_t *incs, int *inc_qty);
 static void check_line_density_within_source(const char *line, const char *sub, int file_line) {
     int in_str = 0, in_char = 0, in_comment = 0, tokens = 0;
@@ -150,7 +158,7 @@ static int handle_new_function_definition_entry(const char *line, const char *su
 }
 
 
-void check_single_file_for_violations(const char *sub, int is_c, int is_source,
+static void check_single_file_for_violations(const char *sub, int is_c, int is_source,
     fn_entry_t *fns, int *fn_qty, inc_entry_t *incs, int *inc_qty)
 {
     if (is_c) {
@@ -182,12 +190,7 @@ void check_single_file_for_violations(const char *sub, int is_c, int is_source,
                 in_func = 0;
             }
         }
-        if (is_source && check_for_banned_keyword_pattern(line)) {
-            report_violation_with_actionable_hint(ERR_BANNED_PATTERN, sub, 0, 0, NULL);
-        }
-        if (is_source && detect_hardcoded_file_path_string(line)) {
-            report_violation_with_actionable_hint(ERR_HARDCODED_PATH, sub, 0, 0, NULL);
-        }
+        verify_line_for_banned_hardcoded(line, sub, is_source);
     }
     fclose(f);
     check_include_headers_for_file(sub, incs, inc_qty);
@@ -253,8 +256,51 @@ static void search_for_unused_function_code(fn_entry_t *fns, int fn_qty, const c
 }
 static void scan_source_for_undocumented_flags(const char *srcdir);
 
+static void recursive_scan_inside_source_tree(const char *dirpath,
+    fn_entry_t *fns, int *fn_qty, inc_entry_t *incs, int *inc_qty) {
+    DIR *d = opendir(dirpath); if (!d) return;
+    int file_cnt = 0;
+    struct dirent *de;
+    while ((de = readdir(d)) != NULL) {
+        if (de->d_name[0] == '.') continue;
+        char sub[8192]; snprintf(sub, sizeof(sub), "%s/%s", dirpath, de->d_name);
+        struct stat st;
+        if (stat(sub, &st) != 0) continue;
+        if (S_ISDIR(st.st_mode)) {
+            validate_name_against_soul_rules("directory", de->d_name, sub);
+            recursive_scan_inside_source_tree(sub, fns, fn_qty, incs, inc_qty);
+            continue;
+        }
+        if (!match_source_code_header_filename(de->d_name)) {
+            size_t dn_len = strlen(de->d_name);
+            int is_ipm = dn_len > 4 && !strcmp(de->d_name + dn_len - 4, ".ipm");
+            if (!is_ipm) {
+                if (!check_non_source_file_allowlist(de->d_name)) {
+                    fprintf(stderr, "FATAL: non-source file in %s: %s\n", dirpath, de->d_name);
+                    exit(1);
+                }
+                continue;
+            }
+        }
+        if (!match_name_against_bootstrap_list(de->d_name)) {
+            size_t dn_len2 = strlen(de->d_name);
+            int is_ipm2 = dn_len2 > 4 && !strcmp(de->d_name + dn_len2 - 4, ".ipm");
+            if (!is_ipm2)
+                report_violation_with_actionable_hint(ERR_NOT_IN_BOOTSTRAP_WHITELIST, sub, 0, 0, NULL);
+        }
+        file_cnt++;
+        char fname[256]; snprintf(fname, sizeof(fname), "%s", de->d_name);
+        char *dot = strrchr(fname, '.'); if (dot) *dot = 0;
+        validate_name_against_soul_rules("file", fname, sub);
+        int is_c = !strcmp(de->d_name + strlen(de->d_name) - 2, ".c");
+        int is_source = is_c || (strlen(de->d_name) > 4 && !strcmp(de->d_name + strlen(de->d_name) - 4, ".ipm"));
+        check_single_file_for_violations(sub, is_c, is_source, fns, fn_qty, incs, inc_qty);
+    }
+    closedir(d);
+    if (file_cnt > MAX_FILES_PER_DIR)
+        report_violation_with_actionable_hint(ERR_TOO_MANY_FILES_IN_DIR, dirpath, file_cnt, MAX_FILES_PER_DIR, NULL);
+}
 
-void recursive_scan_inside_source_tree(const char *dirpath, fn_entry_t *fns, int *fn_qty, inc_entry_t *incs, int *inc_qty);
 void enforce_all_source_code_rules(const char *srcdir) {
     read_allowed_names_from_file(srcdir);
     read_banned_patterns_from_file(srcdir);
