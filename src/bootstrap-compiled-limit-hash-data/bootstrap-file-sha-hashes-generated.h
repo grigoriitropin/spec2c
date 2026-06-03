@@ -33,7 +33,7 @@ static const char *hash_file_names[] = {
     "bootstrap-compiled-limit-hash-data/bootstrap-file-sha-hashes-generated.h",
     "check-naming-rules-for-ffi.c",
     "validate-type-name-against-whitelist.c",
-    "enforce-ffi-function-export-layer.c",
+    "ffi-function-export-layer/enforce-ffi-function-export-layer.c",
 };
 static const char *hash_sha256_values[] = {
     "4d88b5954a0a470f8afa1a82685616a3888f440fe8b0c6cdd1f58335295fcfad",
@@ -68,7 +68,7 @@ static const char *hash_sha256_values[] = {
     "0000000000000000000000000000000000000000000000000000000000000000",
     "420149155815c5e6906b2dce5b9268beb73e28b5a6f6b9da9209f3f2984b4917",
     "7bb13dac6024df402ccc6488a95431312264a1a57b37180ab8a4e17b688b117c",
-    "ff455e8cef7100ae504e2b06b453b77a43a93915a8e8df10f4b46da48711438c",
+    "0000000000000000000000000000000000000000000000000000000000000000",
 };
 static const int hash_max_lines[] = {
     70,
