@@ -136,23 +136,7 @@ static void validate_ipm_function_strict_types(cJSON *fn) {
         }
     }
 }
-static void detect_ipm_native_code_injection(cJSON *node) {
-    if (!node) return;
-    if (cJSON_IsString(node) && node->string) {
-        const char *key = node->string;
-        if (strcmp(key, "template_str") && strcmp(key, "str") &&
-            strcmp(key, "code_format") && strcmp(key, "code")) {
-            const char *val = node->valuestring;
-            if (strstr(val, "#include") || strstr(val, "malloc(") ||
-                strstr(val, "free(") || strstr(val, "sizeof("))
-                report_fatal_error_and_exit("C-leak detected — IPM string contains C code pattern\n  → remove #include, malloc, free, sizeof from IPM strings");
-        }
-    }
-    if (cJSON_IsObject(node) || cJSON_IsArray(node)) {
-        cJSON *c = node->child;
-        while (c) { detect_ipm_native_code_injection(c); c = c->next; }
-    }
-}
+
 static int enforce_ipm_specification_validation_rules(const char *spec_text, cJSON *spec_json) {
     if (!spec_text || !spec_json) return 1;
     /* 1. File line count */
@@ -194,7 +178,23 @@ static int enforce_ipm_specification_validation_rules(const char *spec_text, cJS
     validate_ipm_source_for_hardcoded(spec_json);
 
     /* 6. C-leak detection */
-    detect_ipm_native_code_injection(spec_json);
+        void check_leak(cJSON *n) {
+        if (!n) return;
+        if (cJSON_IsString(n) && n->string) {
+            const char *k = n->string;
+            if (strcmp(k, "template_str") && strcmp(k, "str") &&
+                strcmp(k, "code_format") && strcmp(k, "code")) {
+                if (strstr(n->valuestring, "#include") || strstr(n->valuestring, "malloc(") ||
+                    strstr(n->valuestring, "free(") || strstr(n->valuestring, "sizeof("))
+                    report_fatal_error_and_exit("C-leak detected");
+            }
+        }
+        if (cJSON_IsObject(n) || cJSON_IsArray(n)) {
+            cJSON *c = n->child;
+            while (c) { check_leak(c); c = c->next; }
+        }
+    }
+    check_leak(spec_json);
 
     return 1;
 }
