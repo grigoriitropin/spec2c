@@ -287,4 +287,3 @@ void generate_code_via_dispatch_table(cJSON *insts, FILE *out, int indent, const
                 { INSTR_HANDLERS[d].handler(inst, out, indent, rt); break; }
     }
 }
-
