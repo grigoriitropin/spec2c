@@ -117,10 +117,6 @@
         nativeBuildInputs = [ pkgs.pkg-config ];
         buildPhase = ''
           runHook preBuild
-          spec2c check-banned-patterns-pure-ipm.ipm > dfa_gen.c
-          sed -i "s/int main(/int execute_dfa_banned_patterns(/" dfa_gen.c
-          sed -i "/check-banned-patterns-pure-ipm.h/d" dfa_gen.c
-          sed -i "/^{.ok/d" dfa_gen.c
 
           spec2c enforce-naming-rules-via-ffi.ipm > ipm_enforce_gen.c
           sed -i '/^{"ok"/d' ipm_enforce_gen.c
@@ -159,7 +155,7 @@
             src/compile-specifications-into-source-code/enforce-structural-rules-for-code/scan-source-code-for-patterns/ffi-function-export-layer-here/enforce-ffi-function-export-layer.c \
             src/support-code-for-compiled-output/remaining-rules-ffi-batch-four/remaining-rules-ffi-batch-four.c \
             src/support-code-for-compiled-output/dead-code-header-check-batch/dead-code-header-check-batch.c \
-            dfa_gen.c \n            ipm_enforce_gen.c \
+            ipm_enforce_gen.c \
             -o ipm-enforce -lcjson
 
           runHook postBuild

@@ -18,18 +18,6 @@ int count_lines_inside_file_ffi(const char *path) {
 
 
 /* ── banned pattern check (goto, setjmp, longjmp, /dev/null) ────────── */
-const char *check_banned_pattern_inside_file(const char *path) {
-    char *c = read_entire_file_into_string(path);
-    if (!c) return NULL;
-    static const char *pats[9];
-    static int init_done = 0;
-    if (!init_done) {
-        pats[0] = "got" "o "; pats[1] = "got" "o\t"; pats[2] = "set" "jmp(";
-        pats[3] = "long" "jmp("; pats[4] = "2>/dev/nul" "l";
-        pats[5] = ">/dev/nul" "l"; pats[6] = "&>/dev/nul" "l";
-        pats[7] = "1>/dev/nul" "l"; pats[8] = NULL;
-        init_done = 1;
-    }
     for (int i = 0; pats[i]; i++)
         if (strstr(c, pats[i])) { free(c); return "uses banned pattern"; }
     free(c);
@@ -88,6 +76,3 @@ const char *check_line_density_inside_file(const char *path) {
     return NULL;
 }
 
-int find_substring_inside_text_ffi(const char *haystack, const char *needle) {
-    return strstr(haystack, needle) ? 1 : 0;
-}

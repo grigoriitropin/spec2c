@@ -12,7 +12,6 @@ builtin_fatal_error_and_exit
 call_ipm_message_exchange_code
 check-naming-rules-for-ffi
 check-source-conformance-entry-point
-check_banned_pattern_inside_file
 check_bootstrap_whitelist_for_ffi
 check_cli_flags_documented_ffi
 check_dead_code_across_files
@@ -279,6 +278,3 @@ write_text_string_into_file
 emit_report_error_then_exit
 extracted-codegen-helper-functions-here
 emit_iteration_loop_with_count
-find_substring_inside_text_ffi
-find_substring_inside_text_ffi
-find_substring_inside_text_ffi
