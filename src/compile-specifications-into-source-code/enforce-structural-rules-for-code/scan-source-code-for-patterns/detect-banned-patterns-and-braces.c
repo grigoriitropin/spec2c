@@ -266,6 +266,47 @@ static void validate_single_ipm_file_content(const char *sp,
     check_ipm_imports_against_whitelist(root, sp, allowed_imports, n_allowed);
     check_ipm_cli_flag_docs(root, sp);
 
+    /* strict type check */
+    {   cJSON *funcs2 = cJSON_GetObjectItemCaseSensitive(root, "function_definitions");
+        if (funcs2 && cJSON_IsObject(funcs2)) {
+            cJSON *fn = funcs2->child;
+            while (fn) {
+                cJSON *body = cJSON_GetObjectItemCaseSensitive(fn, "execution_instructions");
+                if (body && cJSON_IsArray(body)) {
+                    for (int bi = 0; bi < cJSON_GetArraySize(body); bi++) {
+                        cJSON *inst = cJSON_GetArrayItem(body, bi);
+                        if (!inst) continue;
+                        cJSON *vt = cJSON_GetObjectItemCaseSensitive(inst, "variable_type");
+                        if (vt && cJSON_IsString(vt) && vt->valuestring[0] &&
+                            !match_type_against_strict_whitelist(vt->valuestring))
+                            { char msg[512]; snprintf(msg, sizeof(msg),
+                                "SOUL §7: strict type — '%s' not allowed\n  → use u32,i32,u64,str,cjson,ptr", vt->valuestring);
+                              fprintf(stderr, "spec2c: %s\n", msg); exit(1); }
+                        cJSON *pt = cJSON_GetObjectItemCaseSensitive(inst, "parameter_type");
+                        if (pt && cJSON_IsString(pt) && pt->valuestring[0] &&
+                            !match_type_against_strict_whitelist(pt->valuestring))
+                            { char msg[512]; snprintf(msg, sizeof(msg),
+                                "SOUL §7: strict type — '%s' not allowed\n  → use u32,i32,u64,str,cjson,ptr", pt->valuestring);
+                              fprintf(stderr, "spec2c: %s\n", msg); exit(1); }
+                    }
+                }
+                cJSON *pars = cJSON_GetObjectItemCaseSensitive(fn, "parameter_definitions");
+                if (pars && cJSON_IsArray(pars)) {
+                    for (int pi = 0; pi < cJSON_GetArraySize(pars); pi++) {
+                        cJSON *pt = cJSON_GetObjectItemCaseSensitive(
+                            cJSON_GetArrayItem(pars, pi), "parameter_type");
+                        if (pt && cJSON_IsString(pt) && pt->valuestring[0] &&
+                            !match_type_against_strict_whitelist(pt->valuestring))
+                            { char msg[512]; snprintf(msg, sizeof(msg),
+                                "SOUL §7: strict parameter type — '%s' not allowed\n  → use u32,i32,u64,str,cjson,ptr", pt->valuestring);
+                              fprintf(stderr, "spec2c: %s\n", msg); exit(1); }
+                    }
+                }
+                fn = fn->next;
+            }
+        }
+    }
+
     /* require non-empty description for all IPM files */
     {   cJSON *desc = cJSON_GetObjectItemCaseSensitive(root, "description");
         if (!desc || !cJSON_IsString(desc) || !desc->valuestring || !desc->valuestring[0]) {
