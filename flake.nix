@@ -115,6 +115,7 @@
         src = ./.;
         buildInputs = [ self.packages.${system}.spec2c pkgs.cjson ];
         nativeBuildInputs = [ pkgs.pkg-config ];
+        S2C_ENFORCE = "${self.packages.${system}.spec2c}/bin/s2c_enforce";
         buildPhase = ''
           runHook preBuild
 
@@ -254,7 +255,7 @@
              naming_obj/naming.c clex_obj/clex.c main_obj/main.c gen_c/
           for f in gen_c/*.c; do sed -i '/^{"ok"/d' "$f" 2>/dev/null; done
           echo "=== Translation Gate ==="
-          ./s2c_enforce ./gen_c || echo "(generated code structural check — known DFA limits)"
+          $S2C_ENFORCE --lint ./gen_c || echo "(generated code structural check — known DFA limits)"
 
           runHook postBuild
         '';
