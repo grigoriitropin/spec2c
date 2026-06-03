@@ -229,6 +229,10 @@ static void scan_source_for_undocumented_flags(const char *srcdir);
 
 extern void scan_each_directory_with_checks(const char *dirpath, fn_entry_t *fns, int *fn_qty, inc_entry_t *incs, int *inc_qty);
 
+void report_fatal_error_and_exit(const char *msg) {
+    fprintf(stderr, "spec2c: %s\n", msg); exit(1);
+}
+
 void enforce_all_source_code_rules(const char *srcdir) {
     read_allowed_names_from_file(srcdir);
     read_banned_patterns_from_file(srcdir);

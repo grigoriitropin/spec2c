@@ -63,4 +63,3 @@ int  count_lines_within_source_file(const char *path);
 
 #endif
 int match_type_against_strict_whitelist(const char *t);
-void report_fatal_error_and_exit(const char *msg);
