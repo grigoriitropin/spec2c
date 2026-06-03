@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 // spec2c codegen — C bootstrap: 3 primitives + dispatcher
 #include "../shared-type-declarations-across-modules/share-type-definitions-across-files.h"
+
 typedef void (*instr_hdlr)(cJSON *inst, FILE *out, int indent, const char *return_type);
+
 static void emit_formatted_code_primitive_handler(cJSON *inst, FILE *out) {
     const char *fmt = extract_json_field_string_value(inst, "code_format");
     cJSON *args = cJSON_GetObjectItemCaseSensitive(inst, "code_arguments");
@@ -22,6 +24,7 @@ static void emit_formatted_code_primitive_handler(cJSON *inst, FILE *out) {
     }
     fprintf(out, ");\n");
 }
+
 static void emit_conditional_branch_code_primitive(cJSON *inst, FILE *out, int indent, const char *return_type) {
     const char *op = extract_json_field_string_value(inst, "condition_operation");
     const char *tgt = extract_json_field_string_value(inst, "condition_target");
@@ -39,6 +42,7 @@ static void emit_conditional_branch_code_primitive(cJSON *inst, FILE *out, int i
     if (bof) generate_code_from_ast_instructions(bof, out, indent + 1, return_type);
     fprintf(out, "}\n");
 }
+
 static void emit_variable_declaration_code_line(cJSON *inst, FILE *out, int indent) {
     const char *vn = extract_json_field_string_value(inst, "variable_name");
     const char *vt = extract_json_field_string_value(inst, "variable_type");
@@ -72,20 +76,7 @@ static void emit_variable_declaration_code_line(cJSON *inst, FILE *out, int inde
     fprintf(out, "%s %s = %s(%s);\n", vt, vn, op,
         extract_json_field_string_value(inst, "source_target"));
 }
-static int emit_report_error_then_exit(cJSON *inst, FILE *out) {
-    cJSON *args = cJSON_GetObjectItemCaseSensitive(inst, "invocation_arguments");
-    const char *v[3] = {"", "violation", "fix the issue"};
-    if (args && cJSON_IsArray(args)) {
-        for (int ai = 0; ai < cJSON_GetArraySize(args) && ai < 3; ai++) {
-            cJSON *a = cJSON_GetArrayItem(args, ai);
-            if (cJSON_IsString(a)) v[ai] = a->valuestring;
-            else if (cJSON_IsObject(a)) v[ai] = extract_json_field_string_value(a, "value");
-        }
-    }
-    fprintf(out, "  fprintf(stderr, \"spec2c: SOUL §7: %%s — %%s\\n  → %%s\\n\", %s, \"%s\", \"%s\");\n", v[0], v[1], v[2]);
-    fprintf(out, "  exit(1);\n");
-    return 1;
-}
+
 
 static int emit_builtin_call_when_matched(cJSON *inst, FILE *out) {
     const char *fn = extract_json_field_string_value(inst, "invocation_name");
@@ -187,48 +178,66 @@ static void emit_scan_directory_with_body(cJSON *inst, FILE *out, int indent) {
     fprintf(out, "  }\n");
 }
 
-
-
-
-
-static void emit_single_alu_operation_code(cJSON *inst, FILE *out) {
+static void emit_alu_operation_into_output(cJSON *inst, FILE *out) {
     const char *op = extract_json_field_string_value(inst, "operator");
     const char *tgt = extract_json_field_string_value(inst, "target");
-    const char *tl = resolve_spec_type_into_lang(extract_json_field_string_value(inst, "target_type"));
+    const char *tt = extract_json_field_string_value(inst, "target_type");
+    const char *tl = resolve_spec_type_into_lang(tt);
     cJSON *lhs = cJSON_GetObjectItemCaseSensitive(inst, "lhs");
     cJSON *rhs = cJSON_GetObjectItemCaseSensitive(inst, "rhs");
     const char *lv = "", *rv = "";
     if (lhs && cJSON_IsObject(lhs)) lv = extract_json_field_string_value(lhs, "value");
     if (rhs && cJSON_IsObject(rhs)) rv = extract_json_field_string_value(rhs, "value");
     if (!lv[0] || !tgt[0]) return;
-    if (!strcmp(op, "~"))
+
+    if (!strcmp(op, "~")) {
         fprintf(out, "  %s %s = ~(%s);\n", tl, tgt, lv);
-    else if (!strcmp(op, "ROTR"))
-        fprintf(out, "  %s %s = ((%s) >> (%s)) | ((%s) << (32 - (%s)));\n", tl, tgt, lv, rv, lv, rv);
-    else {
+    } else if (!strcmp(op, "ROTR")) {
+        fprintf(out, "  %s %s = ((%s) >> (%s)) | ((%s) << (32 - (%s)));\n",
+            tl, tgt, lv, rv, lv, rv);
+    } else {
+        /* division by zero guard */
         if (!strcmp(op, "/") || !strcmp(op, "%"))
             fprintf(out, "  if ((%s) == 0) exit(255);\n", rv);
         fprintf(out, "  %s %s = (%s) %s (%s);\n", tl, tgt, lv, op, rv);
     }
 }
 
+static void emit_iteration_loop_with_count(cJSON *inst, FILE *out, int indent, const char *rt) {
+    const char *cv = extract_json_field_string_value(inst, "counter_variable");
+    const char *lv = extract_json_field_string_value(inst, "limit_variable");
+    cJSON *body = cJSON_GetObjectItemCaseSensitive(inst, "body_instructions");
+    if (!cv[0] || !lv[0]) return;
+    fprintf(out, "  for (int %s = 0; %s < %s; %s++) {\n", cv, cv, lv, cv);
+    if (body) generate_code_from_ast_instructions(body, out, indent + 2, rt);
+    fprintf(out, "  }\n");
+}
+
+
+static void emit_string_tokenizer_with_body(cJSON *inst, FILE *out, int indent, const char *rt) {
+    const char *src = extract_json_field_string_value(inst, "source_string");
+    const char *sep = extract_json_field_string_value(inst, "separator");
+    const char *tok = extract_json_field_string_value(inst, "token_variable");
+    cJSON *body = cJSON_GetObjectItemCaseSensitive(inst, "body_instructions");
+    if (!src[0] || !sep[0]) return;
+    fprintf(out, "  {\n");
+    fprintf(out, "    char _buf[256]; snprintf(_buf, sizeof(_buf), \"%%s\", %s);\n", src);
+    fprintf(out, "    char *_save;\n");
+    fprintf(out, "    for (char *_t = strtok_r(_buf, \"%s\", &_save); _t; _t = strtok_r(NULL, \"%s\", &_save)) {\n", sep, sep);
+    if (tok[0]) fprintf(out, "      const char *%s = _t;\n", tok);
+    if (body) generate_code_from_ast_instructions(body, out, indent + 3, rt);
+    fprintf(out, "    }\n");
+    fprintf(out, "  }\n");
+    return;
+}
+
 static void emit_bootstrap_central_dispatcher_func(cJSON *inst, FILE *out, int indent, const char *return_type) {
     (void)indent;
     const char *ty = extract_json_field_string_value(inst, "instruction_type");
-    if (!strcmp(ty, "alu_operation")) { emit_single_alu_operation_code(inst, out); return; }
+    if (!strcmp(ty, "alu_operation")) { emit_alu_operation_into_output(inst, out); return; }
     if (!strcmp(ty, "conditional_branch")) { emit_conditional_branch_code_primitive(inst, out, indent, return_type); return; }
     if (!strcmp(ty, "emit_formatted_code")) { emit_formatted_code_primitive_handler(inst, out); return; }
-    if (!strcmp(ty, "for_count_loop")) {
-        const char *cv = extract_json_field_string_value(inst, "counter_variable");
-        const char *lv = extract_json_field_string_value(inst, "limit_variable");
-        cJSON *body = cJSON_GetObjectItemCaseSensitive(inst, "body_instructions");
-        if (cv[0] && lv[0]) {
-            fprintf(out, "  for (int %s = 0; %s < %s; %s++) {\n", cv, cv, lv, cv);
-            if (body) generate_code_from_ast_instructions(body, out, indent + 2, return_type);
-            fprintf(out, "  }\n");
-        }
-        return;
-    }
+    if (!strcmp(ty, "for_count_loop")) { emit_iteration_loop_with_count(inst, out, indent, return_type); return; }
     if (!strcmp(ty, "function_invocation")) { emit_function_invocation_with_arguments(inst, out, indent); return; }
     if (!strcmp(ty, "read_file_content")) {
         const char *fp = extract_json_field_string_value(inst, "file_path");

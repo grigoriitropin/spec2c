@@ -1,5 +1,5 @@
 // AUTO-GENERATED — SHA256 hashes of bootstrap files, compiled into binary
-#define BOOTSTRAP_HASH_COUNT 37
+#define BOOTSTRAP_HASH_COUNT 38
 static const char *hash_file_names[] = {
     "buffer-output-and-command-launch.c",
     "check-source-conformance-entry-point.c",
@@ -38,6 +38,7 @@ static const char *hash_file_names[] = {
     "ipm-file-validator-ffi-batch/ipm-file-validator-ffi-batch.c",
     "remaining-rules-ffi-batch-four.c",
     "dead-code-header-check-batch.c",
+    "emit-report-error-and-exit.c",
 };
 static const char *hash_sha256_values[] = {
     "4d88b5954a0a470f8afa1a82685616a3888f440fe8b0c6cdd1f58335295fcfad",
@@ -45,7 +46,7 @@ static const char *hash_sha256_values[] = {
     "17ad46e0e478a1c126653abe5ca7d94b62ecf03827f3e1b2999f943785f886e6",
     "0547ba8ebac1df4214322119e92faf18ccb1bc369e9ea6c6d63d645233cd0a9a",
     "658bd2d7ce7e89b60d00e47b92e82c343907161142e80df92aeea09af6130b11",
-    "fcd7c7c535f539b1c5f234518608131b6b77732f908f3bcc930736f88a0fdeb2",
+    "784d813e12635985988d5b8245de309c79437b2d3af8b7685002ea18344beb42",
     "85fcaed99daa96fe1f4fbc23662c2066d98ddb1919f0970d7cdf288625c02978",
     "8687e10bad6101167c10eaf24b485b588b6d2185b1832407439e116642722cec",
     "6c04bc6f315e4230e82a4380d1285961b6823bbb31519e416a3db51c3dce1058",
@@ -60,7 +61,7 @@ static const char *hash_sha256_values[] = {
     "06ef447fcbf4660e59c3410ccc3dece9a1ff6376bd65817da8aec5ac9f54d0b2",
     "5470276fa7b5a1b44e56ec87ad9e3b6f70344e6f23223e1d5a956b947fa59c92",
     "45234c44ac272f448fbc14e65cc9cb0ce3fba735eab6eddf59a779438701050d",
-    "68d8c33da0bece9d49e9c9a57fbf01f73d5ba50e53cef3f0484caf94ce2556a1",
+    "cda8482ddfdb13c6f8dea2dcafac633acf9b12924ef3fd520f2ab28972c824ea",
     "fae9a9a1a91f547e42cdaeace8f8247bfae5219fa43ae23453de7d464bf6be42",
     "d294e6c33b2c48f35bcbadab89646a6c8a7da30b70689bc4acc0a2faae77813a",
     "725202704ba2459b176f27d0a2ff194757c7198f65ac083c1ffdefa927aa8f0b",
@@ -77,6 +78,7 @@ static const char *hash_sha256_values[] = {
     "0000000000000000000000000000000000000000000000000000000000000000",
     "d6946cc6f07f9aebbb3bcc2a240c75c6692779f77d089d093bdb9a6aa203eb41",
     "de250a88b8376b985dd5264781aa66ad80989a5daa8493e939318ef8310ee66a",
+    "56062768ad2538868f55dfe37face73e54fb29b870a7551bc6ec55817cb636cc",
 };
 static const int hash_max_lines[] = {
     70,
@@ -99,13 +101,14 @@ static const int hash_max_lines[] = {
     83,
     229,
     95,
-    54,
+    55,
     14,
     58,
     135,
     53,
     421,
     37,
+    0,
     0,
     0,
     0,

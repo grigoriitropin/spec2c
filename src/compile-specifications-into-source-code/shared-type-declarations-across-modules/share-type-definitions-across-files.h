@@ -52,3 +52,4 @@ void emit_function_invocation_code_block(cJSON *inst, FILE *out, int indent);
 void emit_conditional_branch_code_block(cJSON *inst, FILE *out, int indent, const char *return_type);
 void emit_return_statement_code_block(cJSON *inst, FILE *out, const char *return_type);
 void emit_iteration_instruction_code_block(cJSON *inst, FILE *out, int indent, const char *return_type);
+int emit_report_error_then_exit(cJSON *inst, FILE *out);
