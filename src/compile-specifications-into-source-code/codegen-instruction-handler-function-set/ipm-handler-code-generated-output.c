@@ -16,12 +16,8 @@ void emit_json_field_access_handler(cJSON * inst, FILE * out, int indent, char *
   const char *so = cJSON_GetObjectItemCaseSensitive(inst,"source_object") ? cJSON_GetObjectItemCaseSensitive(inst,"source_object")->valuestring : "";
   const char *fn = cJSON_GetObjectItemCaseSensitive(inst,"field_name") ? cJSON_GetObjectItemCaseSensitive(inst,"field_name")->valuestring : "";
   if (vn != NULL) {
-  cJSON *bon = cJSON_GetObjectItemCaseSensitive(inst, "branch_on_success");
-  if (bon) generate_code_from_ast_instructions(bon, out, indent + 1, return_type);
-} else {
-  cJSON *bof = cJSON_GetObjectItemCaseSensitive(inst, "branch_on_failure");
-  if (bof) generate_code_from_ast_instructions(bof, out, indent + 1, return_type);
-}
+    fprintf(out, "  %s %s = %s(%s);\n", vt, vn, op, src);
+  }
   return;
 }
 
@@ -159,15 +155,11 @@ void emit_variable_decl_handler_code(cJSON * inst, FILE * out, int indent, char 
     (void)return_type;
   const char *vn = cJSON_GetObjectItemCaseSensitive(inst,"variable_name") ? cJSON_GetObjectItemCaseSensitive(inst,"variable_name")->valuestring : "";
   const char *vt = cJSON_GetObjectItemCaseSensitive(inst,"variable_type") ? cJSON_GetObjectItemCaseSensitive(inst,"variable_type")->valuestring : "";
-  const char *op = cJSON_GetObjectItemCaseSensitive(inst,"assignment_operation") ? cJSON_GetObjectItemCaseSensitive(inst,"assignment_operation")->valuestring : "";
-  const char *src = cJSON_GetObjectItemCaseSensitive(inst,"source_target") ? cJSON_GetObjectItemCaseSensitive(inst,"source_target")->valuestring : "";
+  (void)vn; const char *op = cJSON_GetObjectItemCaseSensitive(inst,"assignment_operation") ? cJSON_GetObjectItemCaseSensitive(inst,"assignment_operation")->valuestring : "";
+  (void)vt; const char *src = cJSON_GetObjectItemCaseSensitive(inst,"source_target") ? cJSON_GetObjectItemCaseSensitive(inst,"source_target")->valuestring : "";
   if (vn != NULL) {
-  cJSON *bon = cJSON_GetObjectItemCaseSensitive(inst, "branch_on_success");
-  if (bon) generate_code_from_ast_instructions(bon, out, indent + 1, return_type);
-} else {
-  cJSON *bof = cJSON_GetObjectItemCaseSensitive(inst, "branch_on_failure");
-  if (bof) generate_code_from_ast_instructions(bof, out, indent + 1, return_type);
-}
+    fprintf(out, "  %s %s = %s(%s);\n", vt, vn, op, src);
+  }
   return;
 }
 
