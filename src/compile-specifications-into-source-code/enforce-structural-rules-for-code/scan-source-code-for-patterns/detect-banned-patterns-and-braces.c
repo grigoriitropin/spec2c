@@ -78,20 +78,25 @@ static void validate_single_ipm_name_value(const char *name, const char *what, c
     for (tok = strtok(buf, sep); tok; tok = strtok(NULL, sep)) {
         w++;
         if ((int)strlen(tok) < 3) {
-            char msg[512]; snprintf(msg, sizeof(msg),
-                "SOUL §10: .ipm %s '%s' in %s: word '%s' too short (min 3)", what, name, path, tok);
+            char msg[1024]; snprintf(msg, sizeof(msg),
+                "SOUL §10: .ipm %s '%s' in %s: word '%s' too short (min 3)\n"
+                "  → rename '%s' to a full English word (≥3 characters)", what, name, path, tok, tok);
             fprintf(stderr, "spec2c: %s\n", msg); exit(1);
         }
         for (int i = 0; soul_banned_words[i]; i++)
             if (!strcmp(tok, soul_banned_words[i])) {
-                char msg[512]; snprintf(msg, sizeof(msg),
-                    "SOUL §10: .ipm %s '%s' in %s: '%s' is banned", what, name, path, tok);
+                char msg[1024]; snprintf(msg, sizeof(msg),
+                    "SOUL §10: .ipm %s '%s' in %s: '%s' is a banned type word\n"
+                    "  → replace '%s' with a word describing WHAT it does, not WHAT it is",
+                    what, name, path, tok, tok);
                 fprintf(stderr, "spec2c: %s\n", msg); exit(1);
             }
     }
     if (w != 5) {
-        char msg[512]; snprintf(msg, sizeof(msg),
-            "SOUL §10: .ipm %s '%s' in %s has %d words (need 5)", what, name, path, w);
+        char msg[1024]; snprintf(msg, sizeof(msg),
+            "SOUL §10: .ipm %s '%s' in %s has %d words (need 5)\n"
+            "  → rename to exactly 5 %s-separated words describing WHAT it does",
+            what, name, path, w, sep);
         fprintf(stderr, "spec2c: %s\n", msg); exit(1);
     }
 }
@@ -147,17 +152,28 @@ static void check_ipm_imports_against_whitelist(cJSON *root, const char *sp,
 }
 
 static void check_ipm_cli_flag_docs(cJSON *root, const char *sp) {
-    (void)sp;
     cJSON *cli = cJSON_GetObjectItemCaseSensitive(root, "cli_flags");
     if (!cli || !cJSON_IsArray(cli)) return;
     cJSON *help = cJSON_GetObjectItemCaseSensitive(root, "help_text");
+    if (!help || !cJSON_IsObject(help)) { char msg[8448]; snprintf(msg, sizeof(msg),
+        "SOUL §7: %s has cli_flags but no help_text\n  → add a help_text object with flag descriptions", sp);
+        fprintf(stderr, "spec2c: %s\n", msg); exit(1); }
     for (int fi = 0; fi < cJSON_GetArraySize(cli); fi++) {
         cJSON *flag = cJSON_GetArrayItem(cli, fi);
         if (!cJSON_IsString(flag)) continue;
-        if (!help || !cJSON_IsObject(help) ||
-            !cJSON_GetObjectItemCaseSensitive(help, flag->valuestring)) {
+        cJSON *entry = cJSON_GetObjectItemCaseSensitive(help, flag->valuestring);
+        if (!entry) {
             char msg[8448]; snprintf(msg, sizeof(msg),
-                "SOUL §7: CLI flag '%s' not in help_text\n  → add help_text entry", flag->valuestring);
+                "SOUL §7: CLI flag '%s' not in help_text\n"
+                "  → add \"%s\": \"<description>\" to help_text",
+                flag->valuestring, flag->valuestring);
+            fprintf(stderr, "spec2c: %s\n", msg); exit(1);
+        }
+        if (!cJSON_IsString(entry) || !entry->valuestring || !entry->valuestring[0]) {
+            char msg[8448]; snprintf(msg, sizeof(msg),
+                "SOUL §7: CLI flag '%s' has empty help_text\n"
+                "  → provide a meaningful description (1+ words) for what the flag does",
+                flag->valuestring);
             fprintf(stderr, "spec2c: %s\n", msg); exit(1);
         }
     }

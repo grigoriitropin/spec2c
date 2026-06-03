@@ -92,16 +92,18 @@ void validate_name_against_soul_rules(const char *what, const char *name, const 
         if ((int)strlen(tok) < 3) {
             char eb[2048];
             snprintf(eb, sizeof(eb),
-                "SOUL §10: word '%s' in %s '%s' at %s is too short (min 3 chars).\n%s%s",
-                tok, what, name, fp, soful, dir_note);
+                "SOUL §10: word '%s' in %s '%s' at %s is too short (min 3 chars).\n"
+                "  → rename '%s' to a full English word (≥3 characters).\n%s%s",
+                tok, what, name, fp, tok, soful, dir_note);
             report_fatal_error_and_exit(eb);
         }
         for (int i = 0; soul_banned_words[i]; i++)
             if (!strcmp(tok, soul_banned_words[i])) {
                 char eb[2048];
                 snprintf(eb, sizeof(eb),
-                    "SOUL §10: word '%s' in %s '%s' at %s is a banned type word.\n%s%s",
-                    tok, what, name, fp, soful, dir_note);
+                    "SOUL §10: word '%s' in %s '%s' at %s is a banned type word.\n"
+                    "  → replace '%s' with a word describing WHAT it does, not WHAT it is.\n%s%s",
+                    tok, what, name, fp, tok, soful, dir_note);
                 report_fatal_error_and_exit(eb);
             }
         tok = strtok(NULL, sep_str);
@@ -109,8 +111,10 @@ void validate_name_against_soul_rules(const char *what, const char *name, const 
     if (words != 5) {
         char eb[2048];
         snprintf(eb, sizeof(eb),
-            "SOUL §10: %s '%s' at %s has %d words — exactly 5 required (%s-separated).\n%s%s",
-            what, name, fp, words, (is_file || is_dir) ? "hyphen" : "underscore", soful, dir_note);
+            "SOUL §10: %s '%s' at %s has %d words — exactly 5 required (%s-separated).\n"
+            "  → rename to exactly 5 %s-separated words describing WHAT it does.\n%s%s",
+            what, name, fp, words, (is_file || is_dir) ? "hyphen" : "underscore",
+            (is_file || is_dir) ? "hyphen" : "underscore", soful, dir_note);
         report_fatal_error_and_exit(eb);
     }
     if (!check_name_against_allowed_whitelist(name)) {
@@ -160,7 +164,8 @@ static int validate_single_whitelist_entry_name(const char *line) {
 void read_allowed_names_from_file(const char *srcdir) {
     char path[4096]; snprintf(path, sizeof(path), "%s/allowed-names.txt", srcdir);
     FILE *f = fopen(path, "r");
-    if (!f) report_fatal_error_and_exit("cannot open allowed-names.txt");
+    if (!f) report_fatal_error_and_exit("cannot open allowed-names.txt\n"
+        "  → create it with one valid 5-word name per line");
     char line[256];
     while (fgets(line, sizeof(line), f) && allowed_qty < 512) {
         size_t len = strlen(line);
@@ -204,7 +209,8 @@ int banned_patterns_count;
 void read_banned_patterns_from_file(const char *srcdir) {
     char path[4096]; snprintf(path, sizeof(path), "%s/banned-patterns.txt", srcdir);
     FILE *f = fopen(path, "r");
-    if (!f) report_fatal_error_and_exit("cannot open banned-patterns.txt");
+    if (!f) report_fatal_error_and_exit("cannot open banned-patterns.txt\n"
+        "  → create it with one banned pattern per line (goto, setjmp, etc.)");
     char line[64];
     while (fgets(line, sizeof(line), f) && banned_patterns_count < 32) {
         size_t len = strlen(line);
