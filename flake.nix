@@ -214,6 +214,7 @@
           sed -i 's/(char \* name_arg)/(const char *name_arg)/g' naming_obj/naming.c
           sed -i 's/(char \* name_arg)/(const char *name_arg)/g' naming_obj/validate_file_stem_naming_dfa.h
           sed -i 's/const char \*_name = "[^"]*";//' naming_obj/naming.c
+          sed -i 's/extern int check_name_against_allowed_whitelist_ffi(char \*/extern int check_name_against_allowed_whitelist_ffi(const char */' naming_obj/naming.c
           $CC ${builtins.toString cflags} \
             -Isrc -I${S} -I${S}/shared-type-declarations-across-modules \
             -Isrc/support-code-for-compiled-output \
