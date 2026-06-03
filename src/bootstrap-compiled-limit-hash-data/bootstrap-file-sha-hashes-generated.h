@@ -35,7 +35,7 @@ static const char *hash_file_names[] = {
     "validate-type-name-against-whitelist.c",
     "ffi-function-export-layer-here/enforce-ffi-function-export-layer.c",
     "structural-rule-checker-batch-two/structural-rule-checker-batch-two.c",
-    "validate-ipm-file-via-ffi-batch-three.c",
+    "ipm-file-validator-ffi-batch.c",
 };
 static const char *hash_sha256_values[] = {
     "4d88b5954a0a470f8afa1a82685616a3888f440fe8b0c6cdd1f58335295fcfad",
