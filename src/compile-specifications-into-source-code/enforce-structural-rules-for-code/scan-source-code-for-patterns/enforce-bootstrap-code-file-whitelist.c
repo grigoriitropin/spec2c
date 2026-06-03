@@ -11,7 +11,11 @@
 static char whitelist_names[64][128];
 static int whitelist_count_now;
 
-typedef struct { char name[128]; int max_lines; int max_funcs; } freeze_t;
+typedef struct {
+    char name[128];
+    int max_lines;
+    int max_funcs;
+} freeze_t;
 static freeze_t freeze_limits[64];
 static int freeze_count;
 
