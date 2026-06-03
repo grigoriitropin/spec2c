@@ -33,7 +33,7 @@ static const char *hash_file_names[] = {
     "bootstrap-compiled-limit-hash-data/bootstrap-file-sha-hashes-generated.h",
     "check-naming-rules-for-ffi.c",
     "validate-type-name-against-whitelist.c",
-    "enforce-ffi-exports.c",
+    "enforce-ffi-function-export-layer.c",
 };
 static const char *hash_sha256_values[] = {
     "4d88b5954a0a470f8afa1a82685616a3888f440fe8b0c6cdd1f58335295fcfad",
