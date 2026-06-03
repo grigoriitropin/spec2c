@@ -60,9 +60,17 @@ void load_operator_signed_exemption_table(const char *srcdir) {
     while (*p) {
         if (!strncmp(p, ",\"signature_hex\":", 17) || !strncmp(p, ",\"signed_bytes_sha256\":", 23)) {
             while (*p && *p != '"') p++;
-            if (*p == '"') { p++; while (*p && *p != '"') p++; if (*p == '"') p++; }
+            if (*p == '"') {
+                p++;
+                while (*p && *p != '"') p++;
+                if (*p == '"') p++;
+            }
             while (*p && *p != '"') p++;
-            if (*p == '"') { p++; while (*p && *p != '"') p++; if (*p == '"') p++; }
+            if (*p == '"') {
+                p++;
+                while (*p && *p != '"') p++;
+                if (*p == '"') p++;
+            }
         } else {
             if (sb_len < 4095) signed_bytes[sb_len++] = *p;
             p++;
