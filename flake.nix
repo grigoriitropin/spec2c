@@ -129,6 +129,7 @@
           sed -i 's/extern char \* check_name_following_soul_rules(char \*/extern const char * check_name_following_soul_rules(const char */' ipm_enforce_gen.c
           sed -i 's/, char \* name, char \* fp/, const char *name, const char *fp/' ipm_enforce_gen.c
           # Fix result variable types
+          for i in 0 1 2 3 4 5 6 7 8; do sed -i "s/char \*bp$i =/int bp$i =/" ipm_enforce_gen.c; done
           sed -i 's/char \*err0 =/const char *err0 =/' ipm_enforce_gen.c
           sed -i 's/char \*err2 =/const char *err2 =/' ipm_enforce_gen.c
           sed -i 's/char \*err3 =/const char *err3 =/' ipm_enforce_gen.c
