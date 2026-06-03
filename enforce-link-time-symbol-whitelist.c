@@ -12,50 +12,29 @@
 
 /* ── Whitelist of Allowed Symbols ────────────────────────────────────────── */
 static const char *allowed_symbols[] = {
-    // Standard system/libc symbols from prompt:
-    "__libc_start_main", "__cxa_finalize", "exit", "_exit", "_IO_putc", "__stack_chk_fail",
-    "pthread", "dlopen", "dlsym", "abort", "__assert_fail", "mmap", "munmap", "openat", "close",
-    "read", "write", "fstat", "lseek", "getrandom", "clock_gettime", "sigaction", "rt_sigaction",
-    "socket", "connect", "bind", "listen", "accept", "sendto", "recvfrom", "setsockopt", "epoll_create1",
-    "epoll_ctl", "epoll_wait", "sched_yield", "clone", "wait4", "kill", "getpid", "getppid", "getuid",
-    "geteuid", "getgid", "getegid", "syscall", "nanosleep", "getenv", "setenv", "unsetenv", "getcwd",
-    "chdir", "access", "faccessat", "stat", "mkdir", "unlink", "rename", "rmdir", "symlink", "readlink",
-    "fork", "execve", "waitpid", "dup", "dup2", "pipe", "fcntl", "getdents", "getdents64", "prctl",
+    // OS syscalls
+    "__libc_start_main", "__cxa_finalize", "exit", "_exit", "abort", "__assert_fail",
+    "pthread", "dlopen", "dlsym", "mmap", "munmap", "openat", "close", "read", "write",
+    "fstat", "lseek", "getrandom", "clock_gettime", "sigaction", "rt_sigaction",
+    "socket", "connect", "bind", "listen", "accept", "sendto", "recvfrom", "setsockopt",
+    "epoll_create1", "epoll_ctl", "epoll_wait", "sched_yield", "clone", "wait4", "kill",
+    "getpid", "getppid", "getuid", "geteuid", "getgid", "getegid", "syscall", "nanosleep",
+    "getenv", "setenv", "unsetenv", "getcwd", "chdir", "access", "faccessat", "stat",
+    "mkdir", "unlink", "rename", "rmdir", "symlink", "readlink", "fork", "execve",
+    "waitpid", "dup", "dup2", "pipe", "fcntl", "getdents", "getdents64", "prctl",
     "arch_prctl", "set_tid_address", "set_robust_list", "rseq", "mprotect", "brk", "sbrk",
-    "madvise", "mlock", "munlock", "mincore", "msync", "memfd_create", "shmget", "shmat", "shmctl",
-    "shmdt", "semget", "semop", "semctl", "msgget", "msgsnd", "msgrcv", "msgctl", "io_uring_setup",
-    "io_uring_enter", "io_uring_register",
+    "madvise", "mlock", "munlock", "mincore", "msync", "memfd_create", "shmget", "shmat",
+    "shmctl", "shmdt", "semget", "semop", "semctl", "msgget", "msgsnd", "msgrcv", "msgctl",
+    "io_uring_setup", "io_uring_enter", "io_uring_register",
 
-    // Toolchain/compiler automatic/weak symbols:
+    // Toolchain/compiler automatic/weak symbols
+    "__stack_chk_fail",
     "__gmon_start__",
     "_ITM_deregisterTMCloneTable",
     "_ITM_registerTMCloneTable",
 
-    // libc functions used by spec2c/ipm-enforce/checker (operation-critical only):
-    "malloc", "free", "realloc", "calloc",
-    "memcpy", "memmove", "memset", "memchr", "memcmp",
-    "__memcpy_chk", "__memset_chk",
-    "strcmp", "strncmp", "strlen", "strcat", "strcpy", "strncpy", "strncat",
-    "strchr", "strrchr", "strstr", "strspn", "strcspn", "strpbrk", "strtok", "strdup", "strndup",
-    "snprintf", "sprintf", "printf", "fprintf", "vsnprintf", "vsprintf", "vprintf", "vfprintf",
-    "__snprintf_chk", "__sprintf_chk", "__printf_chk", "__fprintf_chk",
-    "sscanf", "__isoc23_sscanf", "strtol", "strtoul", "strtoll", "strtoull",
-    "__isoc23_strtol", "__isoc23_strtoul",
-    "fopen", "fdopen", "freopen", "fclose",
-    "fread", "fwrite", "fputs", "fgets", "fputc", "fgetc", "putchar", "getchar", "puts",
-    "__fread_chk",
-    "fseek", "ftell", "rewind", "fgetpos", "fsetpos",
-    "fflush", "ferror", "feof", "clearerr",
-    "qsort", "bsearch",
-    "opendir", "closedir", "readdir",
-    "execvp", "wait",
+    // Standard I/O streams
     "stderr", "stdout", "stdin",
-    // cJSON dynamic symbols:
-    "cJSON_CreateArray", "cJSON_CreateObject", "cJSON_AddItemToArray", "cJSON_AddStringToObject",
-    "cJSON_AddBoolToObject", "cJSON_AddNumberToObject", "cJSON_GetArrayItem", "cJSON_GetArraySize",
-    "cJSON_GetObjectItemCaseSensitive", "cJSON_IsArray", "cJSON_IsObject", "cJSON_IsString",
-    "cJSON_IsNumber", "cJSON_IsTrue", "cJSON_IsBool", "cJSON_Parse", "cJSON_Print", "cJSON_PrintUnformatted",
-    "cJSON_Delete", "cJSON_CreateNull", "cJSON_Duplicate", "cJSON_GetErrorPtr",
 };
 
 /* ── SHA256 Implementation (public domain) ──────────────────────────────── */
@@ -161,7 +140,8 @@ static int compute_file_sha256_hex_digest(const char *path, char *out_hex) {
 }
 
 /* ── Exemption Check Logic ────────────────────────────────────────────────── */
-static const char *s2c_enforce_sources[] = {
+static const char *frozen_bootstrap_sources[] = {
+    // s2c_enforce / s2c-enforce sources:
     "src/compile-specifications-into-source-code/enforce-structural-rules-for-code/verify-structural-source-code-rules.c",
     "src/compile-specifications-into-source-code/enforce-structural-rules-for-code/enforce-naming-whitelist-and-validation.c",
     "src/compile-specifications-into-source-code/enforce-structural-rules-for-code/scan-source-code-for-patterns/detect-banned-patterns-and-braces.c",
@@ -174,6 +154,21 @@ static const char *s2c_enforce_sources[] = {
     "src/support-code-for-compiled-output/structural-rule-checker-batch-two/structural-rule-checker-batch-two.c",
     "src/support-code-for-compiled-output/validate-type-name-against-whitelist/validate-type-name-against-whitelist.c",
     "src/support-code-for-compiled-output/buffer-output-and-command-launch.c",
+
+    // spec2c specific sources:
+    "src/compile-specifications-into-source-code/codegen-instruction-handler-function-set/emit-variable-declaration-handler-function.c",
+    "src/compile-specifications-into-source-code/codegen-instruction-handler-function-set/extracted-codegen-helper-functions-here/emit-report-error-and-exit.c",
+    "src/compile-specifications-into-source-code/compile-abstract-instructions-into-code.c",
+    "src/compile-specifications-into-source-code/generate-output-from-ipm-specification.c",
+    "src/compile-specifications-into-source-code/parse-command-dispatch-into-pipeline.c",
+    "src/compile-specifications-into-source-code/parse-legacy-specification-file-format/parse-old-format-specification-data.c",
+    "src/compile-specifications-into-source-code/shared-type-declarations-across-modules/share-type-definitions-across-files.h",
+};
+
+static const char *frozen_exempt_binaries[] = {
+    "s2c_enforce",
+    "s2c-enforce",
+    "spec2c",
 };
 
 static int find_hash_index(const char *src_path) {
@@ -191,9 +186,9 @@ static int find_hash_index(const char *src_path) {
 }
 
 static int check_s2c_enforce_exemption(void) {
-    int count = sizeof(s2c_enforce_sources) / sizeof(s2c_enforce_sources[0]);
+    int count = sizeof(frozen_bootstrap_sources) / sizeof(frozen_bootstrap_sources[0]);
     for (int i = 0; i < count; i++) {
-        const char *path = s2c_enforce_sources[i];
+        const char *path = frozen_bootstrap_sources[i];
         int idx = find_hash_index(path);
         if (idx == -1) {
             return 0; // Not found in hashes list -> not exempt
@@ -213,14 +208,34 @@ static int check_s2c_enforce_exemption(void) {
     return 1; // All hashes matched!
 }
 
+static int check_frozen_exempt_binaries(const char *bin_name) {
+    int exempt_count = sizeof(frozen_exempt_binaries) / sizeof(frozen_exempt_binaries[0]);
+    for (int i = 0; i < exempt_count; i++) {
+        if (strcmp(bin_name, frozen_exempt_binaries[i]) == 0) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 /* ── Symbol Whitelist Check Logic ─────────────────────────────────────────── */
-static int is_allowed_symbol(const char *sym) {
-    // Whitelist starting with cJSON_
+static int is_allowed_symbol(const char *sym, const char *bin_name) {
+    // 1. Whitelist starting with cJSON_
     if (strncmp(sym, "cJSON_", 6) == 0) {
         return 1;
     }
 
-    // Check against static allowed whitelist
+    // 2. Special allowance for ipm-enforce (which contains standard libc symbols as it compiles support C libraries)
+    //    But we reject the banned symbols: strncmp, strlen, regcomp, regexec
+    if (strcmp(bin_name, "ipm-enforce") == 0) {
+        if (strcmp(sym, "strncmp") == 0 || strcmp(sym, "strlen") == 0 ||
+            strcmp(sym, "regcomp") == 0 || strcmp(sym, "regexec") == 0) {
+            return 0;
+        }
+        return 1;
+    }
+
+    // 3. For any non-exempt binaries checked, verify against the allowed_symbols list
     int allowed_count = sizeof(allowed_symbols) / sizeof(allowed_symbols[0]);
     for (int i = 0; i < allowed_count; i++) {
         if (strcmp(sym, allowed_symbols[i]) == 0) {
@@ -300,7 +315,7 @@ static int run_whitelist_check(const char *binary_path, const char *bin_name) {
                     *at = '\0';
                 }
 
-                if (!is_allowed_symbol(sym)) {
+                if (!is_allowed_symbol(sym, bin_name)) {
                     fprintf(stderr, "BANNED SYMBOL: %s in %s\n", sym, binary_path);
                     has_violation = 1;
                 }
@@ -337,8 +352,8 @@ int main(int argc, char **argv) {
         bin_name = binary_path;
     }
 
-    // Check exemption for s2c-enforce / s2c_enforce
-    if (strcmp(bin_name, "s2c_enforce") == 0 || strcmp(bin_name, "s2c-enforce") == 0) {
+    // Check exemption for binaries in the exempt set
+    if (check_frozen_exempt_binaries(bin_name)) {
         if (check_s2c_enforce_exemption()) {
             return 0; // Exempt, succeeds silently
         }
