@@ -158,7 +158,7 @@
            cp src/bootstrap-c-freeze-limits.txt . 2>/dev/null || true
            cp src/allowed-non-source-files.txt . 2>/dev/null || true
            echo '${builtins.toJSON all_sources}' > source-manifest.json
-           ./s2c_enforce .
+           ./s2c_enforce ./src
 
           # Step 3: Build spec2c
           cc ${builtins.toString cflags} ${builtins.toString inc} \
