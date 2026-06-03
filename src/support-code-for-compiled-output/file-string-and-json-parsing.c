@@ -137,7 +137,7 @@ static const uint32_t K[64] = {
     0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2
 };
 
-static void process_sha256_block_into_state(const uint8_t *block, uint32_t h[8]) {
+static void solve_sha256_message_block_hash(const uint8_t *block, uint32_t h[8]) {
     uint32_t w[64];
     for (int i = 0; i < 16; i++, block += 4)
         w[i] = ((uint32_t)block[0]<<24)|((uint32_t)block[1]<<16)|((uint32_t)block[2]<<8)|(uint32_t)block[3];
@@ -172,7 +172,7 @@ void compute_sha256_hash_into_bytes(const uint8_t *data, uint32_t len, uint8_t o
     uint64_t bits = (uint64_t)len * 8;
 
     while (len >= 64) {
-        process_sha256_block_into_state(data, h);
+        solve_sha256_message_block_hash(data, h);
         data += 64;
         len -= 64;
     }
@@ -185,7 +185,7 @@ void compute_sha256_hash_into_bytes(const uint8_t *data, uint32_t len, uint8_t o
     for (int i = 7; i >= 0; i--) pad[pad_len++] = (uint8_t)((bits >> (i*8)) & 0xff);
 
     for (uint32_t s = 0; s < pad_len; s += 64)
-        process_sha256_block_into_state(pad + s, h);
+        solve_sha256_message_block_hash(pad + s, h);
 
     for (int i = 0; i < 8; i++) {
         out[i*4]   = (uint8_t)((h[i] >> 24) & 0xff);
