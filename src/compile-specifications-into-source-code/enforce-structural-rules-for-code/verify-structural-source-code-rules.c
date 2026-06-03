@@ -138,6 +138,28 @@ static void check_line_density_within_source(const char *line, const char *sub, 
         report_violation_with_actionable_hint(ERR_LINE_TOO_DENSE, sub, file_line, tokens, NULL);
 }
 
+static int process_function_definition(const char *line, const char *sub,
+    int *func_count, fn_entry_t *fns, int *fn_qty, brace_state_t *bstate) {
+    (*func_count)++;
+    if (*func_count > MAX_FUNCTIONS_PER_FILE) {
+        report_violation_with_actionable_hint(ERR_TOO_MANY_FUNCTIONS, sub, *func_count, MAX_FUNCTIONS_PER_FILE, NULL);
+    }
+    if (*fn_qty < 512) {
+        pull_function_name_from_definition(line, fns[*fn_qty].name, 128);
+        if (fns[*fn_qty].name[0]) {
+            snprintf(fns[*fn_qty].file, 256, "%.255s", sub);
+            if (strcmp(fns[*fn_qty].name, "main"))
+                validate_name_against_soul_rules("function", fns[*fn_qty].name, sub);
+            (*fn_qty)++;
+        }
+    }
+    clear_brace_tracking_for_function(bstate);
+    count_open_close_brace_pairs(line, bstate);
+    if (debug_trace)
+        fprintf(stderr, "\n── %s FUNC#%d [d=%d] %s", sub, *func_count, bstate->depth, line);
+    return bstate->depth <= 0 ? 0 : 1;
+}
+
 static void check_single_file_for_violations(const char *sub, int is_c, int is_source,
     fn_entry_t *fns, int *fn_qty, inc_entry_t *incs, int *inc_qty)
 {
@@ -157,25 +179,8 @@ static void check_single_file_for_violations(const char *sub, int is_c, int is_s
             check_line_density_within_source(line, sub, file_line);
             if (!in_func) {
                 if (detect_function_definition_start_line(line)) {
-                    func_count++;
-                    if (func_count > MAX_FUNCTIONS_PER_FILE) {
-                        fclose(f); report_violation_with_actionable_hint(ERR_TOO_MANY_FUNCTIONS, sub, func_count, MAX_FUNCTIONS_PER_FILE, NULL);
-                    }
-                    if (*fn_qty < 512) {
-                        pull_function_name_from_definition(line, fns[*fn_qty].name, 128);
-                        if (fns[*fn_qty].name[0]) {
-                            snprintf(fns[*fn_qty].file, 256, "%.255s", sub);
-                            if (strcmp(fns[*fn_qty].name, "main"))
-                                validate_name_against_soul_rules("function", fns[*fn_qty].name, sub);
-                            (*fn_qty)++;
-                        }
-                    }
-                    in_func = 1; func_lines = 1;
-                    clear_brace_tracking_for_function(&bstate); count_open_close_brace_pairs(line, &bstate);
-                    if (debug_trace)
-                        fprintf(stderr, "\n── %s FUNC#%d [d=%d] %s",
-                            sub, func_count, bstate.depth, line);
-                    if (bstate.depth <= 0) { in_func = 0; }
+                    in_func = process_function_definition(line, sub, &func_count, fns, fn_qty, &bstate);
+                    func_lines = 1;
                     continue;
                 }
             }
