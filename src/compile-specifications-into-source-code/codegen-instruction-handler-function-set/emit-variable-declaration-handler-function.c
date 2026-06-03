@@ -77,80 +77,35 @@ static void emit_variable_declaration_code_line(cJSON *inst, FILE *out, int inde
         extract_json_field_string_value(inst, "source_target"));
 }
 
-static int emit_builtin_call_when_matched(cJSON *inst, FILE *out, int indent) {
-    (void)indent;
-    (void)rv;
-    const char *fn = extract_json_field_string_value(inst, "invocation_name");
-    const char *rv = extract_json_field_string_value(inst, "result_assignment_variable");
-    cJSON *args = cJSON_GetObjectItemCaseSensitive(inst, "invocation_arguments");
-
-    if (!strcmp(fn, "system_exit")) {
-        int code = 0;
-        if (args && cJSON_IsArray(args) && cJSON_GetArraySize(args) > 0) {
-            cJSON *a0 = cJSON_GetArrayItem(args, 0);
-            if (cJSON_IsNumber(a0)) code = a0->valueint;
-            else if (cJSON_IsObject(a0))
-                code = atoi(extract_json_field_string_value(a0, "value"));
-        }
-        fprintf(out, "  exit(%d);\n", code);
-        return 1;
-    }
-    if (!strcmp(fn, "get_cli_arg")) {
-        int idx = 0;
-        if (args && cJSON_IsArray(args) && cJSON_GetArraySize(args) > 0) {
-            cJSON *a0 = cJSON_GetArrayItem(args, 0);
-            if (cJSON_IsNumber(a0)) idx = a0->valueint;
-            else if (cJSON_IsObject(a0))
-                idx = atoi(extract_json_field_string_value(a0, "value"));
-        }
-        if (rv[0]) fprintf(out, "  const char *%s = ", rv);
-        fprintf(out, "(%d < argc ? argv[%d] : NULL);\n", idx, idx);
-        return 1;
-    }
-    return 0;
-}
-
-
-static int emit_builtin_call_when_matched(cJSON *inst, FILE *out, int indent) {
-    (void)indent;
-    const char *fn = extract_json_field_string_value(inst, "invocation_name");
-    const char *rv = extract_json_field_string_value(inst, "result_assignment_variable");
-    cJSON *args = cJSON_GetObjectItemCaseSensitive(inst, "invocation_arguments");
-
-    if (!strcmp(fn, "system_exit")) {
-        int code = 0;
-        if (args && cJSON_IsArray(args) && cJSON_GetArraySize(args) > 0) {
-            cJSON *a0 = cJSON_GetArrayItem(args, 0);
-            if (cJSON_IsNumber(a0)) code = a0->valueint;
-            else if (cJSON_IsObject(a0))
-                code = atoi(extract_json_field_string_value(a0, "value"));
-        }
-        fprintf(out, "  exit(%d);\n", code);
-        return 1;
-    }
-    if (!strcmp(fn, "get_cli_arg")) {
-        int idx = 0;
-        if (args && cJSON_IsArray(args) && cJSON_GetArraySize(args) > 0) {
-            cJSON *a0 = cJSON_GetArrayItem(args, 0);
-            if (cJSON_IsNumber(a0)) idx = a0->valueint;
-            else if (cJSON_IsObject(a0))
-                idx = atoi(extract_json_field_string_value(a0, "value"));
-        }
-        if (rv[0]) fprintf(out, "  const char *%s = ", rv);
-        fprintf(out, "(%d < argc ? argv[%d] : NULL);\n", idx, idx);
-        return 1;
-    }
-    return 0;
-}
-
 static void emit_function_invocation_with_arguments(cJSON *inst, FILE *out, int indent) {
     (void)indent;
-    (void)rv;
     const char *fn = extract_json_field_string_value(inst, "invocation_name");
     const char *rv = extract_json_field_string_value(inst, "result_assignment_variable");
     cJSON *args = cJSON_GetObjectItemCaseSensitive(inst, "invocation_arguments");
     if (!fn[0]) return;
-    if (emit_builtin_call_when_matched(inst, out, indent)) return;
+
+    /* built-in functions: system_exit, get_cli_arg */
+    if (!strcmp(fn, "system_exit")) {
+        int code = 0;
+        if (args && cJSON_IsArray(args) && cJSON_GetArraySize(args) > 0) {
+            cJSON *a0 = cJSON_GetArrayItem(args, 0);
+            if (cJSON_IsNumber(a0)) code = a0->valueint;
+        }
+        fprintf(out, "  exit(%d);\n", code);
+        return;
+    }
+    if (!strcmp(fn, "get_cli_arg")) {
+        int idx = 0;
+        if (args && cJSON_IsArray(args) && cJSON_GetArraySize(args) > 0) {
+            cJSON *a0 = cJSON_GetArrayItem(args, 0);
+            if (cJSON_IsNumber(a0)) idx = a0->valueint;
+        }
+        if (rv[0]) fprintf(out, "  const char *%s = ", rv);
+        fprintf(out, "(%d < argc ? argv[%d] : NULL);\n", idx, idx);
+        return;
+    }
+
+    if (rv[0]) fprintf(out, "  char *%s = ", rv);
     fprintf(out, "%s(", fn);
     if (args) {
         if (cJSON_IsObject(args)) {
@@ -204,7 +159,6 @@ static void emit_scan_directory_with_body(cJSON *inst, FILE *out, int indent) {
 
 static void emit_bootstrap_central_dispatcher_func(cJSON *inst, FILE *out, int indent, const char *return_type) {
     (void)indent;
-    (void)rv;
     const char *ty = extract_json_field_string_value(inst, "instruction_type");
     if (!strcmp(ty, "emit_formatted_code")) { emit_formatted_code_primitive_handler(inst, out); return; }
     if (!strcmp(ty, "conditional_branch")) { emit_conditional_branch_code_primitive(inst, out, indent, return_type); return; }
