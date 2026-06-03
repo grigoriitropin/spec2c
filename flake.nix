@@ -91,7 +91,6 @@
             ${S}/generate-output-from-ipm-specification.c \
             ${S}/parse-legacy-specification-file-format/parse-old-format-specification-data.c \
             ${S}/codegen-instruction-handler-function-set/emit-variable-declaration-handler-function.c \
-            ${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns/enforce-bootstrap-code-file-whitelist.c \
             ${builtins.toString runtime_src} \
             -o spec2c -lcjson
 
