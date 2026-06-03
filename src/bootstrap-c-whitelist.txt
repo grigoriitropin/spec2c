@@ -30,4 +30,4 @@ compute-sha256-hash-for-files.c
 bootstrap-compiled-limit-hash-data/bootstrap-freeze-data-compiled-into.h
 bootstrap-compiled-limit-hash-data/bootstrap-file-sha-hashes-generated.h
 check-naming-rules-for-ffi.c
-validate-type-against-whitelist.c
+validate-type-name-against-whitelist.c
