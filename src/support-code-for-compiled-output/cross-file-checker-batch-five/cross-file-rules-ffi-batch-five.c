@@ -113,7 +113,7 @@ const char *check_dead_code_across_files(const char *dirpath) {
 /* ── header include frequency (cross-file) ──────────────────────────── */
 typedef struct { char name[128]; int count; } hdr_entry;
 
-const char *check_header_include_frequency(const char *dirpath) {
+const char *check_header_include_frequency_count(const char *dirpath) {
     hdr_entry hdrs[128]; int hdr_count = 0;
 
     void scan_dir_hdrs(const char *dp) {
