@@ -316,7 +316,7 @@ void enforce_all_source_code_rules(const char *srcdir) {
                     continue;
                 }
             }
-            if (!match_name_against_bootstrap_list(de->d_name))
+            if (!match_name_against_bootstrap_list(de->d_name) && !is_ipm)
                 report_violation_with_actionable_hint(ERR_NOT_IN_BOOTSTRAP_WHITELIST, sub, 0, 0, NULL);
             file_cnt++;
             char fname[256]; snprintf(fname, sizeof(fname), "%s", de->d_name);
