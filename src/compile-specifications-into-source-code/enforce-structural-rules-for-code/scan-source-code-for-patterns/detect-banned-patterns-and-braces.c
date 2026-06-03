@@ -253,6 +253,15 @@ static void validate_single_ipm_file_content(const char *sp,
                             { char msg[512]; snprintf(msg, sizeof(msg),
                                 "SOUL §7: strict type — '%s' not allowed\n  → use u32,i32,u64,str,cjson,ptr", vt->valuestring);
                               fprintf(stderr, "spec2c: %s\n", msg); exit(1); }
+                        cJSON *tt = cJSON_GetObjectItemCaseSensitive(inst, "target_type");
+                        if (tt && cJSON_IsString(tt) && tt->valuestring[0]) {
+                            /* alu_operation types: only i32, u32, u64 */
+                            if (strcmp(tt->valuestring, "i32") && strcmp(tt->valuestring, "u32") &&
+                                strcmp(tt->valuestring, "u64"))
+                                { char msg[512]; snprintf(msg, sizeof(msg),
+                                    "SOUL §7: ALU target_type '%s' not allowed\n  → use u32, i32, u64 for alu_operation", tt->valuestring);
+                                  fprintf(stderr, "spec2c: %s\n", msg); exit(1); }
+                        }
                         cJSON *pt = cJSON_GetObjectItemCaseSensitive(inst, "parameter_type");
                         if (pt && cJSON_IsString(pt) && pt->valuestring[0] &&
                             !match_type_against_strict_whitelist(pt->valuestring))
