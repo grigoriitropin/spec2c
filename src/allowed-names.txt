@@ -331,7 +331,6 @@ emit_single_alu_operation_code
 tokenizer-loop-code-generator-func
 emit-report-error-and-exit
 emit_alu_operation_into_output
-indent
 void
 a
 array_size
@@ -349,3 +348,4 @@ cJSON_GetObjectItemCaseSensitive
 cJSON_IsArray
 cJSON_GetArraySize
 cJSON_GetArrayItem
+emit_iteration_loop_with_count
