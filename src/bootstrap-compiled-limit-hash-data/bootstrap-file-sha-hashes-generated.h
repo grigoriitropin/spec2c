@@ -1,5 +1,5 @@
 // AUTO-GENERATED — SHA256 hashes of bootstrap files, compiled into binary
-#define BOOTSTRAP_HASH_COUNT 31
+#define BOOTSTRAP_HASH_COUNT 32
 static const char *hash_file_names[] = {
     "buffer-output-and-command-launch.c",
     "check-source-conformance-entry-point.c",
@@ -32,6 +32,7 @@ static const char *hash_file_names[] = {
     "bootstrap-compiled-limit-hash-data/bootstrap-freeze-data-compiled-into.h",
     "bootstrap-compiled-limit-hash-data/bootstrap-file-sha-hashes-generated.h",
     "check-naming-rules-for-ffi.c",
+    "validate-type-against-whitelist.c",
 };
 static const char *hash_sha256_values[] = {
     "4d88b5954a0a470f8afa1a82685616a3888f440fe8b0c6cdd1f58335295fcfad",
@@ -40,7 +41,7 @@ static const char *hash_sha256_values[] = {
     "4165cffb9aaed9b046fb3285688bfc1fcadfa3ba6e1b0b5de4437ce9755b7fbd",
     "658bd2d7ce7e89b60d00e47b92e82c343907161142e80df92aeea09af6130b11",
     "77b1aac9b3a954a0a4544349c39dbf2815b97903c958055f467e9bb364d57736",
-    "6e93c72367ab00dd59f5139e5df7075379d90fab79035b1c2fcbe97611baa0a0",
+    "0760ec282a856eb7ee23541420b44d6ceec845be84257f736ba2c78ac998de33",
     "8687e10bad6101167c10eaf24b485b588b6d2185b1832407439e116642722cec",
     "9b7f4b4b41afc3f4c244dd156a9170fd90e807d105d325ece866efbe1f74f17a",
     "20c92067dae2c73ba4b77dc9e5552d162f1be35ae8deac971579192d1df5976b",
@@ -65,6 +66,7 @@ static const char *hash_sha256_values[] = {
     "0000000000000000000000000000000000000000000000000000000000000000",
     "0000000000000000000000000000000000000000000000000000000000000000",
     "aa748a1fb7489ee7be820e09bfbed6427254cf500b670b5d7bd3f83ff0150913",
+    "f5156a3065c09d9dceb1af000ea1be2cb237222af7e04e0f9406549cb219b9ab",
 };
 static const int hash_max_lines[] = {
     70,
@@ -94,6 +96,7 @@ static const int hash_max_lines[] = {
     53,
     421,
     37,
+    0,
     0,
     0,
     0,

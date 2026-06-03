@@ -28,11 +28,11 @@
       ];
       runtime_src = [
         "src/runtime-for-generated-ipm-code.c"
-        "src/compile-specifications-into-source-code/enforce-structural-rules-for-code/scan-source-code-for-patterns/enforce-bootstrap-code-file-whitelist.c"
         "src/compile-specifications-into-source-code/enforce-structural-rules-for-code/scan-source-code-for-patterns/check-naming-rules-for-ffi.c"
         "src/support-code-for-compiled-output/file-string-and-json-parsing.c"
         "src/support-code-for-compiled-output/hash-table-and-substitution-code.c"
             "src/support-code-for-compiled-output/compute-file-sha-hash-digest/compute-sha256-hash-for-files.c"
+            "src/compile-specifications-into-source-code/enforce-structural-rules-for-code/scan-source-code-for-patterns/validate-type-against-whitelist.c"
         "src/support-code-for-compiled-output/buffer-output-and-command-launch.c"
       ];
     in {
@@ -49,7 +49,6 @@
             ${S}/enforce-structural-rules-for-code/verify-structural-source-code-rules.c \
             ${S}/enforce-structural-rules-for-code/enforce-naming-whitelist-and-validation.c \
             ${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns/detect-banned-patterns-and-braces.c \
-            ${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns/enforce-bootstrap-code-file-whitelist.c \
             ${builtins.toString runtime_src} \
             -o s2c-enforce -lcjson
           runHook postBuild
@@ -77,7 +76,6 @@
             ${S}/enforce-structural-rules-for-code/verify-structural-source-code-rules.c \
             ${S}/enforce-structural-rules-for-code/enforce-naming-whitelist-and-validation.c \
             ${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns/detect-banned-patterns-and-braces.c \
-            ${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns/enforce-bootstrap-code-file-whitelist.c \
             ${builtins.toString runtime_src} \
             -o s2c_enforce -lcjson
 
@@ -91,6 +89,7 @@
             ${S}/generate-output-from-ipm-specification.c \
             ${S}/parse-legacy-specification-file-format/parse-old-format-specification-data.c \
             ${S}/codegen-instruction-handler-function-set/emit-variable-declaration-handler-function.c \
+            ${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns/enforce-bootstrap-code-file-whitelist.c \
             ${builtins.toString runtime_src} \
             -o spec2c -lcjson
 

@@ -264,3 +264,4 @@ validate_ipm_type_name_strictly
 match_type_against_strict_whitelist
 validate_ipm_function_strict_types
 validate_ipm_function_strict_types
+validate-type-against-whitelist
