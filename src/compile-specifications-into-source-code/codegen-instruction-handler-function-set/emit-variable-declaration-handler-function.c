@@ -77,7 +77,7 @@ static void emit_variable_declaration_code_line(cJSON *inst, FILE *out, int inde
         extract_json_field_string_value(inst, "source_target"));
 }
 
-static int emit_builtin_call_if_matched(cJSON *inst, FILE *out, int indent) {
+static int emit_builtin_call_when_matched(cJSON *inst, FILE *out, int indent) {
     (void)indent;
     const char *fn = extract_json_field_string_value(inst, "invocation_name");
     const char *rv = extract_json_field_string_value(inst, "result_assignment_variable");
@@ -115,7 +115,7 @@ static void emit_function_invocation_with_arguments(cJSON *inst, FILE *out, int 
     const char *rv = extract_json_field_string_value(inst, "result_assignment_variable");
     cJSON *args = cJSON_GetObjectItemCaseSensitive(inst, "invocation_arguments");
     if (!fn[0]) return;
-    if (emit_builtin_call_if_matched(inst, out, indent)) return;
+    if (emit_builtin_call_when_matched(inst, out, indent)) return;
     fprintf(out, "%s(", fn);
     if (args) {
         if (cJSON_IsObject(args)) {

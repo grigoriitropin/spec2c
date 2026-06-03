@@ -268,4 +268,5 @@ validate-type-name-against-whitelist
 validate-type-name-against-whitelist
 emit_function_invocation_with_arguments
 emit_scan_directory_with_body
-emit_builtin_call_if_matched
+emit_builtin_call_when_matched
+emit_builtin_call_when_matched
