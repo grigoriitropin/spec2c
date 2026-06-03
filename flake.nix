@@ -30,7 +30,7 @@
         "src/runtime-for-generated-ipm-code.c"
         "src/support-code-for-compiled-output/file-string-and-json-parsing.c"
         "src/support-code-for-compiled-output/hash-table-and-substitution-code.c"
-            "src/support-code-for-compiled-output/compute-sha256-hash-for-files.c"
+            "src/support-code-for-compiled-output/compute-hash-digest/compute-sha256-hash-for-files.c"
         "src/support-code-for-compiled-output/buffer-output-and-command-launch.c"
       ];
     in {
