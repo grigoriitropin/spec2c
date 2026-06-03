@@ -277,3 +277,4 @@ write_component_header_with_prototypes
 write_string_buffer_into_file
 write_text_string_into_file
 emit_report_error_then_exit
+extracted-codegen-helper-functions-here

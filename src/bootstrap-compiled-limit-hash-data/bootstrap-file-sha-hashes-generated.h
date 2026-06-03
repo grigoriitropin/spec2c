@@ -38,7 +38,7 @@ static const char *hash_file_names[] = {
     "ipm-file-validator-ffi-batch/ipm-file-validator-ffi-batch.c",
     "remaining-rules-ffi-batch-four.c",
     "dead-code-header-check-batch.c",
-    "extracted-helpers/emit-report-error-and-exit.c",
+    "extracted-codegen-helper-functions-here/emit-report-error-and-exit.c",
 };
 static const char *hash_sha256_values[] = {
     "4d88b5954a0a470f8afa1a82685616a3888f440fe8b0c6cdd1f58335295fcfad",
