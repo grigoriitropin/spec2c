@@ -142,23 +142,6 @@ static void scan_json_for_banned_words(cJSON *node, const char *path) {
 
 
 
-static void load_ipm_import_whitelist_file(const char *srcdir,
-    char buf[64][128], int *count)
-{
-    char wpath[4096]; snprintf(wpath, sizeof(wpath), "%s/ipm-imports.whitelist", srcdir);
-    FILE *wf = fopen(wpath, "r");
-    if (!wf) return;
-    char wline[128];
-    while (fgets(wline, sizeof(wline), wf) && *count < 64) {
-        size_t wl = strlen(wline);
-        while (wl > 0 && (wline[wl-1] == '\n' || wline[wl-1] == '\r')) wline[--wl] = 0;
-        if (wl > 0) { snprintf(buf[*count], 128, "%s", wline); (*count)++; }
-    }
-    fclose(wf);
-}
-
-
-
 void verify_ipm_names_across_sources(const char *srcdir) {
     char allowed_imports[64][128]; int n_allowed = 0;
     load_ipm_import_whitelist_file(srcdir, allowed_imports, &n_allowed);
