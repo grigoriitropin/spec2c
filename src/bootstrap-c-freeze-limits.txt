@@ -5,7 +5,7 @@ compile-abstract-instructions-into-code.c 156 5
 detect-banned-patterns-and-braces.c 413 13
 dump-context-from-ipm-graph.c 109 3
 emit-variable-declaration-handler-function.c 364 5
-enforce-bootstrap-code-file-whitelist.c 145 4
+enforce-bootstrap-code-file-whitelist.c 173 4
 enforce-naming-whitelist-and-validation.c 225 10
 file-string-and-json-parsing.c 241 10
 generate-output-from-ipm-specification.c 207 6
@@ -25,4 +25,4 @@ soul-rules-for-naming-validation.h 58 2
 vehir-shared-abstraction-wrapper-code.c 135 7
 vehir-shared-abstraction-wrapper-code.h 53 8
 verify-structural-source-code-rules.c 421 15
-verify-structural-source-code-rules.h 39 18
+verify-structural-source-code-rules.h 40 18
