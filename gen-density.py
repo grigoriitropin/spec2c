@@ -11,6 +11,7 @@ instructions.append({
     "result_variable": "content"
 })
 
+# Declare persistent state (outside loop)
 instructions.append({
     "instruction_type": "variable_declaration",
     "variable_name": "tokens",
@@ -26,6 +27,7 @@ instructions.append({
     "source_target": 0
 })
 
+# Build loop body
 body = []
 
 # If byte == newline (10): tokens = 0
@@ -77,16 +79,17 @@ body.append({
     }]
 })
 
-instructions.append({
+# The iterate_over_bytes instruction
+iter_inst = {
     "instruction_type": "iterate_over_bytes",
     "collection": "content",
     "item_variable": "byte",
     "index_variable": "i",
     "body": body
-})
+}
 
-# After loop: if found != 0 → return 1 (error)
-instructions.append({
+# Check after loop: if found != 0 → return 1
+check_found = {
     "instruction_type": "conditional_branch",
     "condition_type": "numeric_compare",
     "operator": "!=",
@@ -96,12 +99,21 @@ instructions.append({
         "instruction_type": "return_statement",
         "return_payload": {"value": "1"}
     }]
-})
+}
 
-# Default: return 0 (no error)
-instructions.append({
+# Return 0 (no error)
+return_ok = {
     "instruction_type": "return_statement",
     "return_payload": {"value": "0"}
+}
+
+# Wrap in NULL check
+instructions.append({
+    "instruction_type": "conditional_branch",
+    "condition_operation": "is_not_null",
+    "condition_target": "content",
+    "branch_on_success": [iter_inst, check_found, return_ok],
+    "branch_on_failure": [return_ok]
 })
 
 spec = {
