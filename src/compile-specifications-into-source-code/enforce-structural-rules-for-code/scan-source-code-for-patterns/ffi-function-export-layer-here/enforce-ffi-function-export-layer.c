@@ -16,11 +16,6 @@ int count_lines_inside_file_ffi(const char *path) {
     return lines;
 }
 
-const char *check_file_line_limit_ffi(const char *path) {
-    int lines = count_lines_inside_file_ffi(path);
-    if (lines > 400) return "file too long";
-    return NULL;
-}
 
 /* ── banned pattern check (goto, setjmp, longjmp, /dev/null) ────────── */
 const char *check_banned_pattern_inside_file(const char *path) {
