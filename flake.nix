@@ -262,6 +262,7 @@
           sed -i 's/int errors = 0;/int errors = 0; (void)errors;/' ipm_enforce_gen.c
 
           $CC ${builtins.toString cflags} \
+            -I. \
             -Isrc \
             -I${S} \
             -I${S}/shared-type-declarations-across-modules \
