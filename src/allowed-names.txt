@@ -240,4 +240,5 @@ emit_bootstrap_central_dispatcher_func
 enforce-bootstrap-code-file-whitelist
 load_bootstrap_whitelist_from_disk
 match_name_against_bootstrap_list
-enforce_bootstrap_freeze_limits
+enforce_bootstrap_code_freeze_check
+enforce_bootstrap_code_freeze_check

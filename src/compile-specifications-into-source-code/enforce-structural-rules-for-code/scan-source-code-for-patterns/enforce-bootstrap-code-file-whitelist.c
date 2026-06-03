@@ -56,7 +56,7 @@ int match_name_against_bootstrap_list(const char *basename) {
     return 0;
 }
 
-void enforce_bootstrap_freeze_limits(const char *srcdir) {
+void enforce_bootstrap_code_freeze_check(const char *srcdir) {
     void walk(const char *dpath) {
         for (int i = 0; i < freeze_count; i++) {
             /* find the file */

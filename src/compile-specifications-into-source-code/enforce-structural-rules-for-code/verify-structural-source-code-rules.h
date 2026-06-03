@@ -27,7 +27,7 @@ int  match_name_against_stdlib_list(const char *name);
 void verify_ipm_names_across_sources(const char *srcdir);
 void load_bootstrap_whitelist_from_disk(const char *srcdir);
 int  match_name_against_bootstrap_list(const char *basename);
-void enforce_bootstrap_freeze_limits(const char *srcdir);
+void enforce_bootstrap_code_freeze_check(const char *srcdir);
 
 #endif
 
