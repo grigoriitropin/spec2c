@@ -27,7 +27,8 @@ typedef enum {
     ERR_DEAD_CODE,
     ERR_MAIN_COUNT,
     ERR_FLAG_NOT_IN_HELP,
-    ERR_LINE_TOO_DENSE
+    ERR_LINE_TOO_DENSE,
+    ERR_NOT_IN_BOOTSTRAP_WHITELIST
 } enforce_err_t;
 static void report_fatal_error_and_exit(const char *msg) {
     fprintf(stderr, "spec2c: %s\n", msg); exit(1);
@@ -61,6 +62,8 @@ static void report_violation_with_actionable_hint(enforce_err_t code, const char
         snprintf(buf, sizeof(buf), "SOUL §7: CLI flag '%s' in %s not documented in help text\n  → add flag description to the --help output block", a1, a2); break;
     case ERR_LINE_TOO_DENSE:
         snprintf(buf, sizeof(buf), "SOUL §7: %s line %d is too dense — %d control tokens (; { ?) (max 3)\n  → split the line into multiple statements", a1, v1, v2); break;
+    case ERR_NOT_IN_BOOTSTRAP_WHITELIST:
+        snprintf(buf, sizeof(buf), "SOUL §7: %s not in bootstrap C whitelist\n  → remove this file or add it to bootstrap-c-whitelist.txt (only bootstrap primitives)", a1); break;
     }
     report_fatal_error_and_exit(buf);
 }
@@ -257,6 +260,7 @@ static void scan_source_for_undocumented_flags(const char *srcdir);
 void enforce_all_source_code_rules(const char *srcdir) {
     read_allowed_names_from_file(srcdir);
     read_banned_patterns_from_file(srcdir);
+    load_bootstrap_whitelist_from_disk(srcdir);
     fn_entry_t fns[512]; int fn_qty = 0;
     inc_entry_t incs[128]; int inc_qty = 0;
     void scan_dir(const char *dirpath) {
@@ -273,6 +277,8 @@ void enforce_all_source_code_rules(const char *srcdir) {
                 scan_dir(sub); continue;
             }
             if (!match_source_code_header_filename(de->d_name)) continue;
+            if (!match_name_against_bootstrap_list(de->d_name))
+                report_violation_with_actionable_hint(ERR_NOT_IN_BOOTSTRAP_WHITELIST, sub, 0, 0, NULL);
             file_cnt++;
             char fname[256]; snprintf(fname, sizeof(fname), "%s", de->d_name);
             char *dot = strrchr(fname, '.'); if (dot) *dot = 0;

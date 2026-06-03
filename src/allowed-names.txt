@@ -237,3 +237,6 @@ emit_formatted_code_primitive_handler
 emit_conditional_branch_code_primitive
 emit_bootstrap_central_dispatcher_func
 emit_bootstrap_central_dispatcher_func
+enforce-bootstrap-c-file-whitelist
+load_bootstrap_whitelist_from_disk
+match_name_against_bootstrap_list

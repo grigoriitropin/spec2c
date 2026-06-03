@@ -25,6 +25,8 @@ int  check_for_banned_keyword_pattern(const char *line);
 int  detect_hardcoded_file_path_string(const char *line);
 int  match_name_against_stdlib_list(const char *name);
 void verify_ipm_names_across_sources(const char *srcdir);
+void load_bootstrap_whitelist_from_disk(const char *srcdir);
+int  match_name_against_bootstrap_list(const char *basename);
 
 #endif
 
