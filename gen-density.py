@@ -4,6 +4,13 @@ import json
 
 instructions = []
 
+# Read file content
+instructions.append({
+    "instruction_type": "read_file_content",
+    "file_path": "path",
+    "result_variable": "content"
+})
+
 instructions.append({
     "instruction_type": "variable_declaration",
     "variable_name": "tokens",
@@ -78,7 +85,7 @@ instructions.append({
     "body": body
 })
 
-# After loop: if found != 0 → return error string
+# After loop: if found != 0 → return 1 (error)
 instructions.append({
     "instruction_type": "conditional_branch",
     "condition_type": "numeric_compare",
@@ -87,7 +94,7 @@ instructions.append({
     "rhs": {"value": "0"},
     "branch_on_success": [{
         "instruction_type": "return_statement",
-        "return_payload": {"value": "line too dense"}
+        "return_payload": {"value": "1"}
     }]
 })
 
@@ -102,11 +109,14 @@ spec = {
     "build_type": "library",
     "module_name": "check-each-line-token-density",
     "description": "Pure IPM line density checker",
+    "extern_imports": [
+        {"name": "read_entire_file_into_string", "return_type": "str", "arguments": [{"name": "path", "type": "str"}]}
+    ],
     "function_definitions": {
         "check-each-line-token-density": {
             "return_type": "i32",
             "parameter_definitions": [
-                {"parameter_name": "content", "parameter_type": "str"}
+                {"parameter_name": "path", "parameter_type": "str"}
             ],
             "execution_instructions": instructions
         }

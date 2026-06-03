@@ -118,16 +118,24 @@
         buildPhase = ''
           runHook preBuild
 
-          # ── Step 1: Build DFA library module ──────────────
-          mkdir -p dfa_obj
+          # ── Step 1: Build library modules ─────────────────
+          mkdir -p dfa_obj density_obj
+
+          # DFA banned patterns
           spec2c check-banned-patterns-pure-ipm.ipm --library -o dfa_obj/dfa.c
           sed -i '/^{"ok"/d' dfa_obj/dfa.c
           $CC ${builtins.toString cflags} \
-            -Isrc \
-            -I${S} \
-            -I${S}/shared-type-declarations-across-modules \
+            -Isrc -I${S} -I${S}/shared-type-declarations-across-modules \
             -Isrc/support-code-for-compiled-output \
             -c dfa_obj/dfa.c -o dfa_obj/dfa.o
+
+          # Line density checker
+          spec2c modules/rules/check-each-line-token-density.ipm --library -o density_obj/density.c
+          sed -i '/^{"ok"/d' density_obj/density.c
+          $CC ${builtins.toString cflags} \
+            -Isrc -I${S} -I${S}/shared-type-declarations-across-modules \
+            -Isrc/support-code-for-compiled-output \
+            -c density_obj/density.c -o density_obj/density.o
 
           # ── Step 2: Build IPM enforcer executable ────────
           spec2c enforce-naming-rules-via-ffi.ipm > ipm_enforce_gen.c
@@ -146,6 +154,7 @@
           sed -i 's/char \*err0 =/const char *err0 =/' ipm_enforce_gen.c
           sed -i 's/char \*err2 =/const char *err2 =/' ipm_enforce_gen.c
           sed -i 's/char \*err3 =/const char *err3 =/' ipm_enforce_gen.c
+          sed -i 's/if (err3 != NULL)/if (err3)/' ipm_enforce_gen.c
           sed -i '/const char \*err =/!s/char \*err =/const char *err =/' ipm_enforce_gen.c
           sed -i '/const char \*err =/!s/char \*err =/const char *err =/' ipm_enforce_gen.c
           sed -i 's/int errors = 0;/int errors = 0; (void)errors;/' ipm_enforce_gen.c
@@ -169,6 +178,7 @@
             src/support-code-for-compiled-output/remaining-rules-ffi-batch-four/remaining-rules-ffi-batch-four.c \
             src/support-code-for-compiled-output/dead-code-header-check-batch/dead-code-header-check-batch.c \
             dfa_obj/dfa.o \
+            density_obj/density.o \
             ipm_enforce_gen.c \
             -o ipm-enforce -lcjson
 
