@@ -230,6 +230,20 @@ static void emit_bootstrap_central_dispatcher_func(cJSON *inst, FILE *out, int i
     if (!strcmp(ty, "emit_formatted_code")) { emit_formatted_code_primitive_handler(inst, out); return; }
     if (!strcmp(ty, "for_count_loop")) { emit_iteration_loop_with_count(inst, out, indent, return_type); return; }
     if (!strcmp(ty, "function_invocation")) { emit_function_invocation_with_arguments(inst, out, indent); return; }
+    if (!strcmp(ty, "iterate_over_bytes")) {
+        const char *col = extract_json_field_string_value(inst, "collection");
+        const char *iv  = extract_json_field_string_value(inst, "item_variable");
+        const char *xv  = extract_json_field_string_value(inst, "index_variable");
+        cJSON *body = cJSON_GetObjectItemCaseSensitive(inst, "body");
+        if (!col[0]) return;
+        fprintf(out, "  const char *_bp = (%s);\n", col);
+        fprintf(out, "  uint32_t _bl = strlen(_bp);\n");
+        fprintf(out, "  for (uint32_t %s = 0; %s < _bl; %s++) {\n", xv, xv, xv);
+        fprintf(out, "    uint8_t %s = (uint8_t)_bp[%s];\n", iv, xv);
+        if (body) generate_code_from_ast_instructions(body, out, indent + 2, return_type);
+        fprintf(out, "  }\n");
+        return;
+    }
     if (!strcmp(ty, "read_file_content")) {
         const char *fp = extract_json_field_string_value(inst, "file_path");
         const char *rv = extract_json_field_string_value(inst, "result_variable");
@@ -257,6 +271,7 @@ static const dispatch_entry_t INSTR_HANDLERS[] = {
     {"function_invocation",       emit_bootstrap_central_dispatcher_func},
     {"iterate_over_collection",   emit_bootstrap_central_dispatcher_func},
     {"iterate_over_object_keys",  emit_bootstrap_central_dispatcher_func},
+    {"iterate_over_bytes",        emit_bootstrap_central_dispatcher_func},
     {"read_file_content",         emit_bootstrap_central_dispatcher_func},
     {"return_statement",          emit_bootstrap_central_dispatcher_func},
     {"scan_directory_entries",    emit_bootstrap_central_dispatcher_func},
