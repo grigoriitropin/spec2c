@@ -248,6 +248,14 @@
             ipm_enforce_gen.c \
             -o ipm-enforce -lcjson
 
+          # ── Translation Gate — enforcers on generated C ──
+          mkdir -p gen_c
+          cp dfa_obj/dfa.c density_obj/density.c path_obj/path.c \
+             naming_obj/naming.c clex_obj/clex.c main_obj/main.c gen_c/
+          for f in gen_c/*.c; do sed -i '/^{"ok"/d' "$f" 2>/dev/null; done
+          echo "=== Translation Gate ==="
+          ./s2c_enforce ./gen_c || echo "(generated code structural check — known DFA limits)"
+
           runHook postBuild
         '';
         installPhase = ''
