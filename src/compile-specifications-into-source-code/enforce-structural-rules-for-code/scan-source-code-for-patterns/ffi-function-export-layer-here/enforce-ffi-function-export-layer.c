@@ -88,6 +88,6 @@ const char *check_line_density_inside_file(const char *path) {
     return NULL;
 }
 
-int string_contains_substring_ffi(const char *haystack, const char *needle) {
+int find_substring_inside_text_ffi(const char *haystack, const char *needle) {
     return strstr(haystack, needle) ? 1 : 0;
 }
