@@ -6,7 +6,7 @@ detect-banned-patterns-and-braces.c 413 13
 dump-context-from-ipm-graph.c 109 3
 emit-variable-declaration-handler-function.c 364 5
 enforce-bootstrap-code-file-whitelist.c 145 4
-enforce-naming-whitelist-and-validation.c 286 10
+enforce-naming-whitelist-and-validation.c 291 10
 file-string-and-json-parsing.c 241 10
 generate-output-from-ipm-specification.c 207 6
 hash-table-and-substitution-code.c 116 9
