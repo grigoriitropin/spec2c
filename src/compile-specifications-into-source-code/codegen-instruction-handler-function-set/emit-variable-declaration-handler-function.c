@@ -43,23 +43,37 @@ static void emit_conditional_branch_code_primitive(cJSON *inst, FILE *out, int i
     fprintf(out, "}\n");
 }
 
+static void emit_variable_declaration_code_line(cJSON *inst, FILE *out) {
+    const char *vn = extract_json_field_string_value(inst, "variable_name");
+    const char *vt = extract_json_field_string_value(inst, "variable_type");
+    const char *op = extract_json_field_string_value(inst, "assignment_operation");
+    cJSON *arr_sz = cJSON_GetObjectItemCaseSensitive(inst, "array_size");
+    cJSON *fields  = cJSON_GetObjectItemCaseSensitive(inst, "struct_fields");
+    int array_size = (arr_sz && cJSON_IsNumber(arr_sz)) ? arr_sz->valueint : 0;
+    if (array_size > 1 && fields && cJSON_IsArray(fields)) {
+        cJSON *field;
+        cJSON_ArrayForEach(field, fields) {
+            if (!cJSON_IsString(field)) continue;
+            char fn[64] = {0}, ft[64] = {0};
+            if (sscanf(field->valuestring, "%63[^:]:%63s", fn, ft) == 2) {
+                fprintf(out, "  %s %s_%s[%d];\n",
+                    resolve_spec_type_into_lang(ft), vn, fn, array_size);
+            }
+        }
+        return;
+    }
+    (void)vt;
+    (void)op;
+    fprintf(out, "%s %s = %s(%s);\n", vt, vn, op,
+        extract_json_field_string_value(inst, "source_target"));
+}
+
 static void emit_bootstrap_central_dispatcher_func(cJSON *inst, FILE *out, int indent, const char *return_type) {
     (void)indent;
     const char *ty = extract_json_field_string_value(inst, "instruction_type");
     if (!strcmp(ty, "emit_formatted_code")) { emit_formatted_code_primitive_handler(inst, out); return; }
     if (!strcmp(ty, "conditional_branch")) { emit_conditional_branch_code_primitive(inst, out, indent, return_type); return; }
-    if (!strcmp(ty, "variable_declaration")) {
-        const char *vn = extract_json_field_string_value(inst, "variable_name");
-        const char *vt = extract_json_field_string_value(inst, "variable_type");
-        const char *op = extract_json_field_string_value(inst, "assignment_operation");
-        const char *src = extract_json_field_string_value(inst, "source_target");
-        (void)vn;
-        (void)vt;
-        (void)op;
-        (void)src;
-        fprintf(out, "%s %s = %s(%s);\n", vt, vn, op, src);
-        return;
-    }
+    if (!strcmp(ty, "variable_declaration")) { emit_variable_declaration_code_line(inst, out); return; }
 }
 
 typedef struct {

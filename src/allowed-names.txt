@@ -256,3 +256,4 @@ compute-file-sha-hash-digest
 bootstrap-compiled-limit-hash-data
 bootstrap-freeze-data-compiled-into
 bootstrap-file-sha-hashes-generated
+emit_variable_declaration_code_line
