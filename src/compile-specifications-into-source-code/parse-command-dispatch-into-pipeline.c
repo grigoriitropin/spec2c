@@ -357,6 +357,9 @@ static int run_spec2c_pipeline_after_parsing(
     enforce_ipm_specification_validation_rules(spec_text, spec_json);
     validate_structural_limits_against_spec(spec_text, spec_json);
     cJSON *pkg_name = cJSON_GetObjectItemCaseSensitive(spec_json, "package_name");
+    cJSON *build_type = cJSON_GetObjectItemCaseSensitive(spec_json, "build_type");
+    if (build_type && cJSON_IsString(build_type) && !strcmp(build_type->valuestring, "library"))
+        is_library = 1;
     if (pkg_name && cJSON_IsString(pkg_name)) {
         handle_ipm_spec_code_generation(spec_json, pkg_name->valuestring, out_path, is_library);
         cJSON_Delete(spec_json);
