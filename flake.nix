@@ -132,7 +132,7 @@
           # ── Step 2: Build IPM enforcer executable ────────
           spec2c enforce-naming-rules-via-ffi.ipm > ipm_enforce_gen.c
           sed -i '/^{"ok"/d' ipm_enforce_gen.c
-          sed -i '/"enforce-naming-rules-via-ffi.h"/d' ipm_enforce_gen.c
+          sed -i '/enforce_naming_rules_via_ffi\.h"/d' ipm_enforce_gen.c
           sed -i '1i#include "runtime-for-generated-ipm-code.h"' ipm_enforce_gen.c
           sed -i '1iextern void scan_every_byte_search_patterns(const char *content);' ipm_enforce_gen.c
           sed -i 's/extern char \* check_name_following_soul_rules(char \*/extern const char * check_name_following_soul_rules(const char */' ipm_enforce_gen.c
