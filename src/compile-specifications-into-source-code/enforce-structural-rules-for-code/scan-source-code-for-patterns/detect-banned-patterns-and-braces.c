@@ -174,6 +174,21 @@ static void check_ipm_ast_structure_depth(cJSON *node, int depth, const char *pa
 }
 
 void verify_ipm_names_across_sources(const char *srcdir) {
+    /* load import whitelist */
+    char allowed_imports[64][128]; int n_allowed = 0;
+    {   char wpath[4096]; snprintf(wpath, sizeof(wpath), "%s/ipm-imports.whitelist", srcdir);
+        FILE *wf = fopen(wpath, "r");
+        if (wf) {
+            char wline[128];
+            while (fgets(wline, sizeof(wline), wf) && n_allowed < 64) {
+                size_t wl = strlen(wline);
+                while (wl > 0 && (wline[wl-1] == '\n' || wline[wl-1] == '\r')) wline[--wl] = 0;
+                if (wl > 0) { snprintf(allowed_imports[n_allowed], 128, "%s", wline); n_allowed++; }
+            }
+            fclose(wf);
+        }
+    }
+
     void scan_ipm(const char *dpath) {
         DIR *dd = opendir(dpath); if (!dd) return;
         int ipm_cnt = 0;
@@ -202,6 +217,24 @@ void verify_ipm_names_across_sources(const char *srcdir) {
 
             scan_json_for_banned_words(root, sp);
             check_ipm_ast_structure_depth(root, 0, sp);
+
+            /* check imports against whitelist */
+            cJSON *imps = cJSON_GetObjectItemCaseSensitive(root, "imports");
+            if (imps && cJSON_IsArray(imps)) {
+                for (int ii = 0; ii < cJSON_GetArraySize(imps); ii++) {
+                    cJSON *imp = cJSON_GetArrayItem(imps, ii);
+                    if (!cJSON_IsString(imp)) continue;
+                    int found = 0;
+                    for (int wi = 0; wi < n_allowed; wi++)
+                        if (!strcmp(imp->valuestring, allowed_imports[wi])) { found = 1; break; }
+                    if (!found) {
+                        char msg[512]; snprintf(msg, sizeof(msg),
+                            "SOUL §7: .ipm import '%s' in %s not in whitelist\n"
+                            "  → add '%s' to ipm-imports.whitelist", imp->valuestring, sp, imp->valuestring);
+                        fprintf(stderr, "spec2c: %s\n", msg); exit(1);
+                    }
+                }
+            }
 
             cJSON *pkg = cJSON_GetObjectItemCaseSensitive(root, "package_name");
             if (pkg && cJSON_IsString(pkg)) validate_single_ipm_name_value(pkg->valuestring, "package_name", sp);
