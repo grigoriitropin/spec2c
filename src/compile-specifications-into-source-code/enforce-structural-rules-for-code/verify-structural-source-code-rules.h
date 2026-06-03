@@ -34,3 +34,4 @@ void enforce_bootstrap_code_freeze_check(const char *srcdir);
 
 
 
+int match_type_against_strict_whitelist(const char *t);
