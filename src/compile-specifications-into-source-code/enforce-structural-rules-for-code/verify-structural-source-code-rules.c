@@ -157,49 +157,50 @@ static int handle_new_function_definition_entry(const char *line, const char *su
     return bstate->depth <= 0 ? 0 : 1;
 }
 
+static void check_for_banned_or_hardcoded(const char *line, const char *sub, int is_source) {
+    if (is_source && check_for_banned_keyword_pattern(line)) {
+        report_violation_with_actionable_hint(ERR_BANNED_PATTERN, sub, 0, 0, NULL);
+    }
+    if (is_source && detect_hardcoded_file_path_string(line)) {
+        report_violation_with_actionable_hint(ERR_HARDCODED_PATH, sub, 0, 0, NULL);
+    }
+}
+
 static void check_single_file_for_violations(const char *sub, int is_c, int is_source,
     fn_entry_t *fns, int *fn_qty, inc_entry_t *incs, int *inc_qty)
 {
     if (is_c) {
         int lines = count_lines_within_source_file(sub);
-        if (lines > MAX_LINES_PER_FILE) {
+        if (lines > MAX_LINES_PER_FILE)
             report_violation_with_actionable_hint(ERR_FILE_TOO_LONG, sub, lines, MAX_LINES_PER_FILE, NULL);
-        }
     }
     FILE *f = fopen(sub, "r");
-    if (f) {
-        char line[1024];
-        int func_count = 0, func_lines = 0, in_func = 0, file_line = 0;
-        brace_state_t bstate; clear_brace_tracking_for_function(&bstate);
-        while (fgets(line, sizeof(line), f)) {
-            file_line++;
-            check_line_density_within_source(line, sub, file_line);
-            if (!in_func) {
-                if (detect_function_definition_start_line(line)) {
-                    in_func = handle_new_function_definition_entry(line, sub, &func_count, fns, fn_qty, &bstate);
-                    func_lines = 1;
-                    continue;
-                }
-            }
-            if (in_func) {
-                func_lines++;
-                count_open_close_brace_pairs(line, &bstate);
-                if (bstate.depth <= 0) {
-                    if (func_lines > MAX_LINES_PER_FUNCTION) {
-                        fclose(f); report_violation_with_actionable_hint(ERR_FUNCTION_TOO_LONG, sub, func_count, func_lines, NULL);
-                    }
-                    in_func = 0;
-                }
-            }
-            if (is_source && check_for_banned_keyword_pattern(line)) {
-                fclose(f); report_violation_with_actionable_hint(ERR_BANNED_PATTERN, sub, 0, 0, NULL);
-            }
-            if (is_source && detect_hardcoded_file_path_string(line)) {
-                fclose(f); report_violation_with_actionable_hint(ERR_HARDCODED_PATH, sub, 0, 0, NULL);
+    if (!f) { check_include_headers_for_file(sub, incs, inc_qty); return; }
+    char line[1024];
+    int func_count = 0, func_lines = 0, in_func = 0, file_line = 0;
+    brace_state_t bstate; clear_brace_tracking_for_function(&bstate);
+    while (fgets(line, sizeof(line), f)) {
+        file_line++;
+        check_line_density_within_source(line, sub, file_line);
+        if (!in_func) {
+            if (detect_function_definition_start_line(line)) {
+                in_func = handle_new_function_definition_entry(line, sub, &func_count, fns, fn_qty, &bstate);
+                func_lines = 1;
+                continue;
             }
         }
-        fclose(f);
+        if (in_func) {
+            func_lines++;
+            count_open_close_brace_pairs(line, &bstate);
+            if (bstate.depth <= 0) {
+                if (func_lines > MAX_LINES_PER_FUNCTION)
+                    report_violation_with_actionable_hint(ERR_FUNCTION_TOO_LONG, sub, func_count, func_lines, NULL);
+                in_func = 0;
+            }
+        }
+        check_for_banned_or_hardcoded(line, sub, is_source);
     }
+    fclose(f);
     check_include_headers_for_file(sub, incs, inc_qty);
 }
 static void check_include_headers_for_file(const char *sub, inc_entry_t *incs, int *inc_qty) {
