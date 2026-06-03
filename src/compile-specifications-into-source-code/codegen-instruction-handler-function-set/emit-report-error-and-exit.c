@@ -15,3 +15,13 @@ int emit_report_error_then_exit(cJSON *inst, FILE *out) {
     fprintf(out, "  exit(1);\n");
     return 1;
 }
+
+void emit_iteration_loop_with_count(cJSON *inst, FILE *out, int indent, const char *rt) {
+    const char *cv = extract_json_field_string_value(inst, "counter_variable");
+    const char *lv = extract_json_field_string_value(inst, "limit_variable");
+    cJSON *body = cJSON_GetObjectItemCaseSensitive(inst, "body_instructions");
+    if (!cv[0] || !lv[0]) return;
+    fprintf(out, "  for (int %s = 0; %s < %s; %s++) {\n", cv, cv, lv, cv);
+    if (body) generate_code_from_ast_instructions(body, out, indent + 2, rt);
+    fprintf(out, "  }\n");
+}
