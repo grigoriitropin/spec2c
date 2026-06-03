@@ -92,7 +92,7 @@ static void emit_function_invocation_with_arguments(cJSON *inst, FILE *out, int 
             if (!first) fprintf(out, ", ");
             /* treat as string literal (quoted) */
             if (cJSON_IsString(arg))
-                fprintf(out, "\"%s\"", arg->valuestring);
+                fprintf(out, "%s", arg->valuestring);
             else if (cJSON_IsNumber(arg))
                 fprintf(out, "%d", arg->valueint);
             first = 0;

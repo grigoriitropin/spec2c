@@ -22,7 +22,7 @@
         {"instruction_type": "scan_directory_entries", "directory_path": "srcdir", "entry_variable": "entry", "name_variable": "fname",
           "body_instructions": [
             {"instruction_type": "function_invocation", "invocation_name": "check_name_following_soul_rules",
-             "invocation_arguments": {"a1": "file", "a2": "fname", "a3": "fname"},
+             "invocation_arguments": {"a1": "\"file\"", "a2": "_name", "a3": "_name"},
              "result_assignment_variable": "err", "result_type": "str"},
             {"instruction_type": "conditional_branch", "condition_operation": "is_not_null", "condition_target": "err",
               "branch_on_success": [
