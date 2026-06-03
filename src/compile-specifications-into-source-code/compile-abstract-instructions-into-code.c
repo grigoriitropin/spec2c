@@ -116,7 +116,7 @@ void compile_every_function_into_code(const ipm_spec_t *spec, FILE *out, int is_
     const char *modname = extract_json_field_string_value(spec->meta, "module_name");
     int has_mod = modname[0] != 0;
     if (!has_mod) {
-        fprintf(out, "#include <string.h>\n#include <stdio.h>\n#include <stdlib.h>\n#include <cjson/cJSON.h>\n#include \"ipm_builtins.h\"\n");
+        fprintf(out, "#include <string.h>\n#include <stdio.h>\n#include <stdlib.h>\n#include <cjson/cJSON.h>\n#include \"runtime-for-generated-ipm-code.h\"\n");
     }
     fprintf(out, "\n");
     emit_extern_imports_into_output(spec->meta, out);

@@ -50,7 +50,7 @@ void write_component_header_with_prototypes(const ipm_spec_t *spec, const char *
 
     fprintf(hdr, "/* Auto-generated from %s.ipm */\n", modname);
     fprintf(hdr, "#ifndef %s\n#define %s\n\n", guard, guard);
-    fprintf(hdr, "#include \"ipm_builtins.h\"\n");
+    fprintf(hdr, "#include \"runtime-for-generated-ipm-code.h\"\n");
 
     cJSON *imports = cJSON_GetObjectItemCaseSensitive(spec->meta, "imports");
     if (imports && cJSON_IsArray(imports)) {
