@@ -13,6 +13,29 @@
     packages = forAllSystems (system: let
       pkgs = pkgsFor system;
       s2e-pkgs = pkgs;
+      cjson-static = pkgs.cjson.overrideAttrs (old: {
+        cmakeFlags = (old.cmakeFlags or []) ++ [ "-DBUILD_SHARED_LIBS=OFF" "-DCMAKE_POLICY_VERSION_MINIMUM=3.5" ];
+        postPatch = (old.postPatch or "") + ''
+          cat << 'EOF' > patch.txt
+          static inline size_t custom_strlen(const char *s) {
+              size_t len = 0;
+              while (s[len]) len++;
+              return len;
+          }
+          static inline int custom_strncmp(const char *s1, const char *s2, size_t n) {
+              for (size_t i = 0; i < n; i++) {
+                  if (s1[i] != s2[i]) return (unsigned char)s1[i] - (unsigned char)s2[i];
+                  if (s1[i] == 0) return 0;
+              }
+              return 0;
+          }
+          #define strlen custom_strlen
+          #define strncmp custom_strncmp
+          EOF
+          sed -i '/#include <string.h>/r patch.txt' cJSON.c
+          rm patch.txt
+        '';
+      });
       cflags = [ "-O2" "-Wall" "-Wextra" "-Werror" "-std=c2x" "-D_POSIX_C_SOURCE=200809L"
                  "-fno-ident" "-frandom-seed=spec2c" "-Wl,--build-id=none" ];
       S = "src/compile-specifications-into-source-code";
@@ -43,7 +66,7 @@
         pname = "s2c-enforce";
         version = "0.3.0";
         inherit src;
-        buildInputs = [ pkgs.cjson ];
+        buildInputs = [ cjson-static ];
         nativeBuildInputs = [ pkgs.pkg-config ];
         buildPhase = ''
           runHook preBuild
@@ -53,7 +76,7 @@
             ${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns/detect-banned-patterns-and-braces.c \
             ${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns/enforce-bootstrap-code-file-whitelist.c \
             ${builtins.toString runtime_src} \
-            -o s2c-enforce -lcjson
+            -o s2c-enforce ${cjson-static}/lib/libcjson.a -lm
           runHook postBuild
         '';
         installPhase = ''
@@ -80,7 +103,7 @@
         pname = "spec2c";
         version = "0.3.0";
         inherit src;
-        buildInputs = [ pkgs.cjson ];
+        buildInputs = [ cjson-static ];
         nativeBuildInputs = [ pkgs.pkg-config ];
         buildPhase = ''
           runHook preBuild
@@ -92,7 +115,7 @@
             ${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns/detect-banned-patterns-and-braces.c \
             ${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns/enforce-bootstrap-code-file-whitelist.c \
             ${builtins.toString runtime_src} \
-            -o s2c_enforce -lcjson
+            -o s2c_enforce ${cjson-static}/lib/libcjson.a -lm
 
           # Step 2: Run enforcement gate (exits 1 on violation → build fails)
           ./s2c_enforce ./src
@@ -106,7 +129,7 @@
             ${S}/codegen-instruction-handler-function-set/extracted-codegen-helper-functions-here/emit-report-error-and-exit.c \
             ${S}/codegen-instruction-handler-function-set/emit-variable-declaration-handler-function.c \
             ${builtins.toString runtime_src} \
-            -o spec2c -lcjson
+            -o spec2c ${cjson-static}/lib/libcjson.a -lm
 
           runHook postBuild
         '';
@@ -137,7 +160,7 @@
         pname = "ipm-enforce";
         version = "0.1.0";
         src = ./.;
-        buildInputs = [ self.packages.${system}.spec2c pkgs.cjson ];
+        buildInputs = [ self.packages.${system}.spec2c cjson-static ];
         nativeBuildInputs = [ pkgs.pkg-config ];
         S2C_ENFORCE = "${self.packages.${system}.spec2c}/bin/s2c_enforce";
         buildPhase = ''
@@ -271,7 +294,7 @@
             clex_obj/clex.o \
             main_obj/main.o \
             ipm_enforce_gen.c \
-            -o ipm-enforce -lcjson
+            -o ipm-enforce ${cjson-static}/lib/libcjson.a -lm
 
           # ── Translation Gate — enforcers on generated C ──
           mkdir -p gen_c

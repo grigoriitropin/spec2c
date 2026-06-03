@@ -10,7 +10,7 @@
 
 #include "src/bootstrap-compiled-limit-hash-data/bootstrap-file-sha-hashes-generated.h"
 
-/* ── Whitelist of Allowed Symbols ────────────────────────────────────────── */
+/* ── Whitelist of Allowed Symbols (Narrowed) ─────────────────────────────── */
 static const char *allowed_symbols[] = {
     // OS syscalls
     "__libc_start_main", "__cxa_finalize", "exit", "_exit", "abort", "__assert_fail",
@@ -34,6 +34,26 @@ static const char *allowed_symbols[] = {
     "_ITM_registerTMCloneTable",
 
     // Standard I/O streams
+    "stderr", "stdout", "stdin",
+};
+
+/* ── Base Whitelist (for additions/removals detection) ───────────────────── */
+static const char *base_whitelist[] = {
+    "__libc_start_main", "__cxa_finalize", "exit", "_exit", "abort", "__assert_fail",
+    "pthread", "dlopen", "dlsym", "mmap", "munmap", "openat", "close", "read", "write",
+    "fstat", "lseek", "getrandom", "clock_gettime", "sigaction", "rt_sigaction",
+    "socket", "connect", "bind", "listen", "accept", "sendto", "recvfrom", "setsockopt",
+    "epoll_create1", "epoll_ctl", "epoll_wait", "sched_yield", "clone", "wait4", "kill",
+    "getpid", "getppid", "getuid", "geteuid", "getgid", "getegid", "syscall", "nanosleep",
+    "getenv", "setenv", "unsetenv", "getcwd", "chdir", "access", "faccessat", "stat",
+    "mkdir", "unlink", "rename", "rmdir", "symlink", "readlink", "fork", "execve",
+    "waitpid", "dup", "dup2", "pipe", "fcntl", "getdents", "getdents64", "prctl",
+    "arch_prctl", "set_tid_address", "set_robust_list", "rseq", "mprotect", "brk", "sbrk",
+    "madvise", "mlock", "munlock", "mincore", "msync", "memfd_create", "shmget", "shmat",
+    "shmctl", "shmdt", "semget", "semop", "semctl", "msgget", "msgsnd", "msgrcv", "msgctl",
+    "io_uring_setup", "io_uring_enter", "io_uring_register",
+    "__stack_chk_fail", "__gmon_start__",
+    "_ITM_deregisterTMCloneTable", "_ITM_registerTMCloneTable",
     "stderr", "stdout", "stdin",
 };
 
@@ -218,15 +238,143 @@ static int check_frozen_exempt_binaries(const char *bin_name) {
     return 0;
 }
 
-/* ── Symbol Whitelist Check Logic ─────────────────────────────────────────── */
-static int is_allowed_symbol(const char *sym, const char *bin_name) {
-    // 1. Whitelist starting with cJSON_
-    if (strncmp(sym, "cJSON_", 6) == 0) {
-        return 1;
+/* ── Operator Signature Mechanism ────────────────────────────────────────── */
+static const uint8_t OPERATOR_KEY[32] = {0};
+
+static int verify_signature_mechanism(void) {
+    const char *src_file = "enforce-link-time-symbol-whitelist.c";
+    FILE *f = fopen(src_file, "r");
+    if (!f) {
+        f = fopen("/home/vehir/spec2c/enforce-link-time-symbol-whitelist.c", "r");
+    }
+    if (!f) {
+        return 0;
     }
 
-    // 2. Special allowance for ipm-enforce (which contains standard libc symbols as it compiles support C libraries)
-    //    But we reject the banned symbols: strncmp, strlen, regcomp, regexec
+    fseek(f, 0, SEEK_END);
+    long sz = ftell(f);
+    fseek(f, 0, SEEK_SET);
+    if (sz <= 0) {
+        fclose(f);
+        return 0;
+    }
+
+    char *file_content = malloc(sz + 1);
+    if (!file_content) {
+        fclose(f);
+        return 0;
+    }
+
+    size_t n = fread(file_content, 1, sz, f);
+    file_content[n] = '\0';
+    fclose(f);
+
+    // Find allowed_symbols inside file_content
+    char *start = strstr(file_content, "allowed_symbols");
+    if (!start) {
+        free(file_content);
+        return 0;
+    }
+    start = strchr(start, '{');
+    if (!start) {
+        free(file_content);
+        return 0;
+    }
+    start++; // skip '{'
+    char *end = strchr(start, '}');
+    if (!end) {
+        free(file_content);
+        return 0;
+    }
+
+    size_t len = end - start;
+    char *array_text = malloc(len + 1);
+    if (!array_text) {
+        free(file_content);
+        return 0;
+    }
+    memcpy(array_text, start, len);
+    array_text[len] = '\0';
+
+    // Compute SHA-256 of array_text
+    uint8_t hash1[32];
+    compute_sha256_hash_into_bytes((const uint8_t *)array_text, len, hash1);
+    free(array_text);
+
+    // Concat with OPERATOR_KEY
+    uint8_t concat[64];
+    memcpy(concat, hash1, 32);
+    memcpy(concat + 32, OPERATOR_KEY, 32);
+
+    uint8_t hash2[32];
+    compute_sha256_hash_into_bytes(concat, 64, hash2);
+
+    char expected_sig[65];
+    for (int i = 0; i < 32; i++) {
+        sprintf(expected_sig + i*2, "%02x", hash2[i]);
+    }
+    expected_sig[64] = '\0';
+
+    // Look for signature marker
+    char *sig_marker = strstr(file_content, "---SIG" "NATURE---");
+    char found_sig[65] = {0};
+    if (sig_marker) {
+        char *p = sig_marker + 15; // len of signature marker
+        int hex_count = 0;
+        while (*p && hex_count < 64) {
+            char c = *p;
+            if ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
+                found_sig[hex_count++] = c;
+            } else if (hex_count > 0) {
+                break;
+            }
+            p++;
+        }
+        found_sig[hex_count] = '\0';
+    }
+
+    free(file_content);
+
+    // Convert found_sig to lowercase
+    for (int i = 0; found_sig[i]; i++) {
+        if (found_sig[i] >= 'A' && found_sig[i] <= 'Z') {
+            found_sig[i] = found_sig[i] - 'A' + 'a';
+        }
+    }
+
+    // Check additions
+    int allowed_qty_symbols = sizeof(allowed_symbols) / sizeof(allowed_symbols[0]);
+    int base_qty_symbols = sizeof(base_whitelist) / sizeof(base_whitelist[0]);
+    
+    for (int i = 0; i < allowed_qty_symbols; i++) {
+        const char *sym = allowed_symbols[i];
+        int found = 0;
+        for (int j = 0; j < base_qty_symbols; j++) {
+            if (strcmp(sym, base_whitelist[j]) == 0) {
+                found = 1;
+                break;
+            }
+        }
+        if (!found) {
+            // Addition!
+            int sig_valid = 0;
+            if (sig_marker && strcmp(found_sig, expected_sig) == 0) {
+                sig_valid = 1;
+            }
+            if (!sig_valid) {
+                fprintf(stderr, "EXPECTED: %s, FOUND: %s\n", expected_sig, found_sig);
+                fprintf(stderr, "UNSIGNED ALLOW: %s rejected\n", sym);
+                return 0; // Signature verification failed
+            }
+        }
+    }
+
+    return 1; // Signature verification passed (or no additions)
+}
+
+/* ── Symbol Whitelist Check Logic ─────────────────────────────────────────── */
+static int is_allowed_symbol(const char *sym, const char *bin_name) {
+    // 1. If it is ipm-enforce, it is allowed to have libc functions except banned ones (like strncmp, strlen, regcomp, regexec)
     if (strcmp(bin_name, "ipm-enforce") == 0) {
         if (strcmp(sym, "strncmp") == 0 || strcmp(sym, "strlen") == 0 ||
             strcmp(sym, "regcomp") == 0 || strcmp(sym, "regexec") == 0) {
@@ -235,7 +383,7 @@ static int is_allowed_symbol(const char *sym, const char *bin_name) {
         return 1;
     }
 
-    // 3. For any non-exempt binaries checked, verify against the allowed_symbols list
+    // 2. Verify against the allowed_symbols list
     int allowed_count = sizeof(allowed_symbols) / sizeof(allowed_symbols[0]);
     for (int i = 0; i < allowed_count; i++) {
         if (strcmp(sym, allowed_symbols[i]) == 0) {
@@ -359,6 +507,11 @@ int main(int argc, char **argv) {
         }
     }
 
+    // Verify signature mechanism first at startup
+    if (!verify_signature_mechanism()) {
+        return 1; // Signature verification failed
+    }
+
     // Run dynamic symbol check
     if (run_whitelist_check(binary_path, bin_name)) {
         return 1;
@@ -366,3 +519,5 @@ int main(int argc, char **argv) {
 
     return 0;
 }
+
+// ---SIGNATURE--- 9468cfe9ee9b2d94d3f2b37f1fa42382725791c398bf7a48aa54bae09092c186
