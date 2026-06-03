@@ -134,6 +134,7 @@
           sed -i '/^{"ok"/d' density_obj/density.c
           sed -i 's/void check_each_line_token_density/int check_each_line_token_density/' density_obj/check_each_line_token_density.h
           sed -i 's/(char \* path)/(const char *path)/g' density_obj/density.c
+          sed -i 's/(char \* path)/(const char *path)/g' density_obj/check_each_line_token_density.h
           sed -i 's/const char \*_name = "[^"]*";//' density_obj/density.c
           $CC ${builtins.toString cflags} \
             -Isrc -I${S} -I${S}/shared-type-declarations-across-modules \
