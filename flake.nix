@@ -118,10 +118,22 @@
         buildPhase = ''
           runHook preBuild
 
+          # ── Step 1: Build DFA library module ──────────────
+          mkdir -p dfa_obj
+          spec2c check-banned-patterns-pure-ipm.ipm --library -o dfa_obj/dfa.c
+          sed -i '/^{"ok"/d' dfa_obj/dfa.c
+          $CC ${builtins.toString cflags} \
+            -Isrc \
+            -I${S} \
+            -Isrc/support-code-for-compiled-output \
+            -c dfa_obj/dfa.c -o dfa_obj/dfa.o
+
+          # ── Step 2: Build IPM enforcer executable ────────
           spec2c enforce-naming-rules-via-ffi.ipm > ipm_enforce_gen.c
           sed -i '/^{"ok"/d' ipm_enforce_gen.c
           sed -i '/"enforce-naming-rules-via-ffi.h"/d' ipm_enforce_gen.c
           sed -i '1i#include "runtime-for-generated-ipm-code.h"' ipm_enforce_gen.c
+          sed -i '1iextern void scan_every_byte_search_patterns(const char *content);' ipm_enforce_gen.c
           sed -i 's/extern char \* check_name_following_soul_rules(char \*/extern const char * check_name_following_soul_rules(const char */' ipm_enforce_gen.c
           # Fix all extern const-correctness: char *path → const char *path
           sed -i 's/extern \(.*\)(char \* path)/extern \1(const char *path)/' ipm_enforce_gen.c
@@ -155,6 +167,7 @@
             src/compile-specifications-into-source-code/enforce-structural-rules-for-code/scan-source-code-for-patterns/ffi-function-export-layer-here/enforce-ffi-function-export-layer.c \
             src/support-code-for-compiled-output/remaining-rules-ffi-batch-four/remaining-rules-ffi-batch-four.c \
             src/support-code-for-compiled-output/dead-code-header-check-batch/dead-code-header-check-batch.c \
+            dfa_obj/dfa.o \
             ipm_enforce_gen.c \
             -o ipm-enforce -lcjson
 
