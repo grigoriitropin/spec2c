@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // bootstrap C whitelist + SHA256 hash verification — HASHES COMPILED INTO BINARY
 #include "verify-structural-source-code-rules.h"
-#include "bootstrap-freeze-data-compiled-into.h"
 #include "bootstrap-file-sha-hashes-generated.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,6 +9,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <stdint.h>
+
+extern void compute_sha256_hash_into_bytes(const uint8_t *data, uint32_t len, uint8_t out[32]);
 
 static char whitelist_names[64][128];
 static int whitelist_count_now;
