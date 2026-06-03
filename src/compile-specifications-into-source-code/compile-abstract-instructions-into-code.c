@@ -88,7 +88,7 @@ static void emit_extern_imports_into_output(cJSON *spec_meta, FILE *out) {
 void compile_every_function_into_code(const ipm_spec_t *spec, FILE *out, int is_library) {
     cJSON *funcs = cJSON_GetObjectItemCaseSensitive(spec->meta, "function_definitions");
     if (!funcs || !cJSON_IsObject(funcs)) return;
-    cJSON *fn;
+    cJSON *fn = NULL;
     const char *modname = extract_json_field_string_value(spec->meta, "module_name");
     int has_mod = modname[0] != 0;
     if (has_mod) {
@@ -100,6 +100,7 @@ void compile_every_function_into_code(const ipm_spec_t *spec, FILE *out, int is_
     emit_extern_imports_into_output(spec->meta, out);
     fprintf(out, "\n");
     if (!has_mod) {
+        fn = funcs->child;
         while (fn) {
             const char *name = fn->string;
             fprintf(out, "%s%s %s(", is_library ? "" : "static ",
