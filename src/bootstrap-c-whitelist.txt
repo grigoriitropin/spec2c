@@ -6,7 +6,7 @@ parse-old-format-specification-data.c
 verify-structural-source-code-rules.c
 enforce-naming-whitelist-and-validation.c
 detect-banned-patterns-and-braces.c
-enforce-bootstrap-c-file-whitelist.c
+enforce-bootstrap-code-file-whitelist.c
 runtime-for-generated-ipm-code.c
 file-string-and-json-parsing.c
 hash-table-and-substitution-code.c
