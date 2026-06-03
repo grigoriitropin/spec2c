@@ -40,7 +40,7 @@ static char *read_file_content_into_memory(const char *srcdir) {
     return buf;
 }
 
-static int extract_signed_payload_bytes_from_raw(const char *raw, char *out, size_t outsz) {
+static int extract_signed_payload_bytes_raw(const char *raw, char *out, size_t outsz) {
     int len = 0;
     const char *p = raw;
     while (*p) {
@@ -73,7 +73,7 @@ void load_operator_signed_exemption_table(const char *srcdir) {
     char pk_hex[128]; snprintf(pk_hex, sizeof(pk_hex), "%s", pub_obj->valuestring);
     char sig_hex[256]; snprintf(sig_hex, sizeof(sig_hex), "%s", sig_obj->valuestring);
     char signed_bytes[4096];
-    int sb_len = extract_signed_payload_bytes_from_raw(content, signed_bytes, sizeof(signed_bytes));
+    int sb_len = extract_signed_payload_bytes_raw(content, signed_bytes, sizeof(signed_bytes));
     if (verify_signature(pk_hex, sig_hex, (unsigned char *)signed_bytes, sb_len) != 0) {
         cJSON_Delete(root); free(content);
         report_fatal_error_and_exit("exemption table: Ed25519 signature invalid");
