@@ -264,7 +264,7 @@ static void search_for_unused_function_code(fn_entry_t *fns, int fn_qty, const c
 }
 static void scan_source_for_undocumented_flags(const char *srcdir);
 
-static void recursive_scan_source_directory(const char *dirpath,
+static void recursive_scan_inside_source_tree(const char *dirpath,
     fn_entry_t *fns, int *fn_qty, inc_entry_t *incs, int *inc_qty) {
     DIR *d = opendir(dirpath); if (!d) return;
     int file_cnt = 0;
@@ -276,7 +276,7 @@ static void recursive_scan_source_directory(const char *dirpath,
         if (stat(sub, &st) != 0) continue;
         if (S_ISDIR(st.st_mode)) {
             validate_name_against_soul_rules("directory", de->d_name, sub);
-            recursive_scan_source_directory(sub, fns, fn_qty, incs, inc_qty);
+            recursive_scan_inside_source_tree(sub, fns, fn_qty, incs, inc_qty);
             continue;
         }
         if (!match_source_code_header_filename(de->d_name)) {
@@ -316,7 +316,7 @@ void enforce_all_source_code_rules(const char *srcdir) {
     load_bootstrap_whitelist_from_disk(srcdir);
     fn_entry_t fns[512]; int fn_qty = 0;
     inc_entry_t incs[128]; int inc_qty = 0;
-    recursive_scan_source_directory(srcdir, fns, &fn_qty, incs, &inc_qty);
+    recursive_scan_inside_source_tree(srcdir, fns, &fn_qty, incs, &inc_qty);
     search_for_unused_function_code(fns, fn_qty, srcdir);
     int main_count = 0;
     for (int i = 0; i < fn_qty; i++)
