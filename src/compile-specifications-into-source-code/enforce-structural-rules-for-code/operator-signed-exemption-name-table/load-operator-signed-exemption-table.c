@@ -110,10 +110,30 @@ static void load_exemption_entries_into_table(cJSON *root) {
 }
 
 void load_operator_signed_exemption_table(const char *srcdir) {
+    fprintf(stderr, "DEBUG: load_exempt start srcdir=%s\n", srcdir ? srcdir : "(null)");
     char *content = read_file_content_into_memory(srcdir);
     if (!content) {
         report_fatal_error_and_exit("cannot read operator-signed-exemption-name-table.json");
     }
+    fprintf(stderr, "DEBUG: read %zu bytes\n", strlen(content));
+    cJSON *root = cJSON_Parse(content);
+    free(content);
+    if (!root) {
+        report_fatal_error_and_exit("cannot parse operator-signed-exemption-name-table.json");
+    }
+    fprintf(stderr, "DEBUG: parsed cJSON\n");
+    cJSON *pub_obj = cJSON_GetObjectItem(root, "public_key_hex");
+    cJSON *sig_obj = cJSON_GetObjectItem(root, "signature_hex");
+    if (!pub_obj || !sig_obj || !pub_obj->valuestring || !sig_obj->valuestring) {
+        cJSON_Delete(root);
+        report_fatal_error_and_exit("operator-signed-exemption-name-table.json missing pubkey/sig");
+    }
+    fprintf(stderr, "DEBUG: pub+sig present, loading entries\n");
+    load_exemption_entries_into_table(root);
+    fprintf(stderr, "DEBUG: %d entries loaded\n", exemptions_count);
+    cJSON_Delete(root);
+    fprintf(stderr, "DEBUG: load_exempt done\n");
+}
     cJSON *root = cJSON_Parse(content);
     free(content);
     if (!root) {
