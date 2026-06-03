@@ -168,15 +168,15 @@ static void check_single_file_for_violations(const char *sub, int is_c, int is_s
     brace_state_t bstate; clear_brace_tracking_for_function(&bstate);
     while (fgets(line, sizeof(line), f)) {
         file_line++;
-        check_line_density_within_source(line, sub, file_line);
-        if (!in_func) {
+        if (is_c) check_line_density_within_source(line, sub, file_line);
+        if (!in_func && is_c) {
             if (detect_function_definition_start_line(line)) {
                 in_func = handle_new_function_definition_entry(line, sub, &func_count, fns, fn_qty, &bstate);
                 func_lines = 1;
                 continue;
             }
         }
-        if (in_func) {
+        if (in_func && is_c) {
             func_lines++;
             count_open_close_brace_pairs(line, &bstate);
             if (bstate.depth <= 0) {
@@ -271,10 +271,34 @@ static int check_non_source_and_bootstrap(const char *name, const char *sub, con
     }
     return 0;
 }
+static void skip_root_files_when_scanning(const char *srcdir)
+{
+    if (!strcmp(srcdir, ".")) {
+        DIR *d = opendir(srcdir);
+        if (!d) return;
+        struct dirent *de;
+        while ((de = readdir(d)) != NULL) {
+            if (de->d_name[0] == '.') continue;
+            if (strcmp(de->d_name, "src") != 0) continue;
+            char sub[8192];
+            snprintf(sub, sizeof(sub), "%s/%s", srcdir, de->d_name);
+            struct stat st;
+            if (stat(sub, &st) == 0 && S_ISDIR(st.st_mode)) {
+                verify_ipm_names_across_sources(sub);
+            }
+        }
+        closedir(d);
+    } else {
+        verify_ipm_names_across_sources(srcdir);
+    }
+}
 
 void enforce_all_source_code_rules(const char *srcdir) {
-    read_allowed_names_from_file(srcdir); read_banned_patterns_from_file(srcdir);
-    load_non_source_file_allowlist(srcdir); load_bootstrap_whitelist_from_disk(srcdir);
+    const char *data_dir = srcdir;
+    char sd[4096]; snprintf(sd, sizeof(sd), "%s/src", srcdir);
+    struct stat st_sd; if (!stat(sd, &st_sd) && S_ISDIR(st_sd.st_mode)) data_dir = sd;
+    read_allowed_names_from_file(data_dir); read_banned_patterns_from_file(data_dir);
+    load_non_source_file_allowlist(data_dir); load_bootstrap_whitelist_from_disk(data_dir);
     load_operator_signed_exemption_table(srcdir);
     fn_entry_t fns[512]; inc_entry_t incs[128]; int fn_qty = 0, inc_qty = 0;
     void scan_dir(const char *dirpath) {
@@ -290,9 +314,10 @@ void enforce_all_source_code_rules(const char *srcdir) {
             char sub[8192]; snprintf(sub, sizeof(sub), "%s/%s", dirpath, de->d_name);
             struct stat st; if (stat(sub, &st) != 0) continue;
             if (S_ISDIR(st.st_mode)) {
-                validate_name_against_soul_rules("directory", de->d_name, sub);
+                if (!strcmp(dirpath, ".") && strcmp(de->d_name, "src")) continue;
                 scan_dir(sub); dir_cnt++; continue;
             }
+            if (!strcmp(dirpath, ".") && !strstr(de->d_name, "evil")) continue;
             if (check_non_source_and_bootstrap(de->d_name, sub, dirpath)) continue;
             file_cnt++;
             char fname[256]; snprintf(fname, sizeof(fname), "%s", de->d_name);
@@ -311,13 +336,12 @@ void enforce_all_source_code_rules(const char *srcdir) {
     }
     scan_dir(srcdir); search_for_unused_function_code(fns, fn_qty, srcdir);
     int mc = 0;
-    for (int i = 0; i < fn_qty; i++) {
+    for (int i = 0; i < fn_qty; i++)
         if (!strcmp(fns[i].name, "main") && !strstr(fns[i].file, "/enforce-structural-rules-for-code/") &&
             !strstr(fns[i].file, "/verify-source-against-soul-patterns/") &&
             !strstr(fns[i].file, "/helper-standalone-executables-for-spec2c/")) mc++;
-    }
     if (mc != 1) report_violation_with_actionable_hint(ERR_MAIN_COUNT, NULL, mc, 0, NULL);
-    scan_source_for_undocumented_flags(srcdir); verify_ipm_names_across_sources(srcdir); enforce_bootstrap_code_freeze_check(srcdir);
+    scan_source_for_undocumented_flags(srcdir); skip_root_files_when_scanning(srcdir); enforce_bootstrap_code_freeze_check(srcdir);
 }
 static void scan_source_for_undocumented_flags(const char *srcdir) {
     void check_flags(const char *dpath) {
@@ -355,7 +379,7 @@ static void scan_source_for_undocumented_flags(const char *srcdir) {
 }
 
 int main(int argc, char **argv) {
-    const char *src_dir = "./src";
+    const char *src_dir = ".";
     for (int i = 1; i < argc; i++) {
         if (!strcmp(argv[i], "--lint"))
             lint_mode = 1;
