@@ -213,7 +213,7 @@
           sed -i 's/if (err3 != NULL)/if (err3)/' ipm_enforce_gen.c
           sed -i 's/char \*err5 =/int err5 =/' ipm_enforce_gen.c
           sed -i 's/if (err5 != NULL)/if (err5)/' ipm_enforce_gen.c
-          sed -i 's/char \*has_main =/int has_main =/' ipm_enforce_gen.c
+          sed -i 's/char \* *has_main =/int has_main =/' ipm_enforce_gen.c
           sed -i 's/if (has_main != NULL)/if (has_main)/' ipm_enforce_gen.c
           sed -i 's/if (err3 != NULL)/if (err3)/' ipm_enforce_gen.c
           sed -i '/const char \*err =/!s/char \*err =/const char *err =/' ipm_enforce_gen.c
