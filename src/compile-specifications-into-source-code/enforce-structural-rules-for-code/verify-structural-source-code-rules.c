@@ -6,7 +6,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <cjson/cJSON.h>
-static int debug_trace = 0;
 static int lint_mode = 0;
 static int lint_errors = 0;
 #define MAX_FILES_PER_DIR 3
@@ -153,8 +152,6 @@ static int handle_new_function_definition_entry(const char *line, const char *su
     }
     clear_brace_tracking_for_function(bstate);
     count_open_close_brace_pairs(line, bstate);
-    if (debug_trace)
-        fprintf(stderr, "\n── %s FUNC#%d [d=%d] %s", sub, *func_count, bstate->depth, line);
     return bstate->depth <= 0 ? 0 : 1;
 }
 
@@ -185,8 +182,6 @@ static void check_single_file_for_violations(const char *sub, int is_c, int is_s
             if (in_func) {
                 func_lines++;
                 count_open_close_brace_pairs(line, &bstate);
-                if (debug_trace)
-                    fprintf(stderr, "  %s:%d [d=%d] %s",
                         sub, func_lines, bstate.depth, line);
                 if (bstate.depth <= 0) {
                     if (func_lines > MAX_LINES_PER_FUNCTION) {
@@ -371,8 +366,6 @@ static void scan_source_for_undocumented_flags(const char *srcdir) {
 int main(int argc, char **argv) {
     const char *src_dir = "./src";
     for (int i = 1; i < argc; i++) {
-        if (!strcmp(argv[i], "--debug"))
-            debug_trace = 1;
         else if (!strcmp(argv[i], "--lint"))
             lint_mode = 1;
         else
