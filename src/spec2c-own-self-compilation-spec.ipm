@@ -22,12 +22,12 @@
   "function_definitions": {
     "main": {
       "description": "spec2c entry point \u2014 parse CLI args, dispatch pipeline",
-      "return_type": "int",
+      "return_type": "i32",
       "execution_instructions": [
         {
           "instruction_type": "variable_declaration",
           "variable_name": "input",
-          "variable_type": "string",
+          "variable_type": "str",
           "assignment_operation": "get_arg_value",
           "source_target": {
             "source": "1"
@@ -36,7 +36,7 @@
         {
           "instruction_type": "variable_declaration",
           "variable_name": "output",
-          "variable_type": "string",
+          "variable_type": "str",
           "assignment_operation": "get_arg_value",
           "source_target": {
             "source": "2"

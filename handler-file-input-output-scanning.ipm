@@ -10,12 +10,12 @@
       "parameter_definitions": [
         {"parameter_name": "inst", "parameter_type": "json_object"},
         {"parameter_name": "out", "parameter_type": "file_handle"},
-        {"parameter_name": "indent", "parameter_type": "int"},
-        {"parameter_name": "return_type", "parameter_type": "string"}
+        {"parameter_name": "indent", "parameter_type": "i32"},
+        {"parameter_name": "return_type", "parameter_type": "str"}
       ],
       "execution_instructions": [
-        {"instruction_type": "access_json_field", "variable_name": "fp", "variable_type": "string", "source_object": "inst", "field_name": "file_path"},
-        {"instruction_type": "access_json_field", "variable_name": "rv", "variable_type": "string", "source_object": "inst", "field_name": "result_variable"},
+        {"instruction_type": "access_json_field", "variable_name": "fp", "variable_type": "str", "source_object": "inst", "field_name": "file_path"},
+        {"instruction_type": "access_json_field", "variable_name": "rv", "variable_type": "str", "source_object": "inst", "field_name": "result_variable"},
         {"instruction_type": "conditional_branch", "condition_operation": "is_not_null", "condition_target": "fp",
           "branch_on_success": [
             {"instruction_type": "emit_formatted_code",
@@ -33,13 +33,13 @@
       "parameter_definitions": [
         {"parameter_name": "inst", "parameter_type": "json_object"},
         {"parameter_name": "out", "parameter_type": "file_handle"},
-        {"parameter_name": "indent", "parameter_type": "int"},
-        {"parameter_name": "return_type", "parameter_type": "string"}
+        {"parameter_name": "indent", "parameter_type": "i32"},
+        {"parameter_name": "return_type", "parameter_type": "str"}
       ],
       "execution_instructions": [
-        {"instruction_type": "access_json_field", "variable_name": "dp", "variable_type": "string", "source_object": "inst", "field_name": "directory_path"},
-        {"instruction_type": "access_json_field", "variable_name": "ev", "variable_type": "string", "source_object": "inst", "field_name": "entry_variable"},
-        {"instruction_type": "access_json_field", "variable_name": "nv", "variable_type": "string", "source_object": "inst", "field_name": "name_variable"},
+        {"instruction_type": "access_json_field", "variable_name": "dp", "variable_type": "str", "source_object": "inst", "field_name": "directory_path"},
+        {"instruction_type": "access_json_field", "variable_name": "ev", "variable_type": "str", "source_object": "inst", "field_name": "entry_variable"},
+        {"instruction_type": "access_json_field", "variable_name": "nv", "variable_type": "str", "source_object": "inst", "field_name": "name_variable"},
         {"instruction_type": "conditional_branch", "condition_operation": "is_not_null", "condition_target": "dp",
           "branch_on_success": [
             {"instruction_type": "emit_formatted_code",

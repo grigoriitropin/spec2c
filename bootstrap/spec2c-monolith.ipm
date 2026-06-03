@@ -51,7 +51,7 @@
         },
         {
           "parameter_name": "output_path",
-          "parameter_type": "string"
+          "parameter_type": "str"
         }
       ],
       "execution_instructions": [
@@ -99,7 +99,7 @@
                 {
                   "instruction_type": "access_json_field",
                   "variable_name": "ret_type",
-                  "variable_type": "string",
+                  "variable_type": "str",
                   "source_object": "fn_spec",
                   "field_name": "return_type"
                 },
@@ -180,14 +180,14 @@
                         {
                           "instruction_type": "access_json_field",
                           "variable_name": "pn",
-                          "variable_type": "string",
+                          "variable_type": "str",
                           "source_object": "par",
                           "field_name": "parameter_name"
                         },
                         {
                           "instruction_type": "access_json_field",
                           "variable_name": "pt",
-                          "variable_type": "string",
+                          "variable_type": "str",
                           "source_object": "par",
                           "field_name": "parameter_type"
                         },
@@ -317,7 +317,7 @@
                 {
                   "instruction_type": "access_json_field",
                   "variable_name": "desc",
-                  "variable_type": "string",
+                  "variable_type": "str",
                   "source_object": "fn_spec2",
                   "field_name": "description"
                 },
@@ -348,7 +348,7 @@
                 {
                   "instruction_type": "access_json_field",
                   "variable_name": "ret_type",
-                  "variable_type": "string",
+                  "variable_type": "str",
                   "source_object": "fn_spec2",
                   "field_name": "return_type"
                 },
@@ -429,14 +429,14 @@
                         {
                           "instruction_type": "access_json_field",
                           "variable_name": "pn",
-                          "variable_type": "string",
+                          "variable_type": "str",
                           "source_object": "par",
                           "field_name": "parameter_name"
                         },
                         {
                           "instruction_type": "access_json_field",
                           "variable_name": "pt",
-                          "variable_type": "string",
+                          "variable_type": "str",
                           "source_object": "par",
                           "field_name": "parameter_type"
                         },
@@ -570,16 +570,16 @@
     },
     "execute_pipeline": {
       "description": "Main compilation pipeline: read specification file, parse JSON, compute substitution variables, iterate template definitions, apply substitutions, emit generated C source",
-      "return_type": "int",
+      "return_type": "i32",
       "parameter_definitions": [
         {
           "parameter_name": "specification_file_path",
-          "parameter_type": "string",
+          "parameter_type": "str",
           "description": "Path to the .ipm specification JSON file"
         },
         {
           "parameter_name": "output_file_path",
-          "parameter_type": "string",
+          "parameter_type": "str",
           "description": "Path where generated C source is written"
         }
       ],
@@ -665,11 +665,11 @@
     },
     "read_file": {
       "description": "Open file (or stdin if path is null), read entire content into a string buffer, close file",
-      "return_type": "string",
+      "return_type": "str",
       "parameter_definitions": [
         {
           "parameter_name": "file_path",
-          "parameter_type": "string",
+          "parameter_type": "str",
           "description": "Path to file, or null for stdin"
         }
       ],
@@ -721,7 +721,7 @@
         {
           "instruction_type": "access_json_field",
           "variable_name": "pkg_name",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "parsed_spec",
           "field_name": "package_name"
         },
@@ -738,7 +738,7 @@
         {
           "instruction_type": "access_json_field",
           "variable_name": "pkg_type",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "parsed_spec",
           "field_name": "package_type"
         },
@@ -793,7 +793,7 @@
     },
     "generate_from_ipm": {
       "description": "Iterate over template_definitions in the spec, apply substitution table to each template, and write generated C source to output file",
-      "return_type": "int",
+      "return_type": "i32",
       "parameter_definitions": [
         {
           "parameter_name": "parsed_spec",
@@ -807,7 +807,7 @@
         },
         {
           "parameter_name": "output_file_path",
-          "parameter_type": "string",
+          "parameter_type": "str",
           "description": "Output C source file path"
         }
       ],
@@ -893,7 +893,7 @@
         {
           "instruction_type": "access_json_field",
           "variable_name": "inst_type",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "instruction_type"
         },
@@ -1138,28 +1138,28 @@
         {
           "instruction_type": "access_json_field",
           "variable_name": "var_type",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "variable_type"
         },
         {
           "instruction_type": "access_json_field",
           "variable_name": "var_name",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "variable_name"
         },
         {
           "instruction_type": "access_json_field",
           "variable_name": "func_name",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "assignment_operation"
         },
         {
           "instruction_type": "access_json_field",
           "variable_name": "src_var",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "source_target"
         },
@@ -1270,21 +1270,21 @@
         {
           "instruction_type": "access_json_field",
           "variable_name": "fn",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "invocation_name"
         },
         {
           "instruction_type": "access_json_field",
           "variable_name": "rv",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "result_assignment_variable"
         },
         {
           "instruction_type": "access_json_field",
           "variable_name": "rt",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "result_type"
         },
@@ -1597,28 +1597,28 @@
         {
           "instruction_type": "access_json_field",
           "variable_name": "op",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "condition_operation"
         },
         {
           "instruction_type": "access_json_field",
           "variable_name": "tgt",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "condition_target"
         },
         {
           "instruction_type": "access_json_field",
           "variable_name": "cv",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "condition_value"
         },
         {
           "instruction_type": "access_json_field",
           "variable_name": "ck",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "condition_key"
         },
@@ -1903,14 +1903,14 @@
             {
               "instruction_type": "access_json_field",
               "variable_name": "status",
-              "variable_type": "string",
+              "variable_type": "str",
               "source_object": "rp",
               "field_name": "execution_status"
             },
             {
               "instruction_type": "access_json_field",
               "variable_name": "val",
-              "variable_type": "string",
+              "variable_type": "str",
               "source_object": "rp",
               "field_name": "value"
             },
@@ -2041,14 +2041,14 @@
         {
           "instruction_type": "access_json_field",
           "variable_name": "col",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "collection_variable"
         },
         {
           "instruction_type": "access_json_field",
           "variable_name": "item",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "item_variable"
         },
@@ -2188,21 +2188,21 @@
         {
           "instruction_type": "access_json_field",
           "variable_name": "col",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "collection_variable"
         },
         {
           "instruction_type": "access_json_field",
           "variable_name": "key",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "key_variable"
         },
         {
           "instruction_type": "access_json_field",
           "variable_name": "val",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "value_variable"
         },
@@ -2378,28 +2378,28 @@
         {
           "instruction_type": "access_json_field",
           "variable_name": "vn",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "variable_name"
         },
         {
           "instruction_type": "access_json_field",
           "variable_name": "vt",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "variable_type"
         },
         {
           "instruction_type": "access_json_field",
           "variable_name": "so",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "source_object"
         },
         {
           "instruction_type": "access_json_field",
           "variable_name": "fn",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "field_name"
         },

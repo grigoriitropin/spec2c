@@ -3,16 +3,16 @@
   "function_definitions": {
     "run_spec2c_compilation_pipeline_flow": {
       "description": "Main compilation pipeline: read specification file, parse JSON, compute substitution variables, iterate template definitions, apply substitutions, emit generated C source",
-      "return_type": "int",
+      "return_type": "i32",
       "parameter_definitions": [
         {
           "parameter_name": "specification_file_path",
-          "parameter_type": "string",
+          "parameter_type": "str",
           "description": "Path to the .ipm specification JSON file"
         },
         {
           "parameter_name": "output_file_path",
-          "parameter_type": "string",
+          "parameter_type": "str",
           "description": "Path where generated C source is written"
         }
       ],
@@ -98,11 +98,11 @@
     },
     "read_entire_text_into_memory": {
       "description": "Open file (or stdin if path is null), read entire content into a string buffer, close file",
-      "return_type": "string",
+      "return_type": "str",
       "parameter_definitions": [
         {
           "parameter_name": "file_path",
-          "parameter_type": "string",
+          "parameter_type": "str",
           "description": "Path to file, or null for stdin"
         }
       ],
@@ -154,7 +154,7 @@
         {
           "instruction_type": "access_json_field",
           "variable_name": "pkg_name",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "parsed_spec",
           "field_name": "package_name"
         },
@@ -171,7 +171,7 @@
         {
           "instruction_type": "access_json_field",
           "variable_name": "pkg_type",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "parsed_spec",
           "field_name": "package_type"
         },
@@ -226,7 +226,7 @@
     },
     "handle_ipm_spec_emit_code": {
       "description": "Iterate over template_definitions in the spec, apply substitution table to each template, and write generated C source to output file",
-      "return_type": "int",
+      "return_type": "i32",
       "parameter_definitions": [
         {
           "parameter_name": "parsed_spec",
@@ -240,7 +240,7 @@
         },
         {
           "parameter_name": "output_file_path",
-          "parameter_type": "string",
+          "parameter_type": "str",
           "description": "Output C source file path"
         }
       ],

@@ -10,7 +10,7 @@
         },
         {
           "parameter_name": "output_path",
-          "parameter_type": "string"
+          "parameter_type": "str"
         }
       ],
       "execution_instructions": [
@@ -24,7 +24,7 @@
         {
           "instruction_type": "access_json_field",
           "variable_name": "modname",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "spec_json",
           "field_name": "module_name"
         },
@@ -125,7 +125,7 @@
                 {
                   "instruction_type": "access_json_field",
                   "variable_name": "ret_type",
-                  "variable_type": "string",
+                  "variable_type": "str",
                   "source_object": "fn_spec",
                   "field_name": "return_type"
                 },
@@ -206,14 +206,14 @@
                         {
                           "instruction_type": "access_json_field",
                           "variable_name": "pn",
-                          "variable_type": "string",
+                          "variable_type": "str",
                           "source_object": "par",
                           "field_name": "parameter_name"
                         },
                         {
                           "instruction_type": "access_json_field",
                           "variable_name": "pt",
-                          "variable_type": "string",
+                          "variable_type": "str",
                           "source_object": "par",
                           "field_name": "parameter_type"
                         },
@@ -343,7 +343,7 @@
                 {
                   "instruction_type": "access_json_field",
                   "variable_name": "desc",
-                  "variable_type": "string",
+                  "variable_type": "str",
                   "source_object": "fn_spec2",
                   "field_name": "description"
                 },
@@ -382,7 +382,7 @@
                 {
                   "instruction_type": "access_json_field",
                   "variable_name": "ret_type",
-                  "variable_type": "string",
+                  "variable_type": "str",
                   "source_object": "fn_spec2",
                   "field_name": "return_type"
                 },
@@ -463,14 +463,14 @@
                         {
                           "instruction_type": "access_json_field",
                           "variable_name": "pn",
-                          "variable_type": "string",
+                          "variable_type": "str",
                           "source_object": "par",
                           "field_name": "parameter_name"
                         },
                         {
                           "instruction_type": "access_json_field",
                           "variable_name": "pt",
-                          "variable_type": "string",
+                          "variable_type": "str",
                           "source_object": "par",
                           "field_name": "parameter_type"
                         },
@@ -612,7 +612,7 @@
         },
         {
           "parameter_name": "modname",
-          "parameter_type": "string"
+          "parameter_type": "str"
         }
       ],
       "execution_instructions": [
@@ -734,7 +734,7 @@
                 {
                   "instruction_type": "access_json_field",
                   "variable_name": "ret_fwd",
-                  "variable_type": "string",
+                  "variable_type": "str",
                   "source_object": "fn_spec_fwd",
                   "field_name": "return_type"
                 },
@@ -815,14 +815,14 @@
                         {
                           "instruction_type": "access_json_field",
                           "variable_name": "par_name",
-                          "variable_type": "string",
+                          "variable_type": "str",
                           "source_object": "par_fwd",
                           "field_name": "parameter_name"
                         },
                         {
                           "instruction_type": "access_json_field",
                           "variable_name": "par_type",
-                          "variable_type": "string",
+                          "variable_type": "str",
                           "source_object": "par_fwd",
                           "field_name": "parameter_type"
                         },

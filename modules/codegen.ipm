@@ -19,7 +19,7 @@
         {
           "instruction_type": "access_json_field",
           "variable_name": "inst_type",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "instruction_type"
         },
@@ -264,28 +264,28 @@
         {
           "instruction_type": "access_json_field",
           "variable_name": "var_type",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "variable_type"
         },
         {
           "instruction_type": "access_json_field",
           "variable_name": "var_name",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "variable_name"
         },
         {
           "instruction_type": "access_json_field",
           "variable_name": "func_name",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "assignment_operation"
         },
         {
           "instruction_type": "access_json_field",
           "variable_name": "src_var",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "source_target"
         },
@@ -396,21 +396,21 @@
         {
           "instruction_type": "access_json_field",
           "variable_name": "fn",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "invocation_name"
         },
         {
           "instruction_type": "access_json_field",
           "variable_name": "rv",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "result_assignment_variable"
         },
         {
           "instruction_type": "access_json_field",
           "variable_name": "rt",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "result_type"
         },
@@ -723,28 +723,28 @@
         {
           "instruction_type": "access_json_field",
           "variable_name": "op",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "condition_operation"
         },
         {
           "instruction_type": "access_json_field",
           "variable_name": "tgt",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "condition_target"
         },
         {
           "instruction_type": "access_json_field",
           "variable_name": "cv",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "condition_value"
         },
         {
           "instruction_type": "access_json_field",
           "variable_name": "ck",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "condition_key"
         },
@@ -1029,14 +1029,14 @@
             {
               "instruction_type": "access_json_field",
               "variable_name": "status",
-              "variable_type": "string",
+              "variable_type": "str",
               "source_object": "rp",
               "field_name": "execution_status"
             },
             {
               "instruction_type": "access_json_field",
               "variable_name": "val",
-              "variable_type": "string",
+              "variable_type": "str",
               "source_object": "rp",
               "field_name": "value"
             },
@@ -1167,14 +1167,14 @@
         {
           "instruction_type": "access_json_field",
           "variable_name": "col",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "collection_variable"
         },
         {
           "instruction_type": "access_json_field",
           "variable_name": "item",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "item_variable"
         },
@@ -1348,21 +1348,21 @@
         {
           "instruction_type": "access_json_field",
           "variable_name": "col",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "collection_variable"
         },
         {
           "instruction_type": "access_json_field",
           "variable_name": "key",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "key_variable"
         },
         {
           "instruction_type": "access_json_field",
           "variable_name": "val",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "value_variable"
         },
@@ -1538,28 +1538,28 @@
         {
           "instruction_type": "access_json_field",
           "variable_name": "vn",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "variable_name"
         },
         {
           "instruction_type": "access_json_field",
           "variable_name": "vt",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "variable_type"
         },
         {
           "instruction_type": "access_json_field",
           "variable_name": "so",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "source_object"
         },
         {
           "instruction_type": "access_json_field",
           "variable_name": "fn",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "field_name"
         },

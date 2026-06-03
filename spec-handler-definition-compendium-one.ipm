@@ -19,39 +19,39 @@
         },
         {
           "parameter_name": "indent",
-          "parameter_type": "int"
+          "parameter_type": "i32"
         },
         {
           "parameter_name": "return_type",
-          "parameter_type": "string"
+          "parameter_type": "str"
         }
       ],
       "execution_instructions": [
         {
           "instruction_type": "access_json_field",
           "variable_name": "vn",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "variable_name"
         },
         {
           "instruction_type": "access_json_field",
           "variable_name": "vt",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "variable_type"
         },
         {
           "instruction_type": "access_json_field",
           "variable_name": "so",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "source_object"
         },
         {
           "instruction_type": "access_json_field",
           "variable_name": "fn",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "field_name"
         },
@@ -113,11 +113,11 @@
         },
         {
           "parameter_name": "indent",
-          "parameter_type": "int"
+          "parameter_type": "i32"
         },
         {
           "parameter_name": "return_type",
-          "parameter_type": "string"
+          "parameter_type": "str"
         }
       ],
       "execution_instructions": [
@@ -141,25 +141,25 @@
         },
         {
           "parameter_name": "indent",
-          "parameter_type": "int"
+          "parameter_type": "i32"
         },
         {
           "parameter_name": "return_type",
-          "parameter_type": "string"
+          "parameter_type": "str"
         }
       ],
       "execution_instructions": [
         {
           "instruction_type": "access_json_field",
           "variable_name": "fn",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "invocation_name"
         },
         {
           "instruction_type": "access_json_field",
           "variable_name": "rv",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "result_assignment_variable"
         },
@@ -208,25 +208,25 @@
         },
         {
           "parameter_name": "indent",
-          "parameter_type": "int"
+          "parameter_type": "i32"
         },
         {
           "parameter_name": "return_type",
-          "parameter_type": "string"
+          "parameter_type": "str"
         }
       ],
       "execution_instructions": [
         {
           "instruction_type": "access_json_field",
           "variable_name": "col",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "collection_variable"
         },
         {
           "instruction_type": "access_json_field",
           "variable_name": "itm",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "item_variable"
         },
@@ -297,32 +297,32 @@
         },
         {
           "parameter_name": "indent",
-          "parameter_type": "int"
+          "parameter_type": "i32"
         },
         {
           "parameter_name": "return_type",
-          "parameter_type": "string"
+          "parameter_type": "str"
         }
       ],
       "execution_instructions": [
         {
           "instruction_type": "access_json_field",
           "variable_name": "col",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "collection_variable"
         },
         {
           "instruction_type": "access_json_field",
           "variable_name": "key",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "key_variable"
         },
         {
           "instruction_type": "access_json_field",
           "variable_name": "val",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "value_variable"
         },
@@ -397,32 +397,32 @@
         },
         {
           "parameter_name": "indent",
-          "parameter_type": "int"
+          "parameter_type": "i32"
         },
         {
           "parameter_name": "return_type",
-          "parameter_type": "string"
+          "parameter_type": "str"
         }
       ],
       "execution_instructions": [
         {
           "instruction_type": "access_json_field",
           "variable_name": "src",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "source_string"
         },
         {
           "instruction_type": "access_json_field",
           "variable_name": "sep",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "separator"
         },
         {
           "instruction_type": "access_json_field",
           "variable_name": "tok",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "token_variable"
         },
@@ -511,25 +511,25 @@
         },
         {
           "parameter_name": "indent",
-          "parameter_type": "int"
+          "parameter_type": "i32"
         },
         {
           "parameter_name": "return_type",
-          "parameter_type": "string"
+          "parameter_type": "str"
         }
       ],
       "execution_instructions": [
         {
           "instruction_type": "access_json_field",
           "variable_name": "cv",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "counter_variable"
         },
         {
           "instruction_type": "access_json_field",
           "variable_name": "lv",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "limit_variable"
         },
@@ -591,39 +591,39 @@
         },
         {
           "parameter_name": "indent",
-          "parameter_type": "int"
+          "parameter_type": "i32"
         },
         {
           "parameter_name": "return_type",
-          "parameter_type": "string"
+          "parameter_type": "str"
         }
       ],
       "execution_instructions": [
         {
           "instruction_type": "access_json_field",
           "variable_name": "vn",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "variable_name"
         },
         {
           "instruction_type": "access_json_field",
           "variable_name": "vt",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "variable_type"
         },
         {
           "instruction_type": "access_json_field",
           "variable_name": "op",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "assignment_operation"
         },
         {
           "instruction_type": "access_json_field",
           "variable_name": "src",
-          "variable_type": "string",
+          "variable_type": "str",
           "source_object": "inst",
           "field_name": "source_target"
         },

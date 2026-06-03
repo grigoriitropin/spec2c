@@ -45,13 +45,13 @@
   "function_definitions": {
     "spec2c_main": {
       "description": "Entry point \u2014 calls execute_pipeline with CLI args",
-      "return_type": "int",
+      "return_type": "i32",
       "parameter_definitions": [],
       "execution_instructions": [
         {
           "instruction_type": "variable_declaration",
           "variable_name": "infile",
-          "variable_type": "string",
+          "variable_type": "str",
           "assignment_operation": "get_arg_value",
           "source_target": {
             "source": "1"
@@ -60,7 +60,7 @@
         {
           "instruction_type": "variable_declaration",
           "variable_name": "outfile",
-          "variable_type": "string",
+          "variable_type": "str",
           "assignment_operation": "get_arg_value",
           "source_target": {
             "source": "2"
