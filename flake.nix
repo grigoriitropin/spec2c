@@ -119,6 +119,7 @@
             ${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns/detect-banned-patterns-and-braces.c \
             ${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns/enforce-bootstrap-code-file-whitelist.c \
             ${builtins.toString runtime_src} \
+            verify-ed25519-digital-signature-key.c \
             -o s2c_enforce ${cjson-static}/lib/libcjson.a -lm
 
           # Step 2: Run enforcement gate (exits 1 on violation → build fails)
@@ -133,6 +134,7 @@
             ${S}/codegen-instruction-handler-function-set/extracted-codegen-helper-functions-here/emit-report-error-and-exit.c \
             ${S}/codegen-instruction-handler-function-set/emit-variable-declaration-handler-function.c \
             ${builtins.toString runtime_src} \
+            verify-ed25519-digital-signature-key.c \
             -o spec2c ${cjson-static}/lib/libcjson.a -lm
 
           runHook postBuild
