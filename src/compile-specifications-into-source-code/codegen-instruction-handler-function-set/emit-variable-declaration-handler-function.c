@@ -274,6 +274,8 @@ static void emit_bootstrap_central_dispatcher_func(cJSON *inst, FILE *out, int i
     if (!strcmp(ty, "alu_operation")) { emit_alu_operation_into_output(inst, out); return; }
     if (!strcmp(ty, "scan_directory_entries")) { emit_scan_directory_with_body(inst, out, indent); return; }
     if (!strcmp(ty, "return_statement")) {
+        if (return_type && !return_type[0]) return;
+        if (return_type && !strcmp(return_type, "void")) return;
         cJSON *rp = cJSON_GetObjectItemCaseSensitive(inst, "return_payload");
         if (rp && !cJSON_IsObject(rp))
             fprintf(out, "  return %s;\n", rp->valuestring);
