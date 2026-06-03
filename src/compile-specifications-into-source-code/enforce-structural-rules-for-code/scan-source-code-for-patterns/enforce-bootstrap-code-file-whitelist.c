@@ -181,3 +181,12 @@ void scan_each_directory_with_checks(const char *dirpath,
     if (file_cnt > MAX_FILES_PER_DIR)
         report_violation_with_actionable_hint(ERR_TOO_MANY_FILES_IN_DIR, dirpath, file_cnt, MAX_FILES_PER_DIR, NULL);
 }
+int count_lines_within_source_file(const char *path) {
+    FILE *f = fopen(path, "r"); if (!f) return -1;
+    int lines = 0, ch; while ((ch = fgetc(f)) != EOF) if (ch == '\n') lines++;
+    fclose(f); return lines;
+}
+int match_source_code_header_filename(const char *name) {
+    size_t nl = strlen(name);
+    return nl > 2 && (!strcmp(name + nl - 2, ".c") || !strcmp(name + nl - 2, ".h"));
+}
