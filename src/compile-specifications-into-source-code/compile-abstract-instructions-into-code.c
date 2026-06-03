@@ -163,7 +163,10 @@ static void emit_database_exec_into_output(cJSON *inst, FILE *out, int indent, c
     fprintf(out, "/* DB exec: %s */\n", sql ? sql : "?");
 }
 
-typedef struct { const char *name; instr_handler_t handler; } instr_dispatch_t;
+typedef struct {
+    const char *name;
+    instr_handler_t handler;
+} instr_dispatch_t;
 
 static const instr_dispatch_t INSTR_HANDLERS[] = {
     {"access_json_field",              emit_access_field_into_output},
