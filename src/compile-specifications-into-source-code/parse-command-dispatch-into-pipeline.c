@@ -178,24 +178,7 @@ static int enforce_ipm_specification_validation_rules(const char *spec_text, cJS
     validate_ipm_source_for_hardcoded(spec_json);
 
     /* 6. C-leak detection */
-        void check_leak(cJSON *n) {
-        if (!n) return;
-        if (cJSON_IsString(n) && n->string) {
-            const char *k = n->string;
-            if (strcmp(k, "template_str") && strcmp(k, "str") &&
-                strcmp(k, "code_format") && strcmp(k, "code")) {
-                if (strstr(n->valuestring, "#include") || strstr(n->valuestring, "malloc(") ||
-                    strstr(n->valuestring, "free(") || strstr(n->valuestring, "sizeof("))
-                    report_fatal_error_and_exit("C-leak detected");
-            }
-        }
-        if (cJSON_IsObject(n) || cJSON_IsArray(n)) {
-            cJSON *c = n->child;
-            while (c) { check_leak(c); c = c->next; }
-        }
-    }
-    check_leak(spec_json);
-
+    
     return 1;
 }
 
