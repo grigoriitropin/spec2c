@@ -1005,5 +1005,5 @@
     "code-generation-instruction-dispatch-table"
   ],
   "package_name": "ast-function-compilation-engine-code",
-  "package_type": "module"
+  "package_type": "component"
 }
