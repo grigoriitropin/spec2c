@@ -118,7 +118,6 @@ typedef struct {
 
 const char *check_header_include_frequency_count(const char *dirpath) {
     hdr_entry hdrs[128]; int hdr_count = 0;
-
     void scan_dir_hdrs(const char *dp) {
         DIR *d = opendir(dp);
         if (!d) return;
@@ -160,7 +159,6 @@ const char *check_header_include_frequency_count(const char *dirpath) {
         closedir(d);
     }
     scan_dir_hdrs(dirpath);
-
     for (int i = 0; i < hdr_count; i++) {
         if (hdrs[i].count > 5) {
             static char err[256];
