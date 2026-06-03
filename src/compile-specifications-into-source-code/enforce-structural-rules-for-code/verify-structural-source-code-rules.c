@@ -263,32 +263,32 @@ static void search_for_unused_function_code(fn_entry_t *fns, int fn_qty, const c
     }
 }
 static void scan_source_for_undocumented_flags(const char *srcdir);
-static char nonsource_allowlist[64][256];
-static int nonsource_allowlist_qty;
+static char non_source_files[64][256];
+static int non_source_files_qty;
 
-static void read_nonsource_allowlist(const char *srcdir) {
+static void load_non_source_file_allowlist(const char *srcdir) {
     char path[4096]; snprintf(path, sizeof(path), "%s/allowed-non-source-files.txt", srcdir);
     FILE *f = fopen(path, "r");
     if (!f) { fprintf(stderr, "FATAL: cannot open allowed-non-source-files.txt\n"); exit(1); }
     char line[256];
-    while (fgets(line, sizeof(line), f) && nonsource_allowlist_qty < 64) {
+    while (fgets(line, sizeof(line), f) && non_source_files_qty < 64) {
         size_t len = strlen(line);
         while (len > 0 && (line[len-1] == '\n' || line[len-1] == '\r')) line[--len] = 0;
         if (len > 0 && line[0] != '#')
-            snprintf(nonsource_allowlist[nonsource_allowlist_qty++], 256, "%s", line);
+            snprintf(non_source_files[non_source_files_qty++], 256, "%s", line);
     }
     fclose(f);
 }
-static int check_nonsource_filename_allowlist(const char *name) {
-    for (int i = 0; i < nonsource_allowlist_qty; i++)
-        if (!strcmp(nonsource_allowlist[i], name)) return 1;
+static int check_non_source_file_allowlist(const char *name) {
+    for (int i = 0; i < non_source_files_qty; i++)
+        if (!strcmp(non_source_files[i], name)) return 1;
     return 0;
 }
 
 void enforce_all_source_code_rules(const char *srcdir) {
     read_allowed_names_from_file(srcdir);
     read_banned_patterns_from_file(srcdir);
-    read_nonsource_allowlist(srcdir);
+    load_non_source_file_allowlist(srcdir);
     load_bootstrap_whitelist_from_disk(srcdir);
     fn_entry_t fns[512]; int fn_qty = 0;
     inc_entry_t incs[128]; int inc_qty = 0;
@@ -309,7 +309,7 @@ void enforce_all_source_code_rules(const char *srcdir) {
                 size_t dn_len = strlen(de->d_name);
                 int is_ipm = dn_len > 4 && !strcmp(de->d_name + dn_len - 4, ".ipm");
                 if (!is_ipm) {
-                    if (!check_nonsource_filename_allowlist(de->d_name)) {
+                    if (!check_non_source_file_allowlist(de->d_name)) {
                         fprintf(stderr, "FATAL: non-source file in %s: %s\n", dirpath, de->d_name);
                         exit(1);
                     }

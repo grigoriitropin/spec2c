@@ -292,5 +292,5 @@ emit_iteration_loop_with_count
 tokenize_string_into_slice_loop
 list-files-under-path-recursively
 list_files_under_path_recursively
-read_nonsource_allowlist
-check_nonsource_filename_allowlist
+load_non_source_file_allowlist
+check_non_source_file_allowlist
