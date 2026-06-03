@@ -247,7 +247,8 @@ static void validate_single_ipm_file_content(const char *sp,
             cJSON *stack[512]; int sp_top = 0;
             fn = funcs->child;
             while (fn) { cJSON *b = cJSON_GetObjectItemCaseSensitive(fn, "execution_instructions");
-                if (b) stack[sp_top++] = b; fn = fn->next; }
+                if (b) { stack[sp_top++] = b; }
+                fn = fn->next; }
             while (sp_top > 0) {
                 cJSON *cur = stack[--sp_top];
                 if (!cur) continue;
