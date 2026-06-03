@@ -3,7 +3,7 @@
 import os
 
 limits_file = 'src/bootstrap-c-freeze-limits.txt'
-header_file = 'src/bootstrap-freeze-data-compiled-into.h'
+header_file = 'src/bootstrap-compiled-limit-hash-data/bootstrap-freeze-data-compiled-into.h'
 
 with open(limits_file) as f:
     lines = f.readlines()
