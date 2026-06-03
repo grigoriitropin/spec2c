@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate detect-main-function-in-source.ipm — DFA for main() detection"""
+"""Generate find-every-main-function-block.ipm — DFA for main() (single-state version)"""
 import json
 
 instructions = []
@@ -15,46 +15,47 @@ instructions.append({
     "variable_name": "found", "variable_type": "i32",
     "assignment_operation": "literal", "source_target": 0
 })
-
-# DFA states for "main("  with optional space: m(109)→a(97)→i(105)→n(110)→[(40) or (32)→(40)]
-for s in range(5):
-    instructions.append({
-        "instruction_type": "variable_declaration",
-        "variable_name": f"ms_{s}", "variable_type": "i32",
-        "assignment_operation": "literal", "source_target": 0
-    })
+instructions.append({
+    "instruction_type": "variable_declaration",
+    "variable_name": "ms", "variable_type": "i32",
+    "assignment_operation": "literal", "source_target": 0
+})
 
 body = []
 
-# Pattern bytes: m=109, a=97, i=105, n=110, ( =40, space=32
-patterns = [109, 97, 105, 110, 40]  # m, a, i, n, (
-for idx, bv in enumerate(patterns[:-1]):  # first 4: m, a, i, n
+# State machine: ms values: 0=idle, 1=saw'm', 2=saw'ma', 3=saw'mai', 4=saw'main', 5=saw'main(space)'
+# On match: found=1, ms=0 (reset)
+# byte codes: m=109, a=97, i=105, n=110, (=40, space=32
+
+transitions = [
+    (0, 109, 1),   # idle → saw 'm'
+    (1, 97,  2),   # 'm' → saw 'ma', expecting 'a'
+    (2, 105, 3),   # 'ma' → saw 'mai', expecting 'i'
+    (3, 110, 4),   # 'mai' → saw 'main', expecting 'n'
+]
+
+for state, byte_val, next_state in transitions:
     body.append({
         "instruction_type": "conditional_branch",
         "condition_type": "numeric_compare",
-        "operator": "==", "lhs": {"value": f"ms_{idx}"}, "rhs": {"value": "1"},
+        "operator": "==", "lhs": {"value": "ms"}, "rhs": {"value": str(state)},
         "branch_on_success": [{
             "instruction_type": "conditional_branch",
             "condition_type": "numeric_compare",
-            "operator": "==", "lhs": {"value": "byte"}, "rhs": {"value": str(patterns[idx + 1])},
+            "operator": "==", "lhs": {"value": "byte"}, "rhs": {"value": str(byte_val)},
             "branch_on_success": [{
                 "instruction_type": "alu_operation",
-                "operator": "+", "target": f"ms_{idx + 1}",
-                "lhs": {"value": "0"}, "rhs": {"value": "1"}
-            }],
-            "branch_on_failure": [{
-                "instruction_type": "alu_operation",
-                "operator": "-", "target": f"ms_{idx}",
-                "lhs": {"value": f"ms_{idx}"}, "rhs": {"value": f"ms_{idx}"}
+                "operator": "+", "target": "ms",
+                "lhs": {"value": "0"}, "rhs": {"value": str(next_state)}
             }]
         }]
     })
 
-# After state 4 (found "main"): check for '(' or space-then-'('
+# State 4 (saw 'main'): looking for '(' or ' '
 body.append({
     "instruction_type": "conditional_branch",
     "condition_type": "numeric_compare",
-    "operator": "==", "lhs": {"value": "ms_4"}, "rhs": {"value": "1"},
+    "operator": "==", "lhs": {"value": "ms"}, "rhs": {"value": "4"},
     "branch_on_success": [
         # If byte == '(' → match!
         {"instruction_type": "conditional_branch",
@@ -62,33 +63,19 @@ body.append({
          "operator": "==", "lhs": {"value": "byte"}, "rhs": {"value": "40"},
          "branch_on_success": [
              {"instruction_type": "alu_operation", "operator": "+", "target": "found", "lhs": {"value": "0"}, "rhs": {"value": "1"}},
-             {"instruction_type": "alu_operation", "operator": "-", "target": "ms_4", "lhs": {"value": "ms_4"}, "rhs": {"value": "ms_4"}}
+             {"instruction_type": "alu_operation", "operator": "-", "target": "ms", "lhs": {"value": "ms"}, "rhs": {"value": "ms"}}
          ],
          "branch_on_failure": [
-             # If byte == ' ' → stay in state 4 (waiting for '(')
+             # If byte == ' ' → stay
              {"instruction_type": "conditional_branch",
               "condition_type": "numeric_compare",
               "operator": "==", "lhs": {"value": "byte"}, "rhs": {"value": "32"},
               "branch_on_failure": [
                   # Any other char → reset
-                  {"instruction_type": "alu_operation", "operator": "-", "target": "ms_4", "lhs": {"value": "ms_4"}, "rhs": {"value": "ms_4"}}
-              ]
-             }
-         ]
-        }
+                  {"instruction_type": "alu_operation", "operator": "-", "target": "ms", "lhs": {"value": "ms"}, "rhs": {"value": "ms"}}
+              ]}
+         ]}
     ]
-})
-
-# Entry: if byte == 'm' → ms_0 = 1
-body.append({
-    "instruction_type": "conditional_branch",
-    "condition_type": "numeric_compare",
-    "operator": "==", "lhs": {"value": "byte"}, "rhs": {"value": "109"},
-    "branch_on_success": [{
-        "instruction_type": "alu_operation",
-        "operator": "+", "target": "ms_0",
-        "lhs": {"value": "0"}, "rhs": {"value": "1"}
-    }]
 })
 
 iter_inst = {
@@ -135,4 +122,4 @@ spec = {
 with open("modules/rules/find-every-main-function-block.ipm", "w") as f:
     json.dump(spec, f, separators=(",", ":"), indent=None)
     f.write("\n")
-print(f"OK: {len(instructions)} top-level, {len(body)} body, {len(spec['function_definitions']['find-every-main-function-block']['execution_instructions'])} exec")
+print(f"OK: {len(instructions)} top-level, {len(body)} body")
