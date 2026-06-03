@@ -44,7 +44,7 @@ static const int freeze_max_lines[] = {
     83,
     58,
     31,
-    392,
+    395,
     141,
     7,
     83,
