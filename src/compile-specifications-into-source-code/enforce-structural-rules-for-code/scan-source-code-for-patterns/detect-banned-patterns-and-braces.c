@@ -138,6 +138,41 @@ static void scan_json_for_banned_words(cJSON *node, const char *path) {
     }
 }
 
+/* check JSON AST depth and key density */
+static void check_ipm_ast_structure_depth(cJSON *node, int depth, const char *path) {
+    if (!node || depth > 4) {
+        if (depth > 4) {
+            char msg[512]; snprintf(msg, sizeof(msg),
+                "SOUL §7: .ipm AST depth > 4 in %s\n  → extract nested logic into separate functions", path);
+            fprintf(stderr, "spec2c: %s\n", msg); exit(1);
+        }
+        return;
+    }
+    if (cJSON_IsObject(node)) {
+        int keys = 0;
+        cJSON *child = node->child;
+        while (child) { keys++; child = child->next; }
+        if (keys > 7) {
+            char msg[512]; snprintf(msg, sizeof(msg),
+                "SOUL §7: .ipm object has %d keys (max 7) in %s\n  → split into smaller objects", keys, path);
+            fprintf(stderr, "spec2c: %s\n", msg); exit(1);
+        }
+        child = node->child;
+        while (child) { check_ipm_ast_structure_depth(child, depth + 1, path); child = child->next; }
+    } else if (cJSON_IsArray(node)) {
+        cJSON *child = node->child;
+        while (child) {
+            if (cJSON_IsArray(child)) {
+                char msg[512]; snprintf(msg, sizeof(msg),
+                    "SOUL §7: .ipm nested array in %s\n  → use flat list of objects, not array of arrays", path);
+                fprintf(stderr, "spec2c: %s\n", msg); exit(1);
+            }
+            check_ipm_ast_structure_depth(child, depth + 1, path);
+            child = child->next;
+        }
+    }
+}
+
 void verify_ipm_names_across_sources(const char *srcdir) {
     void scan_ipm(const char *dpath) {
         DIR *dd = opendir(dpath); if (!dd) return;
@@ -166,6 +201,7 @@ void verify_ipm_names_across_sources(const char *srcdir) {
             if (!root) continue;
 
             scan_json_for_banned_words(root, sp);
+            check_ipm_ast_structure_depth(root, 0, sp);
 
             cJSON *pkg = cJSON_GetObjectItemCaseSensitive(root, "package_name");
             if (pkg && cJSON_IsString(pkg)) validate_single_ipm_name_value(pkg->valuestring, "package_name", sp);

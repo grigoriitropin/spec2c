@@ -194,3 +194,4 @@ emit_return_code_into_output
 emit_iterate_code_into_output
 emit_dbexec_code_into_output
 emit_invocation_code_into_output
+check_ipm_ast_structure_depth
