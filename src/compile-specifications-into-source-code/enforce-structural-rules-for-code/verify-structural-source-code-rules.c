@@ -150,7 +150,7 @@ static int handle_new_function_definition_entry(const char *line, const char *su
 }
 
 
-static void check_single_file_for_violations(const char *sub, int is_c, int is_source,
+void check_single_file_for_violations(const char *sub, int is_c, int is_source,
     fn_entry_t *fns, int *fn_qty, inc_entry_t *incs, int *inc_qty)
 {
     if (is_c) {
