@@ -121,6 +121,15 @@
           sed -i '/"enforce-naming-rules-via-ffi.h"/d' ipm_enforce_gen.c
           sed -i '1i#include "runtime-for-generated-ipm-code.h"' ipm_enforce_gen.c
           sed -i 's/extern char \* check_name_following_soul_rules(char \*/extern const char * check_name_following_soul_rules(const char */' ipm_enforce_gen.c
+          # Fix all FFI function const-correctness
+          sed -i 's/extern int count_lines_inside_file_ffi(char \*/extern int count_lines_inside_file_ffi(const char */' ipm_enforce_gen.c
+          sed -i 's/extern char \* check_banned_pattern_inside_file(char \*/extern const char * check_banned_pattern_inside_file(const char */' ipm_enforce_gen.c
+          sed -i 's/extern char \* check_hardcoded_path_inside_file(char \*/extern const char * check_hardcoded_path_inside_file(const char */' ipm_enforce_gen.c
+          sed -i 's/extern char \* check_line_density_inside_file(char \*/extern const char * check_line_density_inside_file(const char */' ipm_enforce_gen.c
+          sed -i 's/char \*lines =/int lines =/' ipm_enforce_gen.c
+          sed -i 's/char \*err2 =/const char *err2 =/' ipm_enforce_gen.c
+          sed -i 's/char \*err3 =/const char *err3 =/' ipm_enforce_gen.c
+          sed -i 's/char \*err4 =/const char *err4 =/' ipm_enforce_gen.c
           sed -i 's/, char \* name, char \* fp/, const char *name, const char *fp/' ipm_enforce_gen.c
           sed -i 's/char \*err =/const char *err =/' ipm_enforce_gen.c
           sed -i 's/int errors = 0;/int errors = 0; (void)errors;/' ipm_enforce_gen.c
