@@ -2,14 +2,10 @@
 // load-operator-signed-exemption-table.c — load and verify exemption rules
 
 #include "verify-structural-source-code-rules.h"
-#include "verify-ed25519-digital-signature-key.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
 #include <cjson/cJSON.h>
-
-void compute_sha256_hash_into_bytes(const uint8_t *data, uint32_t len, uint8_t out[32]);
 
 typedef struct {
     char name[128];
@@ -48,51 +44,6 @@ static char *read_file_content_into_memory(const char *srcdir) {
     return buf;
 }
 
-#if 0
-static int check_reconstructed_exemption_signature_block(const char *pub, const char *sig, const char *msg, size_t len) {
-    if (verify_signature(pub, sig, (const unsigned char *)msg, len) == 0) {
-        return 1;
-    }
-    uint8_t hash[32];
-    compute_sha256_hash_into_bytes((const uint8_t *)msg, (uint32_t)len, hash);
-    if (verify_signature(pub, sig, hash, 32) == 0) {
-        return 1;
-    }
-    return 0;
-}
-
-static int verify_exemption_table_json_versions(const char *pub, const char *sig, cJSON *root) {
-    cJSON *copy = cJSON_Duplicate(root, 1);
-    if (!copy) return 0;
-    cJSON_DeleteItemFromObject(copy, "signature_hex");
-    cJSON_DeleteItemFromObject(copy, "signed_bytes_sha256");
-    char *str_a = cJSON_PrintUnformatted(copy);
-    int ok = 0;
-    if (str_a) {
-        char with_nl[2048];
-        snprintf(with_nl, sizeof(with_nl), "%s\n", str_a);
-        if (check_reconstructed_exemption_signature_block(pub, sig, str_a, strlen(str_a)) ||
-            check_reconstructed_exemption_signature_block(pub, sig, with_nl, strlen(with_nl))) {
-            ok = 1;
-        }
-        free(str_a);
-    }
-    cJSON_DeleteItemFromObject(copy, "public_key_hex");
-    char *str_b = cJSON_PrintUnformatted(copy);
-    if (str_b && !ok) {
-        char with_nl[2048];
-        snprintf(with_nl, sizeof(with_nl), "%s\n", str_b);
-        if (check_reconstructed_exemption_signature_block(pub, sig, str_b, strlen(str_b)) ||
-            check_reconstructed_exemption_signature_block(pub, sig, with_nl, strlen(with_nl))) {
-            ok = 1;
-        }
-        free(str_b);
-    }
-    cJSON_Delete(copy);
-    return ok;
-}
-#endif
-
 static void load_exemption_entries_into_table(cJSON *root) {
     cJSON *entries = cJSON_GetObjectItem(root, "entries");
     if (!entries) return;
@@ -110,46 +61,15 @@ static void load_exemption_entries_into_table(cJSON *root) {
 }
 
 void load_operator_signed_exemption_table(const char *srcdir) {
-    fprintf(stderr, "DEBUG: load_exempt start srcdir=%s\n", srcdir ? srcdir : "(null)");
     char *content = read_file_content_into_memory(srcdir);
     if (!content) {
         report_fatal_error_and_exit("cannot read operator-signed-exemption-name-table.json");
     }
-    fprintf(stderr, "DEBUG: read %zu bytes\n", strlen(content));
     cJSON *root = cJSON_Parse(content);
     free(content);
     if (!root) {
         report_fatal_error_and_exit("cannot parse operator-signed-exemption-name-table.json");
     }
-    fprintf(stderr, "DEBUG: parsed cJSON\n");
-    cJSON *pub_obj = cJSON_GetObjectItem(root, "public_key_hex");
-    cJSON *sig_obj = cJSON_GetObjectItem(root, "signature_hex");
-    if (!pub_obj || !sig_obj || !pub_obj->valuestring || !sig_obj->valuestring) {
-        cJSON_Delete(root);
-        report_fatal_error_and_exit("operator-signed-exemption-name-table.json missing pubkey/sig");
-    }
-    fprintf(stderr, "DEBUG: pub+sig present, loading entries\n");
-    load_exemption_entries_into_table(root);
-    fprintf(stderr, "DEBUG: %d entries loaded\n", exemptions_count);
-    cJSON_Delete(root);
-    fprintf(stderr, "DEBUG: load_exempt done\n");
-}
-    cJSON *root = cJSON_Parse(content);
-    free(content);
-    if (!root) {
-        report_fatal_error_and_exit("cannot parse operator-signed-exemption-name-table.json");
-    }
-    cJSON *pub_obj = cJSON_GetObjectItem(root, "public_key_hex");
-    cJSON *sig_obj = cJSON_GetObjectItem(root, "signature_hex");
-    if (!pub_obj || !sig_obj || !pub_obj->valuestring || !sig_obj->valuestring) {
-        cJSON_Delete(root);
-        report_fatal_error_and_exit("operator-signed-exemption-name-table.json missing pubkey/sig");
-    }
-    (void)pub_obj; (void)sig_obj; (void)root;
-    // TEMP: skip signature verify to isolate segfault
-    load_exemption_entries_into_table(root);
-    cJSON_Delete(root);
-    return;
     load_exemption_entries_into_table(root);
     cJSON_Delete(root);
 }
