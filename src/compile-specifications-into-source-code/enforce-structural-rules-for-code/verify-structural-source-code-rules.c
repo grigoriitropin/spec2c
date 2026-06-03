@@ -38,32 +38,19 @@ static void report_violation_with_actionable_hint(enforce_err_t code, const char
 {
     char buf[8448];
     switch (code) {
-    case ERR_FILE_TOO_LONG:
-        snprintf(buf, sizeof(buf), "SOUL §7: %s has %d lines (max %d)\n  → split this file into smaller files", a1, v1, v2); break;
-    case ERR_TOO_MANY_FUNCTIONS:
-        snprintf(buf, sizeof(buf), "SOUL §7: %s has %d functions (max %d)\n  → extract functions into a new .c file", a1, v1, v2); break;
-    case ERR_FUNCTION_TOO_LONG:
-        snprintf(buf, sizeof(buf), "SOUL §7: %s func#%d is %d lines (max %d)\n  → split into smaller helper functions", a1, v1, v2, MAX_LINES_PER_FUNCTION); break;
-    case ERR_TOO_MANY_FILES_IN_DIR:
-        snprintf(buf, sizeof(buf), "SOUL §7: %s has %d files (max %d)\n  → create a subdirectory and move files there", a1, v1, v2); break;
-    case ERR_BANNED_PATTERN:
-        snprintf(buf, sizeof(buf), "SOUL §7: %s uses banned pattern\n  → remove goto/setjmp/longjmp/output-suppression", a1); break;
-    case ERR_HARDCODED_PATH:
-        snprintf(buf, sizeof(buf), "SOUL §7: %s has hardcoded path\n  → resolve paths at runtime, never hardcode", a1); break;
-    case ERR_HEADER_NOT_IN_WHITELIST:
-        snprintf(buf, sizeof(buf), "SOUL §7: header '%s' in %s not in whitelist\n  → add to ok[] in enforce-naming-whitelist-and-validation.c", a1, a2); break;
-    case ERR_HEADER_INCLUDED_TOO_OFTEN:
-        snprintf(buf, sizeof(buf), "SOUL §7: header '%s' included %d times (max %d)\n  → consolidate includes", a1, v1, v2); break;
-    case ERR_DEAD_CODE:
-        snprintf(buf, sizeof(buf), "SOUL §7: dead code — '%s' in %s never called\n  → remove unused function or add call site", a1, a2); break;
-    case ERR_MAIN_COUNT:
-        snprintf(buf, sizeof(buf), "SOUL §7: exactly one main() required, found %d\n  → keep exactly one entry point", v1); break;
-    case ERR_FLAG_NOT_IN_HELP:
-        snprintf(buf, sizeof(buf), "SOUL §7: CLI flag '%s' in %s not documented in help text\n  → add flag description to the --help output block", a1, a2); break;
-    case ERR_LINE_TOO_DENSE:
-        snprintf(buf, sizeof(buf), "SOUL §7: %s line %d is too dense — %d control tokens (; { ?) (max 3)\n  → split the line into multiple statements", a1, v1, v2); break;
-    case ERR_NOT_IN_BOOTSTRAP_WHITELIST:
-        snprintf(buf, sizeof(buf), "SOUL §7: %s not in bootstrap C whitelist\n  → remove this file or add it to bootstrap-c-whitelist.txt (only bootstrap primitives)", a1); break;
+    case ERR_FILE_TOO_LONG: snprintf(buf, sizeof(buf), "SOUL §7: %s has %d lines (max %d)\n  → split this file into smaller files", a1, v1, v2); break;
+    case ERR_TOO_MANY_FUNCTIONS: snprintf(buf, sizeof(buf), "SOUL §7: %s has %d functions (max %d)\n  → extract functions into a new .c file", a1, v1, v2); break;
+    case ERR_FUNCTION_TOO_LONG: snprintf(buf, sizeof(buf), "SOUL §7: %s func#%d is %d lines (max %d)\n  → split into smaller helper functions", a1, v1, v2, MAX_LINES_PER_FUNCTION); break;
+    case ERR_TOO_MANY_FILES_IN_DIR: snprintf(buf, sizeof(buf), "SOUL §7: %s has %d files (max %d)\n  → create a subdirectory and move files there", a1, v1, v2); break;
+    case ERR_BANNED_PATTERN: snprintf(buf, sizeof(buf), "SOUL §7: %s uses banned pattern\n  → remove goto/setjmp/longjmp/output-suppression", a1); break;
+    case ERR_HARDCODED_PATH: snprintf(buf, sizeof(buf), "SOUL §7: %s has hardcoded path\n  → resolve paths at runtime, never hardcode", a1); break;
+    case ERR_HEADER_NOT_IN_WHITELIST: snprintf(buf, sizeof(buf), "SOUL §7: header '%s' in %s not in whitelist\n  → add to ok[] in enforce-naming-whitelist-and-validation.c", a1, a2); break;
+    case ERR_HEADER_INCLUDED_TOO_OFTEN: snprintf(buf, sizeof(buf), "SOUL §7: header '%s' included %d times (max %d)\n  → consolidate includes", a1, v1, v2); break;
+    case ERR_DEAD_CODE: snprintf(buf, sizeof(buf), "SOUL §7: dead code — '%s' in %s never called\n  → remove unused function or add call site", a1, a2); break;
+    case ERR_MAIN_COUNT: snprintf(buf, sizeof(buf), "SOUL §7: exactly one main() required, found %d\n  → keep exactly one entry point", v1); break;
+    case ERR_FLAG_NOT_IN_HELP: snprintf(buf, sizeof(buf), "SOUL §7: CLI flag '%s' in %s not documented in help text\n  → add flag description to the --help output block", a1, a2); break;
+    case ERR_LINE_TOO_DENSE: snprintf(buf, sizeof(buf), "SOUL §7: %s line %d is too dense — %d control tokens (; { ?) (max 3)\n  → split the line into multiple statements", a1, v1, v2); break;
+    case ERR_NOT_IN_BOOTSTRAP_WHITELIST: snprintf(buf, sizeof(buf), "SOUL §7: %s not in bootstrap C whitelist\n  → remove this file or add it to bootstrap-c-whitelist.txt (only bootstrap primitives)", a1); break;
     }
     report_fatal_error_and_exit(buf);
 }
