@@ -192,30 +192,6 @@ static void emit_scan_directory_with_body(cJSON *inst, FILE *out, int indent) {
     fprintf(out, "  }\n");
 }
 
-static void emit_alu_operation_into_output(cJSON *inst, FILE *out) {
-    const char *op = extract_json_field_string_value(inst, "operator");
-    const char *tgt = extract_json_field_string_value(inst, "target");
-    const char *tt = extract_json_field_string_value(inst, "target_type");
-    const char *tl = resolve_spec_type_into_lang(tt);
-    cJSON *lhs = cJSON_GetObjectItemCaseSensitive(inst, "lhs");
-    cJSON *rhs = cJSON_GetObjectItemCaseSensitive(inst, "rhs");
-    const char *lv = "", *rv = "";
-    if (lhs && cJSON_IsObject(lhs)) lv = extract_json_field_string_value(lhs, "value");
-    if (rhs && cJSON_IsObject(rhs)) rv = extract_json_field_string_value(rhs, "value");
-    if (!lv[0] || !tgt[0]) return;
-
-    if (!strcmp(op, "~")) {
-        fprintf(out, "  %s %s = ~(%s);\n", tl, tgt, lv);
-    } else if (!strcmp(op, "ROTR")) {
-        fprintf(out, "  %s %s = ((%s) >> (%s)) | ((%s) << (32 - (%s)));\n",
-            tl, tgt, lv, rv, lv, rv);
-    } else {
-        /* division by zero guard */
-        if (!strcmp(op, "/") || !strcmp(op, "%"))
-            fprintf(out, "  if ((%s) == 0) exit(255);\n", rv);
-        fprintf(out, "  %s %s = (%s) %s (%s);\n", tl, tgt, lv, op, rv);
-    }
-}
 
 
 
@@ -239,7 +215,28 @@ static void emit_string_tokenizer_with_body(cJSON *inst, FILE *out, int indent, 
 static void emit_bootstrap_central_dispatcher_func(cJSON *inst, FILE *out, int indent, const char *return_type) {
     (void)indent;
     const char *ty = extract_json_field_string_value(inst, "instruction_type");
-    if (!strcmp(ty, "alu_operation")) { emit_alu_operation_into_output(inst, out); return; }
+    if (!strcmp(ty, "alu_operation")) {
+        const char *op = extract_json_field_string_value(inst, "operator");
+        const char *tgt = extract_json_field_string_value(inst, "target");
+        const char *tt = extract_json_field_string_value(inst, "target_type");
+        const char *tl = resolve_spec_type_into_lang(tt);
+        cJSON *lhs = cJSON_GetObjectItemCaseSensitive(inst, "lhs");
+        cJSON *rhs = cJSON_GetObjectItemCaseSensitive(inst, "rhs");
+        const char *lv = "", *rv = "";
+        if (lhs && cJSON_IsObject(lhs)) lv = extract_json_field_string_value(lhs, "value");
+        if (rhs && cJSON_IsObject(rhs)) rv = extract_json_field_string_value(rhs, "value");
+        if (!lv[0] || !tgt[0]) return;
+        if (!strcmp(op, "~"))
+            fprintf(out, "  %s %s = ~(%s);\n", tl, tgt, lv);
+        else if (!strcmp(op, "ROTR"))
+            fprintf(out, "  %s %s = ((%s) >> (%s)) | ((%s) << (32 - (%s)));\n", tl, tgt, lv, rv, lv, rv);
+        else {
+            if (!strcmp(op, "/") || !strcmp(op, "%"))
+                fprintf(out, "  if ((%s) == 0) exit(255);\n", rv);
+            fprintf(out, "  %s %s = (%s) %s (%s);\n", tl, tgt, lv, op, rv);
+        }
+        return;
+    }
     if (!strcmp(ty, "conditional_branch")) { emit_conditional_branch_code_primitive(inst, out, indent, return_type); return; }
     if (!strcmp(ty, "emit_formatted_code")) { emit_formatted_code_primitive_handler(inst, out); return; }
     if (!strcmp(ty, "for_count_loop")) {
