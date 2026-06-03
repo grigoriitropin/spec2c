@@ -65,7 +65,7 @@ const char *check_file_content_for_violations(const char *path) {
 
 /* ── Density (control tokens per line) ──────────────────────────────── */
 
-const char *check_line_density_in_file(const char *path) {
+const char *verify_line_density_for_file_content(const char *path) {
     char *content = read_entire_file_into_string(path);
     if (!content) return "cannot read file";
     char *line = content;
