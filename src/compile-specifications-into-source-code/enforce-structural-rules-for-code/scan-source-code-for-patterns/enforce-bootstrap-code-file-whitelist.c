@@ -62,8 +62,7 @@ void enforce_bootstrap_freeze_limits(const char *srcdir) {
             /* find the file */
             char full[4096];
             snprintf(full, sizeof(full), "%s", srcdir);
-            /* search recursively: try srcdir/{name} then srcdir/*../{name} */
-            /* simpler: try known paths */
+            /* find the file by walking entire source tree */
             DIR *dd = opendir(dpath);
             if (!dd) return;
             struct dirent *de;
