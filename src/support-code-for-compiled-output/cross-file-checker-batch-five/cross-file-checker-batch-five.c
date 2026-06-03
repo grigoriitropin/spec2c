@@ -111,7 +111,10 @@ const char *check_dead_code_across_files(const char *dirpath) {
 }
 
 /* ── header include frequency (cross-file) ──────────────────────────── */
-typedef struct { char name[128]; int count; } hdr_entry;
+typedef struct {
+    char name[128];
+    int count;
+} hdr_entry;
 
 const char *check_header_include_frequency_count(const char *dirpath) {
     hdr_entry hdrs[128]; int hdr_count = 0;
@@ -138,7 +141,11 @@ const char *check_header_include_frequency_count(const char *dirpath) {
                 if (sscanf(line, " #include \"%127[^\"]\"", hdr) == 1) {
                     int found = 0;
                     for (int i = 0; i < hdr_count; i++)
-                        if (!strcmp(hdrs[i].name, hdr)) { hdrs[i].count++; found = 1; break; }
+                        if (!strcmp(hdrs[i].name, hdr)) {
+                        hdrs[i].count++;
+                        found = 1;
+                        break;
+                    }
                     if (!found && hdr_count < 128) {
                         snprintf(hdrs[hdr_count].name, 128, "%s", hdr);
                         hdrs[hdr_count].count = 1;
