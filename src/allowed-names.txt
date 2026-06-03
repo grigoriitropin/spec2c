@@ -279,6 +279,7 @@ tokenizer-loop-code-generator-func
 validate-ipm-content-structure-deeply
 validate-soul-naming-rule-check
 validate-type-name-against-whitelist
+validate_file_stem_with_dfa
 validate_ipm_function_strict_types
 validate_ipm_naming_compliance_check
 validate_ipm_root_node_fields
