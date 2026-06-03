@@ -263,9 +263,32 @@ static void search_for_unused_function_code(fn_entry_t *fns, int fn_qty, const c
     }
 }
 static void scan_source_for_undocumented_flags(const char *srcdir);
+static char nonsource_allowlist[64][256];
+static int nonsource_allowlist_qty;
+
+static void read_nonsource_allowlist(const char *srcdir) {
+    char path[4096]; snprintf(path, sizeof(path), "%s/allowed-non-source-files.txt", srcdir);
+    FILE *f = fopen(path, "r");
+    if (!f) { fprintf(stderr, "FATAL: cannot open allowed-non-source-files.txt\n"); exit(1); }
+    char line[256];
+    while (fgets(line, sizeof(line), f) && nonsource_allowlist_qty < 64) {
+        size_t len = strlen(line);
+        while (len > 0 && (line[len-1] == '\n' || line[len-1] == '\r')) line[--len] = 0;
+        if (len > 0 && line[0] != '#')
+            snprintf(nonsource_allowlist[nonsource_allowlist_qty++], 256, "%s", line);
+    }
+    fclose(f);
+}
+static int check_nonsource_filename_allowlist(const char *name) {
+    for (int i = 0; i < nonsource_allowlist_qty; i++)
+        if (!strcmp(nonsource_allowlist[i], name)) return 1;
+    return 0;
+}
+
 void enforce_all_source_code_rules(const char *srcdir) {
     read_allowed_names_from_file(srcdir);
     read_banned_patterns_from_file(srcdir);
+    read_nonsource_allowlist(srcdir);
     load_bootstrap_whitelist_from_disk(srcdir);
     fn_entry_t fns[512]; int fn_qty = 0;
     inc_entry_t incs[128]; int inc_qty = 0;
@@ -282,7 +305,17 @@ void enforce_all_source_code_rules(const char *srcdir) {
                 validate_name_against_soul_rules("directory", de->d_name, sub);
                 scan_dir(sub); continue;
             }
-            if (!match_source_code_header_filename(de->d_name)) continue;
+            if (!match_source_code_header_filename(de->d_name)) {
+                size_t dn_len = strlen(de->d_name);
+                int is_ipm = dn_len > 4 && !strcmp(de->d_name + dn_len - 4, ".ipm");
+                if (!is_ipm) {
+                    if (!check_nonsource_filename_allowlist(de->d_name)) {
+                        fprintf(stderr, "FATAL: non-source file in %s: %s\n", dirpath, de->d_name);
+                        exit(1);
+                    }
+                    continue;
+                }
+            }
             if (!match_name_against_bootstrap_list(de->d_name))
                 report_violation_with_actionable_hint(ERR_NOT_IN_BOOTSTRAP_WHITELIST, sub, 0, 0, NULL);
             file_cnt++;
@@ -290,7 +323,8 @@ void enforce_all_source_code_rules(const char *srcdir) {
             char *dot = strrchr(fname, '.'); if (dot) *dot = 0;
             validate_name_against_soul_rules("file", fname, sub);
             int is_c = !strcmp(de->d_name + strlen(de->d_name) - 2, ".c");
-            check_single_file_for_violations(sub, is_c, fns, &fn_qty, incs, &inc_qty);
+            int is_source = is_c || (strlen(de->d_name) > 4 && !strcmp(de->d_name + strlen(de->d_name) - 4, ".ipm"));
+            check_single_file_for_violations(sub, is_source, fns, &fn_qty, incs, &inc_qty);
         }
         closedir(d);
         if (file_cnt > MAX_FILES_PER_DIR) {
