@@ -35,4 +35,4 @@ ffi-function-export-layer-here/enforce-ffi-function-export-layer.c
 structural-rule-checker-batch-two/structural-rule-checker-batch-two.c
 ipm-file-validator-ffi-batch/ipm-file-validator-ffi-batch.c
 remaining-rules-ffi-batch-four.c
-dead-code-header-freq-ffi-batch.c
+dead-code-header-check-batch.c

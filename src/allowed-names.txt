@@ -313,9 +313,10 @@ check_header_include_frequency_count
 collect_function_names_from_file
 find_function_calls_within_files
 find_function_calls_within_files
-dead-code-header-freq-ffi-batch
+dead-code-header-check-batch
 check_header_include_frequency_count
 check_dead_code_across_files
 walk_source_files
 count_headers_cb
 collect_defs_cb
+dead-code-header-check-batch
