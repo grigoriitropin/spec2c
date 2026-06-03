@@ -86,6 +86,10 @@ static int emit_builtin_call_when_matched(cJSON *inst, FILE *out) {
         if (args && cJSON_IsArray(args) && cJSON_GetArraySize(args) > 0) {
             cJSON *a0 = cJSON_GetArrayItem(args, 0);
             if (cJSON_IsNumber(a0)) code = a0->valueint;
+            else if (cJSON_IsObject(a0))
+                code = atoi(extract_json_field_string_value(a0, "value"));
+            else if (cJSON_IsString(a0))
+                code = atoi(a0->valuestring);
         }
         fprintf(out, "  exit(%d);\n", code);
         return 1;
@@ -95,6 +99,10 @@ static int emit_builtin_call_when_matched(cJSON *inst, FILE *out) {
         if (args && cJSON_IsArray(args) && cJSON_GetArraySize(args) > 0) {
             cJSON *a0 = cJSON_GetArrayItem(args, 0);
             if (cJSON_IsNumber(a0)) idx = a0->valueint;
+            else if (cJSON_IsObject(a0))
+                idx = atoi(extract_json_field_string_value(a0, "value"));
+            else if (cJSON_IsString(a0))
+                idx = atoi(a0->valuestring);
         }
         if (rv[0]) fprintf(out, "  const char *%s = ", rv);
         fprintf(out, "(%d < argc ? argv[%d] : NULL);\n", idx, idx);
