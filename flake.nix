@@ -149,6 +149,11 @@
             -o s2c_enforce ${cjson-static}/lib/libcjson.a -lm
 
            # Step 2: Run enforcement gate (exits 1 on violation → build fails)
+           cp src/allowed-names.txt . 2>/dev/null || true
+           cp src/banned-patterns.txt . 2>/dev/null || true
+           cp src/bootstrap-c-whitelist.txt . 2>/dev/null || true
+           cp src/bootstrap-c-freeze-limits.txt . 2>/dev/null || true
+           cp src/allowed-non-source-files.txt . 2>/dev/null || true
            echo '${builtins.toJSON all_sources}' > source-manifest.json
            ./s2c_enforce .
 
