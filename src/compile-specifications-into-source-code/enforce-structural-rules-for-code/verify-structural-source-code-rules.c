@@ -15,7 +15,6 @@ static int debug_trace = 0;
 #define MAX_FUNCTIONS_PER_FILE 10
 #define MAX_LINES_PER_FUNCTION 50
 #define MAX_LINE_LENGTH 120
-/* ── centralized error reporting ───────────────────────────────────── */
 typedef enum {
     ERR_FILE_TOO_LONG,
     ERR_TOO_MANY_FUNCTIONS,
@@ -98,7 +97,6 @@ static int detect_function_definition_start_line(const char *line) {
     if (match_name_against_stdlib_list(first)) return 0;
     return 1;
 }
-/* ── shared state types ────────────────────────────────────────────── */
 typedef struct {
     char name[128];
     char file[256];
@@ -107,9 +105,7 @@ typedef struct {
     char name[64];
     int count;
 } inc_entry_t;
-
 static void check_include_headers_for_file(const char *sub, inc_entry_t *incs, int *inc_qty);
-
 static void check_single_file_for_violations(const char *sub, int is_c,
     fn_entry_t *fns, int *fn_qty, inc_entry_t *incs, int *inc_qty)
 {
@@ -126,7 +122,6 @@ static void check_single_file_for_violations(const char *sub, int is_c,
         brace_state_t bstate; clear_brace_tracking_for_function(&bstate);
         while (fgets(line, sizeof(line), f)) {
             file_line++;
-            /* density check — count ; { ? per line, skip strings/comments/chars */
             {   int in_str = 0, in_char = 0, in_comment = 0, tokens = 0;
                 for (const char *p = line; *p; p++) {
                     if (in_comment) {
@@ -199,7 +194,6 @@ static void check_single_file_for_violations(const char *sub, int is_c,
     }
     check_include_headers_for_file(sub, incs, inc_qty);
 }
-
 static void check_include_headers_for_file(const char *sub, inc_entry_t *incs, int *inc_qty) {
     FILE *f2 = fopen(sub, "r");
     if (f2) {
@@ -230,7 +224,6 @@ static void check_include_headers_for_file(const char *sub, inc_entry_t *incs, i
         fclose(f2);
     }
 }
-
 static void search_for_unused_function_code(fn_entry_t *fns, int fn_qty, const char *srcdir) {
     for (int i = 0; i < fn_qty; i++) {
         if (!strcmp(fns[i].name, "main")) continue;
@@ -260,16 +253,12 @@ static void search_for_unused_function_code(fn_entry_t *fns, int fn_qty, const c
         }
     }
 }
-
 static void scan_source_for_undocumented_flags(const char *srcdir);
-
 void enforce_all_source_code_rules(const char *srcdir) {
     read_allowed_names_from_file(srcdir);
     read_banned_patterns_from_file(srcdir);
-
     fn_entry_t fns[512]; int fn_qty = 0;
     inc_entry_t incs[128]; int inc_qty = 0;
-
     void scan_dir(const char *dirpath) {
         DIR *d = opendir(dirpath); if (!d) return;
         int file_cnt = 0;
@@ -308,7 +297,6 @@ void enforce_all_source_code_rules(const char *srcdir) {
     if (main_count != 1) {
         report_violation_with_actionable_hint(ERR_MAIN_COUNT, NULL, main_count, 0, NULL);
     }
-
     scan_source_for_undocumented_flags(srcdir);
     verify_ipm_names_across_sources(srcdir);
 }
