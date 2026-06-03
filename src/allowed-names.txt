@@ -228,3 +228,4 @@ emit_tokenizer_loop_handler_code
 emit_count_loop_handler_code
 emit_branch_condition_handler_code
 emit_variable_decl_handler_code
+list_files_inside_directory_path

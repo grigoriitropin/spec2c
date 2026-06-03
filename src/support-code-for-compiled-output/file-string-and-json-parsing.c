@@ -89,7 +89,7 @@ const char *resolve_spec_type_into_lang(const char *t) {
     return "void *";
 }
 
-cJSON *list_files_in_directory(const char *path) {
+cJSON *list_files_inside_directory_path(const char *path) {
     cJSON *arr = cJSON_CreateArray();
     if (!arr) return NULL;
     DIR *d = opendir(path);
