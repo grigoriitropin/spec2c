@@ -36,7 +36,7 @@ for idx, bv in enumerate(patterns[:-1]):  # first 4: m, a, i, n
         "branch_on_success": [{
             "instruction_type": "conditional_branch",
             "condition_type": "numeric_compare",
-            "operator": "==", "lhs": {"value": "byte"}, "rhs": {"value": str(bv)},
+            "operator": "==", "lhs": {"value": "byte"}, "rhs": {"value": str(patterns[idx + 1])},
             "branch_on_success": [{
                 "instruction_type": "alu_operation",
                 "operator": "+", "target": f"ms_{idx + 1}",
@@ -132,7 +132,7 @@ spec = {
     }
 }
 
-with open("modules/rules/detect-main-in-source-code.ipm", "w") as f:
+with open("modules/rules/find-every-main-function-block.ipm", "w") as f:
     json.dump(spec, f, separators=(",", ":"), indent=None)
     f.write("\n")
 print(f"OK: {len(instructions)} top-level, {len(body)} body, {len(spec['function_definitions']['detect-main-function-in-source-code']['execution_instructions'])} exec")
