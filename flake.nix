@@ -119,7 +119,7 @@
           runHook preBuild
 
           # ── Step 1: Build library modules ─────────────────
-          mkdir -p dfa_obj density_obj path_obj
+          mkdir -p dfa_obj density_obj path_obj naming_obj
 
           # DFA banned patterns
           spec2c check-banned-patterns-pure-ipm.ipm --library -o dfa_obj/dfa.c
@@ -153,6 +153,18 @@
             -Isrc/support-code-for-compiled-output \
             -c path_obj/path.c -o path_obj/path.o
 
+          # Naming rules validator
+          spec2c modules/rules/validate-soul-naming-rule-check.ipm --library -o naming_obj/naming.c
+          sed -i '/^{"ok"/d' naming_obj/naming.c
+          sed -i 's/void validate_soul_naming_rule_check/int validate_soul_naming_rule_check/' naming_obj/validate_soul_naming_rule_check.h
+          sed -i 's/(char \* name_arg)/(const char *name_arg)/g' naming_obj/naming.c
+          sed -i 's/(char \* name_arg)/(const char *name_arg)/g' naming_obj/validate_soul_naming_rule_check.h
+          sed -i 's/const char \*_name = "[^"]*";//' naming_obj/naming.c
+          $CC ${builtins.toString cflags} \
+            -Isrc -I${S} -I${S}/shared-type-declarations-across-modules \
+            -Isrc/support-code-for-compiled-output \
+            -c naming_obj/naming.c -o naming_obj/naming.o
+
           # ── Step 2: Build IPM enforcer executable ────────
           spec2c enforce-naming-rules-via-ffi.ipm > ipm_enforce_gen.c
           sed -i '/^{"ok"/d' ipm_enforce_gen.c
@@ -167,9 +179,9 @@
           sed -i 's/, char \* name, char \* fp/, const char *name, const char *fp/' ipm_enforce_gen.c
           # Fix result variable types
           for i in 0 1 2 3 4 5 6 7 8; do sed -i "s/char \*bp$i =/int bp$i =/" ipm_enforce_gen.c; done
-          sed -i '/const char \*err/!s/char \* *err =/const char *err =/' ipm_enforce_gen.c
+          sed -i '/const char \*err/!s/char \* *err =/int err =/' ipm_enforce_gen.c
+          sed -i 's/if (err != NULL)/if (err)/' ipm_enforce_gen.c
           sed -i 's/char \*err0 =/const char *err0 =/' ipm_enforce_gen.c
-          sed -i 's/char \*err2 =/const char *err2 =/' ipm_enforce_gen.c
           sed -i 's/char \*err2 =/int err2 =/' ipm_enforce_gen.c
           sed -i 's/if (err2 != NULL)/if (err2)/' ipm_enforce_gen.c
           sed -i 's/char \*err3 =/int err3 =/' ipm_enforce_gen.c
@@ -200,6 +212,7 @@
             dfa_obj/dfa.o \
             density_obj/density.o \
             path_obj/path.o \
+            naming_obj/naming.o \
             ipm_enforce_gen.c \
             -o ipm-enforce -lcjson
 
