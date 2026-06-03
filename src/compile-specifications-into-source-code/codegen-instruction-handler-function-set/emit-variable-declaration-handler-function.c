@@ -69,7 +69,10 @@ static void emit_dbexec_code_into_output(cJSON *inst, FILE *out, int indent, con
     fprintf(out, "/* DB exec: %s */\n", sql ? sql : "?");
 }
 
-typedef struct { const char *type; instr_hdlr handler; } instr_dispatch_t;
+typedef struct {
+    const char *type;
+    instr_hdlr handler;
+} instr_dispatch_t;
 
 static const instr_dispatch_t INSTR_HANDLERS[] = {
     {"access_json_field",              emit_field_access_into_output},
