@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // bootstrap C whitelist + SHA256 hash verification — HASHES COMPILED INTO BINARY
 #include "verify-structural-source-code-rules.h"
-#include "bootstrap-file-sha-hashes-generated.h"
+#include "../bootstrap-compiled-limit-hash-data/bootstrap-file-sha-hashes-generated.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

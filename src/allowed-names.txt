@@ -244,7 +244,7 @@ enforce_bootstrap_code_freeze_check
 enforce_bootstrap_code_freeze_check
 search_file_using_name_recursive
 search_file_using_name_recursive
-bootstrap-freeze-data-compiled-into
+bootstrap-compiled-limit-hash-data
 emit_extern_imports_into_output
 compute_sha256_hash_into_bytes
 compute_file_sha256_hex_digest
@@ -253,4 +253,4 @@ solve_sha256_message_block_hash
 solve_sha256_message_block_hash
 compute-sha256-hash-for-files
 compute-file-sha-hash-digest
-bootstrap-file-sha-hashes-generated
+bootstrap-compiled-limit-hash-data
