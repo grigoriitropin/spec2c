@@ -309,7 +309,7 @@
   },
   "module_name": "specification-compilation-pipeline-entry-point",
   "package_name": "specification-compilation-pipeline-entry-point",
-  "package_type": "module",
+  "package_type": "component",
   "imports": [
     "code-generation-instruction-dispatch-table",
     "ast-function-compilation-engine-code"
