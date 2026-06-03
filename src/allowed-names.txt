@@ -217,7 +217,6 @@ ipm-compiler-definition-spec-directory
 check_ipm_ast_depth_limits
 validate_single_ipm_file_content
 emit_new_standard_loop_code
-emit_code_format_primitive_handler
 ipm-handler-code-generated-output
 emit_json_field_access_handler
 emit_return_statement_handler_code
@@ -234,3 +233,6 @@ emit_scan_directory_entries_handler
 handler-file-input-output-scanning
 file-input-output-handler-code
 emit_bootstrap_primitive_handler_code
+emit_formatted_code_primitive_handler
+emit_conditional_branch_code_primitive
+emit_bootstrap_dispatcher_handler
