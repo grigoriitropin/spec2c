@@ -181,9 +181,9 @@ static void emit_new_standard_loop_code(cJSON *inst, FILE *out, int indent, cons
         if (!fmt[0]) return;
         fprintf(out, "fprintf(out, \"");
         for (const char *p = fmt; *p; p++) {
-            if (*p == '"' || *p == '\\') fputc('\\', out);
+            if (*p == '"' || *p == '\\') { fputc('\\', out); fputc(*p, out); }
             else if (*p == '\n') fprintf(out, "\\n");
-            fputc(*p, out);
+            else fputc(*p, out);
         }
         fprintf(out, "\"");
         if (args && cJSON_IsArray(args)) {

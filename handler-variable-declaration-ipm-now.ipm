@@ -1,0 +1,37 @@
+{
+  "description": "Generates C variable declaration code from IPM instruction fields",
+  "package_name": "handler-variable-declaration-ipm-now",
+  "module_name": "handler-variable-declaration-ipm-now",
+  "imports": ["runtime-for-generated-ipm-code"],
+  "function_definitions": {
+    "emit_variable_declaration_handler_code": {
+      "return_type": "void",
+      "parameter_definitions": [
+        {"parameter_name": "inst", "parameter_type": "json_object"},
+        {"parameter_name": "out", "parameter_type": "string"},
+        {"parameter_name": "indent", "parameter_type": "int"},
+        {"parameter_name": "return_type", "parameter_type": "string"}
+      ],
+      "execution_instructions": [
+        {"instruction_type": "access_json_field", "variable_name": "vn", "variable_type": "string", "source_object": "inst", "field_name": "variable_name"},
+        {"instruction_type": "access_json_field", "variable_name": "vt", "variable_type": "string", "source_object": "inst", "field_name": "variable_type"},
+        {"instruction_type": "access_json_field", "variable_name": "op", "variable_type": "string", "source_object": "inst", "field_name": "assignment_operation"},
+        {"instruction_type": "access_json_field", "variable_name": "src", "variable_type": "string", "source_object": "inst", "field_name": "source_target"},
+
+        {"instruction_type": "conditional_branch", "condition_operation": "is_not_null", "condition_target": "vn",
+          "branch_on_success": [
+            {"instruction_type": "conditional_branch", "condition_operation": "is_not_null", "condition_target": "op",
+              "branch_on_success": [
+                {"instruction_type": "emit_formatted_code",
+                 "code_format": "  %s %s = %s(%s);\n",
+                 "code_arguments": ["vt", "vn", "op", "src"]
+                }
+              ]
+            }
+          ]
+        },
+        {"instruction_type": "return_statement", "return_payload": {"value": "0"}}
+      ]
+    }
+  }
+}
