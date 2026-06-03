@@ -9,14 +9,14 @@
 extern char *read_entire_file_into_string(const char *path);
 
 /* scan all .c/.h files in dir, call cb for each */
-static void walk_source_files(const char *dp, void (*cb)(const char *, const char *)) {
+static void iterate_source_files_with_callback(const char *dp, void (*cb)(const char *, const char *)) {
     DIR *d = opendir(dp); if (!d) return;
     struct dirent *de;
     while ((de = readdir(d)) != NULL) {
         if (de->d_name[0] == '.') continue;
         char sub[8192]; snprintf(sub, sizeof(sub), "%s/%s", dp, de->d_name);
         struct stat st; if (stat(sub, &st) != 0) continue;
-        if (S_ISDIR(st.st_mode)) { walk_source_files(sub, cb); continue; }
+        if (S_ISDIR(st.st_mode)) { iterate_source_files_with_callback(sub, cb); continue; }
         size_t nl = strlen(de->d_name);
         if (nl > 2 && (!strcmp(de->d_name+nl-2,".c") || !strcmp(de->d_name+nl-2,".h")))
             cb(sub, de->d_name);
@@ -29,7 +29,7 @@ static char hdr_names[128][128];
 static int  hdr_counts[128];
 static int  hdr_total;
 
-static void count_headers_cb(const char *path, const char *name) {
+static void increment_header_count_on_match(const char *path, const char *name) {
     (void)name;
     char *c = read_entire_file_into_string(path); if (!c) return;
     char *line = c, *next;
@@ -53,7 +53,7 @@ static void count_headers_cb(const char *path, const char *name) {
 
 const char *check_header_include_frequency_count(const char *dirpath) {
     hdr_total = 0;
-    walk_source_files(dirpath, count_headers_cb);
+    iterate_source_files_with_callback(dirpath, increment_header_count_on_match);
     for (int i = 0; i < hdr_total; i++) {
         if (hdr_counts[i] > 5) {
             static char err[256];
@@ -69,7 +69,7 @@ static char fn_names[512][128];
 static char fn_files[512][256];
 static int  fn_total;
 
-static void collect_defs_cb(const char *path, const char *name) {
+static void store_function_definition_at_path(const char *path, const char *name) {
     (void)name;
     char *c = read_entire_file_into_string(path); if (!c) return;
     char *line = c, *next;
@@ -97,7 +97,7 @@ static void collect_defs_cb(const char *path, const char *name) {
 }
 
 const char *check_dead_code_across_files(const char *dirpath) {
-    fn_total = 0; walk_source_files(dirpath, collect_defs_cb);
+    fn_total = 0; iterate_source_files_with_callback(dirpath, store_function_definition_at_path);
     for (int i = 0; i < fn_total; i++) {
         if (!strcmp(fn_names[i], "main")) continue;
         int called = 0;

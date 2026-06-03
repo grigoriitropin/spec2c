@@ -316,7 +316,10 @@ find_function_calls_within_files
 dead-code-header-check-batch
 check_header_include_frequency_count
 check_dead_code_across_files
-walk_source_files
-count_headers_cb
-collect_defs_cb
+iterate_source_files_with_callback
+increment_header_count_on_match
+store_function_definition_at_path
 dead-code-header-check-batch
+iterate_source_files_with_callback
+increment_header_count_on_match
+store_function_definition_at_path
