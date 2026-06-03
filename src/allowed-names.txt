@@ -259,4 +259,5 @@ bootstrap-file-sha-hashes-generated
 emit_variable_declaration_code_line
 check-naming-rules-for-ffi
 check_name_following_soul_rules
-check_ipm_type_names_are_strict
+validate_ipm_type_name_strictly
+validate_ipm_type_name_strictly

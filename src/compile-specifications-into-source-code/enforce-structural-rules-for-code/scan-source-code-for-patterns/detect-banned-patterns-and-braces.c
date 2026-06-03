@@ -220,7 +220,7 @@ static void check_ipm_ast_depth_limits(cJSON *node, int depth, const char *path)
     }
 }
 
-static void check_ipm_type_names_are_strict(cJSON *node, const char *path) {
+static void validate_ipm_type_name_strictly(cJSON *node, const char *path) {
     if (!node) return;
     if (cJSON_IsObject(node)) {
         cJSON *vt = cJSON_GetObjectItemCaseSensitive(node, "variable_type");
@@ -265,10 +265,10 @@ static void check_ipm_type_names_are_strict(cJSON *node, const char *path) {
             }
         }
         cJSON *c = node->child;
-        while (c) { check_ipm_type_names_are_strict(c, path); c = c->next; }
+        while (c) { validate_ipm_type_name_strictly(c, path); c = c->next; }
     } else if (cJSON_IsArray(node)) {
         cJSON *c = node->child;
-        while (c) { check_ipm_type_names_are_strict(c, path); c = c->next; }
+        while (c) { validate_ipm_type_name_strictly(c, path); c = c->next; }
     }
 }
 
@@ -286,7 +286,7 @@ static void validate_single_ipm_file_content(const char *sp,
 
     scan_json_for_banned_words(root, sp);
     check_ipm_ast_depth_limits(root, 0, sp);
-    check_ipm_type_names_are_strict(root, sp);
+    validate_ipm_type_name_strictly(root, sp);
 
     cJSON *pkg = cJSON_GetObjectItemCaseSensitive(root, "package_name");
     if (pkg && cJSON_IsString(pkg)) validate_single_ipm_name_value(pkg->valuestring, "package_name", sp);
