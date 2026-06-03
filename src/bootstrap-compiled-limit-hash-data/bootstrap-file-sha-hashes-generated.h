@@ -1,5 +1,5 @@
 // AUTO-GENERATED — SHA256 hashes of bootstrap files, compiled into binary
-#define BOOTSTRAP_HASH_COUNT 38
+#define BOOTSTRAP_HASH_COUNT 37
 static const char *hash_file_names[] = {
     "buffer-output-and-command-launch.c",
     "check-source-conformance-entry-point.c",
@@ -38,7 +38,6 @@ static const char *hash_file_names[] = {
     "ipm-file-validator-ffi-batch/ipm-file-validator-ffi-batch.c",
     "remaining-rules-ffi-batch-four.c",
     "dead-code-header-check-batch.c",
-    "tokenizer-loop-code-generator-func/emit-string-tokenizer-loop-gen.c",
 };
 static const char *hash_sha256_values[] = {
     "4d88b5954a0a470f8afa1a82685616a3888f440fe8b0c6cdd1f58335295fcfad",
@@ -46,7 +45,7 @@ static const char *hash_sha256_values[] = {
     "17ad46e0e478a1c126653abe5ca7d94b62ecf03827f3e1b2999f943785f886e6",
     "0547ba8ebac1df4214322119e92faf18ccb1bc369e9ea6c6d63d645233cd0a9a",
     "658bd2d7ce7e89b60d00e47b92e82c343907161142e80df92aeea09af6130b11",
-    "639aaba7861478dd8be6e448f8552ff4a863a50fa8c14cd44734c5d83bc3ca96",
+    "fcd7c7c535f539b1c5f234518608131b6b77732f908f3bcc930736f88a0fdeb2",
     "85fcaed99daa96fe1f4fbc23662c2066d98ddb1919f0970d7cdf288625c02978",
     "8687e10bad6101167c10eaf24b485b588b6d2185b1832407439e116642722cec",
     "6c04bc6f315e4230e82a4380d1285961b6823bbb31519e416a3db51c3dce1058",
@@ -78,7 +77,6 @@ static const char *hash_sha256_values[] = {
     "0000000000000000000000000000000000000000000000000000000000000000",
     "d6946cc6f07f9aebbb3bcc2a240c75c6692779f77d089d093bdb9a6aa203eb41",
     "de250a88b8376b985dd5264781aa66ad80989a5daa8493e939318ef8310ee66a",
-    "0000000000000000000000000000000000000000000000000000000000000000",
 };
 static const int hash_max_lines[] = {
     70,
@@ -108,7 +106,6 @@ static const int hash_max_lines[] = {
     53,
     421,
     37,
-    0,
     0,
     0,
     0,

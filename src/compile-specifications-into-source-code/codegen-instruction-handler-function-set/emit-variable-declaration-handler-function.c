@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // spec2c codegen — C bootstrap: 3 primitives + dispatcher
 #include "../shared-type-declarations-across-modules/share-type-definitions-across-files.h"
-
 typedef void (*instr_hdlr)(cJSON *inst, FILE *out, int indent, const char *return_type);
-
 static void emit_formatted_code_primitive_handler(cJSON *inst, FILE *out) {
     const char *fmt = extract_json_field_string_value(inst, "code_format");
     cJSON *args = cJSON_GetObjectItemCaseSensitive(inst, "code_arguments");
@@ -24,7 +22,6 @@ static void emit_formatted_code_primitive_handler(cJSON *inst, FILE *out) {
     }
     fprintf(out, ");\n");
 }
-
 static void emit_conditional_branch_code_primitive(cJSON *inst, FILE *out, int indent, const char *return_type) {
     const char *op = extract_json_field_string_value(inst, "condition_operation");
     const char *tgt = extract_json_field_string_value(inst, "condition_target");
@@ -42,7 +39,6 @@ static void emit_conditional_branch_code_primitive(cJSON *inst, FILE *out, int i
     if (bof) generate_code_from_ast_instructions(bof, out, indent + 1, return_type);
     fprintf(out, "}\n");
 }
-
 static void emit_variable_declaration_code_line(cJSON *inst, FILE *out, int indent) {
     const char *vn = extract_json_field_string_value(inst, "variable_name");
     const char *vt = extract_json_field_string_value(inst, "variable_type");
@@ -76,7 +72,6 @@ static void emit_variable_declaration_code_line(cJSON *inst, FILE *out, int inde
     fprintf(out, "%s %s = %s(%s);\n", vt, vn, op,
         extract_json_field_string_value(inst, "source_target"));
 }
-
 static int emit_report_error_then_exit(cJSON *inst, FILE *out) {
     cJSON *args = cJSON_GetObjectItemCaseSensitive(inst, "invocation_arguments");
     const char *v[3] = {"", "violation", "fix the issue"};

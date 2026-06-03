@@ -329,4 +329,3 @@ emit_string_tokenizer_with_body
 emit_single_alu_operation_code
 emit_single_alu_operation_code
 tokenizer-loop-code-generator-func
-emit-string-tokenizer-loop-gen
