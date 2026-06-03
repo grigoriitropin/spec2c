@@ -32,7 +32,7 @@
         "src/support-code-for-compiled-output/file-string-and-json-parsing.c"
         "src/support-code-for-compiled-output/hash-table-and-substitution-code.c"
             "src/support-code-for-compiled-output/compute-file-sha-hash-digest/compute-sha256-hash-for-files.c"
-        "src/support-code-for-compiled-output/validate-type-name-against-whitelist.c"
+        "src/support-code-for-compiled-output/validate-type-name-against-whitelist/validate-type-name-against-whitelist.c"
         "src/support-code-for-compiled-output/buffer-output-and-command-launch.c"
       ];
     in {
