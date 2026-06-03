@@ -214,3 +214,4 @@ compile-function-definitions-into-code
 generate-code-from-instruction-ast
 ipm-compiler-definition-spec-directory
 ipm-compiler-definition-spec-directory
+check_ipm_ast_depth_limits

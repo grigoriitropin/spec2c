@@ -190,6 +190,32 @@ static void load_ipm_import_whitelist_file(const char *srcdir,
     fclose(wf);
 }
 
+static void check_ipm_ast_depth_limits(cJSON *node, int depth, const char *path) {
+    if (!node || depth > 20) {
+        if (depth > 20) { char msg[8448]; snprintf(msg, sizeof(msg),
+            "SOUL §7: AST depth > 20 in %s\n  → extract nested logic", path);
+            fprintf(stderr, "spec2c: %s\n", msg); exit(1); }
+        return;
+    }
+    if (cJSON_IsObject(node)) {
+        int keys = 0; cJSON *c = node->child;
+        while (c) { keys++; c = c->next; }
+        if (keys > 7) { char msg[8448]; snprintf(msg, sizeof(msg),
+            "SOUL §7: object has %d keys (max 7) in %s\n  → split into smaller objects", keys, path);
+            fprintf(stderr, "spec2c: %s\n", msg); exit(1); }
+        c = node->child;
+        while (c) { check_ipm_ast_depth_limits(c, depth + 1, path); c = c->next; }
+    } else if (cJSON_IsArray(node)) {
+        cJSON *c = node->child;
+        while (c) {
+            if (cJSON_IsArray(c)) { char msg[8448]; snprintf(msg, sizeof(msg),
+                "SOUL §7: nested array in %s\n  → use flat list of objects", path);
+                fprintf(stderr, "spec2c: %s\n", msg); exit(1); }
+            check_ipm_ast_depth_limits(c, depth + 1, path); c = c->next;
+        }
+    }
+}
+
 void verify_ipm_names_across_sources(const char *srcdir) {
     char allowed_imports[64][128]; int n_allowed = 0;
     load_ipm_import_whitelist_file(srcdir, allowed_imports, &n_allowed);
@@ -218,6 +244,7 @@ void verify_ipm_names_across_sources(const char *srcdir) {
             cJSON *root = cJSON_Parse(txt); free(txt);
             if (!root) continue;
             scan_json_for_banned_words(root, sp);
+            check_ipm_ast_depth_limits(root, 0, sp);
             cJSON *pkg = cJSON_GetObjectItemCaseSensitive(root, "package_name");
             if (pkg && cJSON_IsString(pkg)) validate_single_ipm_name_value(pkg->valuestring, "package_name", sp);
             cJSON *mod = cJSON_GetObjectItemCaseSensitive(root, "module_name");
