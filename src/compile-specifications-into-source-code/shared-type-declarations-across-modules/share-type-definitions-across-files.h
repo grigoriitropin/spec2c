@@ -46,3 +46,4 @@ char *apply_substitution_against_text_data(const char *tmpl, const subst_t *subs
 char *resolve_template_file_from_base(const char *base, const char *file);
 
 #endif
+void emit_variable_declaration_into_output(cJSON *inst, FILE *out, int indent, const char *return_type);
