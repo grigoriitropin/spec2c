@@ -31,7 +31,6 @@
         "src/support-code-for-compiled-output/file-string-and-json-parsing.c"
         "src/support-code-for-compiled-output/hash-table-and-substitution-code.c"
         "src/support-code-for-compiled-output/buffer-output-and-command-launch.c"
-        "src/compile-specifications-into-source-code/codegen-instruction-handler-function-set/emit-variable-declaration-handler-function.c"
       ];
     in {
       # ── Standalone enforcement checker ────────────────────────────
@@ -86,6 +85,7 @@
             ${S}/compile-abstract-instructions-into-code.c \
             ${S}/generate-output-from-ipm-specification.c \
             ${S}/parse-legacy-specification-file-format/parse-old-format-specification-data.c \
+            ${S}/codegen-instruction-handler-function-set/emit-variable-declaration-handler-function.c \
             ${builtins.toString runtime_src} \
             -o spec2c -lcjson
 
