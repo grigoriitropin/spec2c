@@ -33,7 +33,6 @@
         "src/support-code-for-compiled-output/hash-table-and-substitution-code.c"
             "src/support-code-for-compiled-output/compute-file-sha-hash-digest/compute-sha256-hash-for-files.c"
         "src/support-code-for-compiled-output/structural-rule-checker-batch-two/structural-rule-checker-batch-two.c"
-        "src/support-code-for-compiled-output/ipm-file-validator-ffi-batch/ipm-file-validator-ffi-batch.c"
         "src/support-code-for-compiled-output/validate-type-name-against-whitelist/validate-type-name-against-whitelist.c"
         "src/support-code-for-compiled-output/buffer-output-and-command-launch.c"
       ];
@@ -119,6 +118,7 @@
           runHook preBuild
 
           spec2c enforce-naming-rules-via-ffi.ipm > ipm_enforce_gen.c
+          sed -i '/^{"ok"/d' ipm_enforce_gen.c
           sed -i '/"enforce-naming-rules-via-ffi.h"/d' ipm_enforce_gen.c
           sed -i '1i#include "runtime-for-generated-ipm-code.h"' ipm_enforce_gen.c
           sed -i 's/extern char \* check_name_following_soul_rules(char \*/extern const char * check_name_following_soul_rules(const char */' ipm_enforce_gen.c
@@ -129,7 +129,7 @@
           sed -i 's/, char \* name, char \* fp/, const char *name, const char *fp/' ipm_enforce_gen.c
           # Fix result variable types
           sed -i 's/char \*err0 =/const char *err0 =/' ipm_enforce_gen.c
-          sed -i 's/char \*err1 =/const char *err1 =/' ipm_enforce_gen.c
+            src/support-code-for-compiled-output/remaining-rules-ffi-batch-four/remaining-rules-ffi-batch-four.c \n          sed -i 's/char \*err1 =/const char *err1 =/' ipm_enforce_gen.c
           sed -i 's/char \*err2 =/const char *err2 =/' ipm_enforce_gen.c
           sed -i 's/char \*err3 =/const char *err3 =/' ipm_enforce_gen.c
           sed -i '/const char \*err =/!s/char \*err =/const char *err =/' ipm_enforce_gen.c
@@ -148,11 +148,10 @@
             src/support-code-for-compiled-output/buffer-output-and-command-launch.c \
             src/support-code-for-compiled-output/compute-file-sha-hash-digest/compute-sha256-hash-for-files.c \
             src/support-code-for-compiled-output/structural-rule-checker-batch-two/structural-rule-checker-batch-two.c \
-        "src/support-code-for-compiled-output/ipm-file-validator-ffi-batch/ipm-file-validator-ffi-batch.c"
+            src/support-code-for-compiled-output/ipm-file-validator-ffi-batch/ipm-file-validator-ffi-batch.c \
             src/support-code-for-compiled-output/validate-type-name-against-whitelist/validate-type-name-against-whitelist.c \
             src/compile-specifications-into-source-code/enforce-structural-rules-for-code/scan-source-code-for-patterns/check-naming-rules-for-ffi.c \
             src/compile-specifications-into-source-code/enforce-structural-rules-for-code/scan-source-code-for-patterns/ffi-function-export-layer-here/enforce-ffi-function-export-layer.c \
-            src/support-code-for-compiled-output/remaining-rules-ffi-batch-four/remaining-rules-ffi-batch-four.c \
             ipm_enforce_gen.c \
             -o ipm-enforce -lcjson
 
