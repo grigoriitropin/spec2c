@@ -180,13 +180,13 @@ int verify_signature(const char *public_key_hex,
                      const char *signature_hex,
                      const unsigned char *contents,
                      const size_t contents_len) {
-    int pk_len = crypto_sign_PUBLICKEYBYTES;
-    int sig_len = crypto_sign_BYTES;
-    unsigned char pk[pk_len];
-    unsigned char sig[sig_len];
+    unsigned char pk[crypto_sign_PUBLICKEYBYTES];
+    unsigned char sig[crypto_sign_BYTES];
 
-    hex2bin(pk, pk_len, public_key_hex, strlen(public_key_hex));
-    hex2bin(sig, sig_len, signature_hex, strlen(signature_hex));
+    if (hex2bin(pk, sizeof(pk), public_key_hex, strlen(public_key_hex)) != 0)
+        return -1;
+    if (hex2bin(sig, sizeof(sig), signature_hex, strlen(signature_hex)) != 0)
+        return -2;
 
     return verify(sig, contents, contents_len, pk);
 }
