@@ -3,6 +3,117 @@
 
 typedef void (*instr_hdlr)(cJSON *inst, FILE *out, int indent, const char *return_type);
 
+void emit_function_invocation_code_block(cJSON *inst, FILE *out, int indent) {
+    (void)indent;
+    const char *fn = extract_json_field_string_value(inst, "invocation_name");
+    const char *rv = extract_json_field_string_value(inst, "result_assignment_variable");
+    const char *rt = extract_json_field_string_value(inst, "result_type");
+    cJSON *args = cJSON_GetObjectItemCaseSensitive(inst, "invocation_arguments");
+    if (!fn[0]) return;
+    if (rv[0]) {
+        const char *rc = "int";
+        if (rt) {
+            if (!strcmp(rt, "string") || !strcmp(rt, "char")) rc = "char *";
+            else if (!strcmp(rt, "json_object")) rc = "cJSON *";
+            else if (!strcmp(rt, "json_array")) rc = "cJSON *";
+            else if (!strcmp(rt, "subst_table")) rc = "subst_table *";
+            else if (!strcmp(rt, "string_buffer")) rc = "string_buffer *";
+            else if (!strcmp(rt, "int")) rc = "int";
+            else if (!strcmp(rt, "void")) rc = "void";
+        } else {
+            if (strstr(fn, "read_entire_file_into_memory")) rc = "char *";
+            else if (strstr(fn, "parse_json")) rc = "cJSON *";
+            else if (strstr(fn, "allocate_and_init_hash_table")) rc = "subst_table *";
+            else if (strstr(fn, "hash_table_lookup_key_value")) rc = "const char *";
+            else if (!strcmp(fn, "apply_substitution_against_raw_text")) rc = "char *";
+            else if (!strcmp(fn, "create_substitution_table_for_spec")) rc = "subst_table *";
+        }
+        fprintf(out, "%s %s = ", rc, rv);
+    }
+    fprintf(out, "%s(", fn);
+    if (args && cJSON_IsObject(args)) {
+        cJSON *arg = args->child; int first = 1;
+        while (arg) {
+            if (!first) fprintf(out, ", ");
+            if (cJSON_IsString(arg)) fprintf(out, "%s", arg->valuestring);
+            else if (cJSON_IsNumber(arg)) fprintf(out, "\"%d\"", arg->valueint);
+            first = 0; arg = arg->next;
+        }
+    }
+    fprintf(out, ");\n");
+}
+
+void emit_conditional_branch_code_block(cJSON *inst, FILE *out, int indent, const char *return_type) {
+    const char *op = extract_json_field_string_value(inst, "condition_operation");
+    cJSON *ct = cJSON_GetObjectItemCaseSensitive(inst, "condition_target");
+    const char *cv = extract_json_field_string_value(inst, "condition_value");
+    const char *ck = extract_json_field_string_value(inst, "condition_key");
+    const char *tgt = "";
+    if (cJSON_IsString(ct)) tgt = ct->valuestring;
+    else if (ct) { cJSON *s2 = cJSON_GetObjectItemCaseSensitive(ct, "source"); if (cJSON_IsString(s2)) tgt = s2->valuestring; }
+    if (!strcmp(op, "key_exists"))
+        fprintf(out, "if (cJSON_HasObjectItem(%s, \"%s\")) {\n", tgt, ck ? ck : "");
+    else if (!strcmp(op, "string_equals") || !strcmp(op, "enum_equals"))
+        fprintf(out, "if (strcmp(%s, \"%s\") == 0) {\n", tgt, cv ? cv : "");
+    else if (!strcmp(op, "is_not_null"))
+        fprintf(out, "if (%s != NULL) {\n", tgt);
+    else
+        fprintf(out, "if (/* %s */ 0) {\n", op);
+    cJSON *bon = cJSON_GetObjectItemCaseSensitive(inst, "branch_on_success");
+    generate_code_from_ast_instructions(bon, out, indent + 1, return_type);
+    fprintf(out, "%*c} else {\n", indent * 2, ' ');
+    cJSON *bof = cJSON_GetObjectItemCaseSensitive(inst, "branch_on_failure");
+    generate_code_from_ast_instructions(bof, out, indent + 1, return_type);
+    fprintf(out, "%*c}\n", indent * 2, ' ');
+}
+
+void emit_return_statement_code_block(cJSON *inst, FILE *out, const char *return_type) {
+    cJSON *rp = cJSON_GetObjectItemCaseSensitive(inst, "return_payload");
+    int is_void = return_type && !strcmp(return_type, "void");
+    if (rp) {
+        const char *es = extract_json_field_string_value(rp, "execution_status");
+        const char *ec = extract_json_field_string_value(rp, "error_code");
+        const char *rv = extract_json_field_string_value(rp, "value");
+        if (es && !strcmp(es, "failure"))
+            fprintf(out, "report_fatal_error_and_exit(\"%s\");%s\n", ec[0] ? ec : "unknown error", is_void ? "" : " return 1;");
+        else if (rv[0])
+            fprintf(out, "return %s;\n", rv);
+        else if (is_void)
+            fprintf(out, "return;\n");
+        else
+            fprintf(out, "return 0;\n");
+    } else {
+        fprintf(out, "%s\n", is_void ? "return;" : "return 0;");
+    }
+}
+
+void emit_iteration_instruction_code_block(cJSON *inst, FILE *out, int indent, const char *return_type) {
+    const char *type = extract_json_field_string_value(inst, "instruction_type");
+    if (!strcmp(type, "iterate_over_collection")) {
+        const char *col = extract_json_field_string_value(inst, "collection_variable");
+        const char *item = extract_json_field_string_value(inst, "item_variable");
+        cJSON *body = cJSON_GetObjectItemCaseSensitive(inst, "body_instructions");
+        if (col[0] && item[0] && body) {
+            fprintf(out, "for (int _i_%s = 0; _i_%s < cJSON_GetArraySize(%s); _i_%s++) {\n", col, col, col, col);
+            fprintf(out, "  cJSON *%s = cJSON_GetArrayItem(%s, _i_%s);\n", item, col, col);
+            generate_code_from_ast_instructions(body, out, indent + 1, return_type);
+            fprintf(out, "%*c}\n", indent * 2, ' ');
+        }
+    } else {
+        const char *col = extract_json_field_string_value(inst, "collection_variable");
+        const char *key  = extract_json_field_string_value(inst, "key_variable");
+        const char *val  = extract_json_field_string_value(inst, "value_variable");
+        cJSON *body = cJSON_GetObjectItemCaseSensitive(inst, "body_instructions");
+        if (col[0] && val[0] && body) {
+            fprintf(out, "cJSON *%s = %s;\n", val, col);
+            fprintf(out, "cJSON_ArrayForEach(%s, %s) {\n", val, col);
+            if (key) fprintf(out, "  const char *%s = %s->string;\n", key, val);
+            generate_code_from_ast_instructions(body, out, indent + 1, return_type);
+            fprintf(out, "}\n");
+        }
+    }
+}
+
 static void emit_variable_declaration_into_output(cJSON *inst, FILE *out, int indent, const char *return_type) {
     (void)return_type;
     const char *vn = extract_json_field_string_value(inst, "variable_name");

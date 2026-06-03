@@ -48,3 +48,7 @@ char *resolve_template_file_from_base(const char *base, const char *file);
 #endif
 void emit_variable_declaration_into_output(cJSON *inst, FILE *out, int indent, const char *return_type);
 void generate_code_via_dispatch_table(cJSON *instructions, FILE *out, int indent, const char *return_type);
+void emit_function_invocation_code_block(cJSON *inst, FILE *out, int indent);
+void emit_conditional_branch_code_block(cJSON *inst, FILE *out, int indent, const char *return_type);
+void emit_return_statement_code_block(cJSON *inst, FILE *out, const char *return_type);
+void emit_iteration_instruction_code_block(cJSON *inst, FILE *out, int indent, const char *return_type);
