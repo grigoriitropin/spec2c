@@ -307,6 +307,9 @@ void enforce_all_source_code_rules(const char *srcdir) {
         closedir(d);
         if (file_cnt > MAX_FILES_PER_DIR) {
             report_violation_with_actionable_hint(ERR_TOO_MANY_FILES_IN_DIR, dirpath, file_cnt, MAX_FILES_PER_DIR, NULL);
+        } else if (file_cnt == 0) {
+            fprintf(stderr, "FATAL: empty source directory in %s\n", dirpath);
+            exit(1);
         }
     }
     scan_dir(srcdir);
