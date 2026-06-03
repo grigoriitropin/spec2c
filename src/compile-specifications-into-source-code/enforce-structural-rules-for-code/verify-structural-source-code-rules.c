@@ -115,7 +115,7 @@ typedef struct {
     int count;
 } inc_entry_t;
 static void check_include_headers_for_file(const char *sub, inc_entry_t *incs, int *inc_qty);
-static void check_line_density_in_source(const char *line, const char *sub, int file_line) {
+static void check_line_density_within_source(const char *line, const char *sub, int file_line) {
     int in_str = 0, in_char = 0, in_comment = 0, tokens = 0;
     for (const char *p = line; *p; p++) {
         if (in_comment) {
@@ -150,7 +150,7 @@ static void check_single_file_for_violations(const char *sub, int is_c, int is_s
         brace_state_t bstate; clear_brace_tracking_for_function(&bstate);
         while (fgets(line, sizeof(line), f)) {
             file_line++;
-            check_line_density_in_source(line, sub, file_line);
+            check_line_density_within_source(line, sub, file_line);
             if (!in_func) {
                 if (detect_function_definition_start_line(line)) {
                     func_count++;
