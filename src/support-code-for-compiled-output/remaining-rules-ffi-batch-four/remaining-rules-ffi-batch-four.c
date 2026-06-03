@@ -16,7 +16,7 @@ static const char *ok_headers[] = {
     "stdbool.h","time.h","cjson/cJSON.h","netinet/in.h",NULL
 };
 
-const char *check_include_headers_ffi(const char *path) {
+const char *check_header_whitelist_for_file(const char *path) {
     char *c = read_entire_file_into_string(path);
     if (!c) return NULL;
     char *line = c, *next;
@@ -44,7 +44,7 @@ const char *check_include_headers_ffi(const char *path) {
 }
 
 /* ── main count (cross-file) ────────────────────────────────────────── */
-const char *check_main_function_count_ffi(const char *dirpath) {
+const char *check_main_count_across_files(const char *dirpath) {
     DIR *d = opendir(dirpath);
     if (!d) return NULL;
     int main_count = 0;
@@ -55,7 +55,7 @@ const char *check_main_function_count_ffi(const char *dirpath) {
         struct stat st;
         if (stat(sub, &st) != 0) continue;
         if (S_ISDIR(st.st_mode)) {
-            const char *r = check_main_function_count_ffi(sub);
+            const char *r = check_main_count_across_files(sub);
             if (r) { closedir(d); return r; }
             continue;
         }
@@ -83,7 +83,7 @@ const char *check_main_function_count_ffi(const char *dirpath) {
 }
 
 /* ── CLI flag documentation (--flags must appear in help text) ──────── */
-const char *check_cli_flags_in_help_ffi(const char *path) {
+const char *check_cli_flags_documented_ffi(const char *path) {
     char *c = read_entire_file_into_string(path);
     if (!c) return NULL;
     const char *p = c;
