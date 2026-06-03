@@ -139,8 +139,15 @@ void handle_ipm_spec_emit_code(const ipm_spec_t *spec, const char *out_path, int
     const char *modname = extract_json_field_string_value(spec->meta, "module_name");
     if (modname[0] && out_path) {
         char hdr_path[4096];
-        char cmod[256]; int ck = 0;
-        while (modname[ck]) { cmod[ck] = (modname[ck] == '-') ? '_' : modname[ck]; ck++; }
+        char cmod[256];
+        int ck = 0;
+        while (modname[ck]) {
+            if (modname[ck] == '-')
+                cmod[ck] = '_';
+            else
+                cmod[ck] = modname[ck];
+            ck++;
+        }
         cmod[ck] = 0;
         const char *slash = strrchr(out_path, '/');
         int dirlen = slash ? (int)(slash - out_path + 1) : 0;
@@ -152,8 +159,15 @@ void handle_ipm_spec_emit_code(const ipm_spec_t *spec, const char *out_path, int
     if (!out_fp) report_fatal_error_and_exit("cannot open output file");
 
     if (modname[0]) {
-        char cname[256]; int ci = 0;
-        while (modname[ci]) { cname[ci] = (modname[ci] == '-') ? '_' : modname[ci]; ci++; }
+        char cname[256];
+        int ci = 0;
+        while (modname[ci]) {
+            if (modname[ci] == '-')
+                cname[ci] = '_';
+            else
+                cname[ci] = modname[ci];
+            ci++;
+        }
         cname[ci] = 0;
         fprintf(out_fp, "#include <string.h>\n#include <stdio.h>\n#include <stdlib.h>\n#include <cjson/cJSON.h>\n");
         fprintf(out_fp, "#include \"%s.h\"\n\n", cname);
