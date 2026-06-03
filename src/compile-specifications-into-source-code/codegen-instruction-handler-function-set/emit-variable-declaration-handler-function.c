@@ -30,8 +30,12 @@ static void emit_conditional_branch_code_primitive(cJSON *inst, FILE *out, int i
     const char *ct = extract_json_field_string_value(inst, "condition_type");
     if (!strcmp(ct, "numeric_compare")) {
         const char *nop = extract_json_field_string_value(inst, "operator");
-        const char *lv  = resolve_data_value_from_operand(cJSON_GetObjectItemCaseSensitive(inst, "lhs"));
-        const char *rv  = resolve_data_value_from_operand(cJSON_GetObjectItemCaseSensitive(inst, "rhs"));
+        const char *lv  = "", *rv  = "";
+        {   cJSON *l = cJSON_GetObjectItemCaseSensitive(inst, "lhs");
+            cJSON *r = cJSON_GetObjectItemCaseSensitive(inst, "rhs");
+            if (l && cJSON_IsObject(l)) lv = extract_json_field_string_value(l, "value");
+            if (r && cJSON_IsObject(r)) rv = extract_json_field_string_value(r, "value");
+        }
         fprintf(out, "if ((%s) %s (%s)) {\n", lv, nop, rv);
         cJSON *bon = cJSON_GetObjectItemCaseSensitive(inst, "branch_on_success");
         if (bon) generate_code_from_ast_instructions(bon, out, indent + 1, return_type);
@@ -194,25 +198,19 @@ static void emit_scan_directory_with_body(cJSON *inst, FILE *out, int indent) {
     fprintf(out, "  }\n");
 }
 
-static const char *resolve_data_value_from_operand(cJSON *opnd) {
-    if (!opnd || !cJSON_IsObject(opnd)) return "";
-    const char *kind = extract_json_field_string_value(opnd, "kind");
-    const char *val  = extract_json_field_string_value(opnd, "value");
-    if (!strcmp(kind, "literal_int")) {
-        static char buf[32];
-        snprintf(buf, sizeof(buf), "%s", val);
-        return buf;
-    }
-    return val;
-}
 
 static void emit_alu_operation_into_output(cJSON *inst, FILE *out) {
     const char *op = extract_json_field_string_value(inst, "operator");
     const char *tgt = extract_json_field_string_value(inst, "target");
     const char *tt = extract_json_field_string_value(inst, "target_type");
     const char *tl = resolve_spec_type_into_lang(tt);
-    const char *lv = resolve_data_value_from_operand(cJSON_GetObjectItemCaseSensitive(inst, "lhs"));
-    const char *rv = resolve_data_value_from_operand(cJSON_GetObjectItemCaseSensitive(inst, "rhs"));
+    /* resolve operand: literal_int → value, var → name */
+    const char *lv = "", *rv = "";
+    {   cJSON *lhs = cJSON_GetObjectItemCaseSensitive(inst, "lhs");
+        cJSON *rhs = cJSON_GetObjectItemCaseSensitive(inst, "rhs");
+        if (lhs && cJSON_IsObject(lhs)) lv = extract_json_field_string_value(lhs, "value");
+        if (rhs && cJSON_IsObject(rhs)) rv = extract_json_field_string_value(rhs, "value");
+    }
     if (!lv[0] || !tgt[0]) return;
 
     if (!strcmp(op, "~")) {
