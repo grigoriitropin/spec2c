@@ -106,6 +106,47 @@
         '';
       };
 
+      # ── IPM enforcer (compiled from IPM spec by spec2c) ──────────
+      ipm-enforce = pkgs.stdenv.mkDerivation {
+        pname = "ipm-enforce";
+        version = "0.1.0";
+        src = ./.;
+        buildInputs = [ self.packages.${system}.spec2c pkgs.cjson ];
+        nativeBuildInputs = [ pkgs.pkg-config ];
+        buildPhase = ''
+          runHook preBuild
+
+          # Step 1: compile IPM enforcer spec → C
+          mkdir -p $TMPDIR/build
+          spec2c enforce-naming-rules-via-ffi.ipm > $TMPDIR/build/ipm_enforce_gen.c
+
+          # Step 2: compile generated C with runtime
+          cc -O2 -Wall -Werror -std=c2x \
+            -Isrc \
+            -I${S} \
+            -I${S}/shared-type-declarations-across-modules \
+            -Isrc/support-code-for-compiled-output \
+            -I${S}/enforce-structural-rules-for-code \
+            -I${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns \
+            $TMPDIR/build/ipm_enforce_gen.c \
+            src/support-code-for-compiled-output/file-string-and-json-parsing.c \
+            src/support-code-for-compiled-output/hash-table-and-substitution-code.c \
+            src/support-code-for-compiled-output/buffer-output-and-command-launch.c \
+            src/support-code-for-compiled-output/compute-file-sha-hash-digest/compute-sha256-hash-for-files.c \
+            src/support-code-for-compiled-output/validate-type-name-against-whitelist/validate-type-name-against-whitelist.c \
+            src/compile-specifications-into-source-code/enforce-structural-rules-for-code/scan-source-code-for-patterns/check-naming-rules-for-ffi.c \
+            -o ipm-enforce -lcjson
+
+          runHook postBuild
+        '';
+        installPhase = ''
+          runHook preInstall
+          mkdir -p $out/bin
+          cp ipm-enforce $out/bin/
+          runHook postInstall
+        '';
+      };
+
       default = self.packages.${system}.spec2c;
     });
   };

@@ -83,7 +83,7 @@ static void emit_function_invocation_with_arguments(cJSON *inst, FILE *out, int 
     const char *rv = extract_json_field_string_value(inst, "result_assignment_variable");
     cJSON *args = cJSON_GetObjectItemCaseSensitive(inst, "invocation_arguments");
     if (!fn[0]) return;
-    if (rv[0]) fprintf(out, "  %s = ", rv);
+    if (rv[0]) fprintf(out, "  char *%s = ", rv);
     fprintf(out, "%s(", fn);
     if (args) {
         if (cJSON_IsObject(args)) {
