@@ -281,3 +281,7 @@ emit_iteration_loop_with_count
 tokenize_string_into_slice_loop
 list-files-under-path-recursively
 list_files_under_path_recursively
+allowed-names
+banned-patterns
+bootstrap-c-freeze-limits
+bootstrap-c-whitelist

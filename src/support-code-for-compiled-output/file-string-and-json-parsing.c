@@ -108,7 +108,6 @@ cJSON *list_files_inside_directory_path(const char *path) {
     if (!d) { cJSON_Delete(arr); return NULL; }
     struct dirent *de;
     while ((de = readdir(d)) != NULL) {
-        if (de->d_name[0] == '.') continue;
         char full[4096];
         snprintf(full, sizeof(full), "%s/%s", path, de->d_name);
         struct stat st;

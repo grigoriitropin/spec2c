@@ -202,10 +202,6 @@ static void emit_scan_directory_with_body(cJSON *inst, FILE *out, int indent) {
     fprintf(out, "    for (int _i = 0; _i < cJSON_GetArraySize(_entries); _i++) {\n");
     fprintf(out, "      cJSON *_entry = cJSON_GetArrayItem(_entries, _i);\n");
     fprintf(out, "      const char *_name = cJSON_GetObjectItemCaseSensitive(_entry, \"name\")->valuestring;\n");
-    fprintf(out, "      size_t _nl = strlen(_name);\n");
-    fprintf(out, "      if (_nl < 3) continue;\n");
-    fprintf(out, "      if (strcmp(_name + _nl - 2, \".c\") && strcmp(_name + _nl - 2, \".h\") &&\n");
-    fprintf(out, "          strcmp(_name + _nl - 4, \".ipm\")) continue;\n");
     if (body) generate_code_from_ast_instructions(body, out, indent + 3, "i32");
     fprintf(out, "    }\n");
     fprintf(out, "    cJSON_Delete(_entries);\n");
