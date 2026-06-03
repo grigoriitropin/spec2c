@@ -132,16 +132,16 @@ instructions.append({
 })
 
 spec = {
-    "package_name": "detect-hardcoded-filesystem-paths",
+    "package_name": "detect-any-hardcoded-filesystem-paths",
     "build_type": "library",
-    "module_name": "detect-hardcoded-filesystem-paths",
+    "module_name": "detect-any-hardcoded-filesystem-paths",
     "description": "Pure IPM hardcoded path detector via DFA",
     "extern_imports": [
         {"name": "read_entire_file_into_string", "return_type": "str",
          "arguments": [{"name": "path", "type": "str"}]}
     ],
     "function_definitions": {
-        "detect-hardcoded-filesystem-paths": {
+        "detect-any-hardcoded-filesystem-paths": {
             "return_type": "i32",
             "parameter_definitions": [
                 {"parameter_name": "path", "parameter_type": "str"}
@@ -151,7 +151,7 @@ spec = {
     }
 }
 
-with open("modules/rules/detect-hardcoded-filesystem-paths.ipm", "w") as f:
+with open("modules/rules/detect-any-hardcoded-filesystem-paths.ipm", "w") as f:
     json.dump(spec, f, separators=(",", ":"), indent=None)
     f.write("\n")
 
