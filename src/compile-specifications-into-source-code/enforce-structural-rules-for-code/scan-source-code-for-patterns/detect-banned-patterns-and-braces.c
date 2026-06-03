@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
 // shared pattern scanning helpers for enforcement
-
 #include "verify-structural-source-code-rules.h"
 #include "soul-naming-forbidden-words-list.h"
 #include <stdio.h>
@@ -9,11 +8,9 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <string.h>
-
 void clear_brace_tracking_for_function(brace_state_t *state) {
     memset(state, 0, sizeof(*state));
 }
-
 void count_open_close_brace_pairs(const char *line, brace_state_t *state) {
     for (const char *p = line; *p; p++) {
         if (state->in_comment) {
@@ -33,7 +30,6 @@ void count_open_close_brace_pairs(const char *line, brace_state_t *state) {
         }
     }
 }
-
 void pull_function_name_from_definition(const char *line, char *out, size_t sz) {
     const char *lp = strchr(line, '(');
     if (!lp) { out[0] = 0; return; }
@@ -45,13 +41,11 @@ void pull_function_name_from_definition(const char *line, char *out, size_t sz) 
     if (len == 0) { out[0] = 0; return; }
     memcpy(out, start, len); out[len] = 0;
 }
-
 int check_for_banned_keyword_pattern(const char *line) {
     for (int i = 0; i < banned_patterns_count; i++)
         if (strstr(line, banned_patterns[i])) return 1;
     return 0;
 }
-
 int detect_hardcoded_file_path_string(const char *line) {
     if (strstr(line, "#include")) return 0;
     if (strstr(line, "strstr(fns[i].file")) return 0;
@@ -64,12 +58,8 @@ int detect_hardcoded_file_path_string(const char *line) {
     }
     return 0;
 }
-
-
-
 /* ── cross-reference: .ipm validation ──────────────────────────────── */
 #include <cjson/cJSON.h>
-
 static void validate_single_ipm_name_value(const char *name, const char *what, const char *path) {
     if (!name || !name[0] || !strcmp(name, "main")) return;
     char sep[2] = {strchr(name, '-') ? '-' : '_', 0};
@@ -100,7 +90,6 @@ static void validate_single_ipm_name_value(const char *name, const char *what, c
         fprintf(stderr, "spec2c: %s\n", msg); exit(1);
     }
 }
-
 /* scan ALL string values in JSON tree for banned words */
 static void scan_json_for_banned_words(cJSON *node, const char *path) {
     if (!node) return;
@@ -130,7 +119,6 @@ static void scan_json_for_banned_words(cJSON *node, const char *path) {
         while (child) { scan_json_for_banned_words(child, path); child = child->next; }
     }
 }
-
 static void check_ipm_imports_against_whitelist(cJSON *root, const char *sp,
     char allowed[64][128], int n_allowed)
 {
@@ -150,7 +138,6 @@ static void check_ipm_imports_against_whitelist(cJSON *root, const char *sp,
         }
     }
 }
-
 static void check_ipm_cli_flag_docs(cJSON *root, const char *sp) {
     cJSON *cli = cJSON_GetObjectItemCaseSensitive(root, "cli_flags");
     if (!cli || !cJSON_IsArray(cli)) return;
