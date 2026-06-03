@@ -209,3 +209,4 @@ check_ipm_imports_against_whitelist
 load_ipm_import_whitelist_file
 check_ipm_ast_depth_limits
 validate-ipm-content-structure-deeply
+execute-full-compilation-pipeline-flow
