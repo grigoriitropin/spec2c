@@ -1,7 +1,7 @@
 /* 2015, Joe Walnes, Sneaky Squid */
 
-#ifndef verifysignature_H
-#define verifysignature_H
+#ifndef VERIFY_ED25519_DIGITAL_SIGNATURE_KEY_H
+#define VERIFY_ED25519_DIGITAL_SIGNATURE_KEY_H
 
 #include <stddef.h>
 

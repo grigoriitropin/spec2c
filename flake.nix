@@ -85,9 +85,9 @@
         "modules/rules/find-every-main-function-block.ipm"
       ];
       extra_src = [
-        "enforce-link-time-symbol-whitelist.c"
-        "verifysignature.c"
-        "verifysignature.h"
+        "enforce-link-time-whitelisted-symbols.c"
+        "verify-ed25519-digital-signature-key.c"
+        "verify-ed25519-digital-signature-key.h"
         "src/support-code-for-compiled-output/ipm-file-validator-ffi-batch/ipm-file-validator-ffi-batch.c"
         "src/support-code-for-compiled-output/remaining-rules-ffi-batch-four/remaining-rules-ffi-batch-four.c"
         "src/support-code-for-compiled-output/dead-code-header-check-batch/dead-code-header-check-batch.c"
@@ -122,11 +122,11 @@
         doCheck = true;
         checkPhase = ''
           runHook preCheck
-          cc -O2 -I. enforce-link-time-symbol-whitelist.c -o enforce-link-time-symbol-whitelist
+          cc -O2 -I. enforce-link-time-whitelisted-symbols.c -o enforce-link-time-whitelisted-symbols
           mkdir -p $out/bin
           cp s2c-enforce $out/bin/
           for bin in $out/bin/*; do
-            ./enforce-link-time-symbol-whitelist "$bin" || exit 1
+            ./enforce-link-time-whitelisted-symbols "$bin" || exit 1
           done
           runHook postCheck
         '';
@@ -185,11 +185,11 @@
         doCheck = true;
         checkPhase = ''
           runHook preCheck
-          cc -O2 -I. enforce-link-time-symbol-whitelist.c -o enforce-link-time-symbol-whitelist
+          cc -O2 -I. enforce-link-time-whitelisted-symbols.c -o enforce-link-time-whitelisted-symbols
           mkdir -p $out/bin
           cp spec2c s2c_enforce $out/bin/
           for bin in $out/bin/*; do
-            ./enforce-link-time-symbol-whitelist "$bin" || exit 1
+            ./enforce-link-time-whitelisted-symbols "$bin" || exit 1
           done
           runHook postCheck
         '';
@@ -364,11 +364,11 @@
         doCheck = true;
         checkPhase = ''
           runHook preCheck
-          cc -O2 -I. enforce-link-time-symbol-whitelist.c -o enforce-link-time-symbol-whitelist
+          cc -O2 -I. enforce-link-time-whitelisted-symbols.c -o enforce-link-time-whitelisted-symbols
           mkdir -p $out/bin
           cp ipm-enforce $out/bin/
           for bin in $out/bin/*; do
-            ./enforce-link-time-symbol-whitelist "$bin" || exit 1
+            ./enforce-link-time-whitelisted-symbols "$bin" || exit 1
           done
           runHook postCheck
         '';

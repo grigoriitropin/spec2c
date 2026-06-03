@@ -1,7 +1,7 @@
-#include "verifysignature.h"
+#include "verify-ed25519-digital-signature-key.h"
 
 /*
- * See verifysignature.h for explanation of what this is.
+ * See verify-ed25519-digital-signature-key.h for explanation of what this is.
  *
  * This implementation has been extracted from libsodium.
  * https://github.com/jedisct1/libsodium

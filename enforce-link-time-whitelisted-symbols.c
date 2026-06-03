@@ -6,7 +6,7 @@
 #include <elf.h>
 
 #include "src/bootstrap-compiled-limit-hash-data/bootstrap-file-sha-hashes-generated.h"
-#include "verifysignature.h"
+#include "verify-ed25519-digital-signature-key.h"
 
 /* ── Ed25519 Operator Public Key (hex) ────────────────────────────────────── */
 /* Generated once by the operator; private key stays offline. */
@@ -41,7 +41,7 @@ static const char *allowed_symbols[] = {
     /* Directory traversal (used by generated IPM scanner) */
     "opendir", "readdir", "closedir",
 
-    /* String functions (used by generated IPM code and verifysignature) */
+    /* String functions (used by generated IPM code and verify-ed25519-digital-signature-key) */
     "strcmp", "strchr", "strrchr", "strstr", "strcpy", "strdup", "strtok", "strlen",
 
     /* Number parsing (used by generated IPM code) */
@@ -255,9 +255,9 @@ static int check_frozen_exempt_binaries(const char *bin_name) {
  *   3. Hex-encode sig.bin (128 hex chars) and update ---SIGNATURE--- below.
  */
 static int verify_signature_mechanism(void) {
-    const char *src_file = "enforce-link-time-symbol-whitelist.c";
+    const char *src_file = "enforce-link-time-whitelisted-symbols.c";
     FILE *f = fopen(src_file, "r");
-    if (!f) f = fopen("/home/vehir/spec2c/enforce-link-time-symbol-whitelist.c", "r");
+    if (!f) f = fopen("/home/vehir/spec2c/enforce-link-time-whitelisted-symbols.c", "r");
     if (!f) return 0;
 
     fseek(f, 0, SEEK_END);
@@ -504,6 +504,6 @@ int main(int argc, char **argv) {
 }
 
 /* Include Ed25519 verify-only implementation (no fork, no exec, no pipe) */
-#include "verifysignature.c"
+#include "verify-ed25519-digital-signature-key.c"
 
 // ---SIGNATURE--- dd32bad1b77bbbecff1dc258342af1faea32c6d2f67d3a17de1945b3bc2655883b5aa65d3a455ad5d4d1b6ee71f33832f1c52e41a95164481efdebdd87484805

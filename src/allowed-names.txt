@@ -130,7 +130,6 @@ emit_variable_declaration_code_line
 emit_variable_declaration_into_output
 enforce-bootstrap-code-file-whitelist
 enforce-ffi-function-export-layer
-enforce-link-time-symbol-whitelist
 enforce-naming-whitelist-and-validation
 enforce-structural-rules-for-code
 enforce_all_source_code_rules
@@ -301,8 +300,6 @@ handle_new_function_definition_entry
 scan-empty-folder-for-violations
 check-banned-patterns-pure-ipm
 enforce-naming-rules-via-ffi
-enforce-link-time-symbol-whitelist
-verifysignature
 templates
 fixtures
 modules
@@ -321,3 +318,5 @@ check-each-line-token-density
 validate-soul-naming-rule-check
 locate-all-function-body-blocks
 find-every-main-function-block
+verify-ed25519-digital-signature-key
+enforce-link-time-whitelisted-symbols
