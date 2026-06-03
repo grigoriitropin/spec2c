@@ -298,4 +298,4 @@ check_line_density_within_source
 load_non_source_file_allowlist
 check_non_source_file_allowlist
 handle_new_function_definition_entry
-check_for_banned_or_hardcoded
+verify_line_for_banned_hardcoded

@@ -157,7 +157,7 @@ static int handle_new_function_definition_entry(const char *line, const char *su
     return bstate->depth <= 0 ? 0 : 1;
 }
 
-static void check_for_banned_or_hardcoded(const char *line, const char *sub, int is_source) {
+static void verify_line_for_banned_hardcoded(const char *line, const char *sub, int is_source) {
     if (is_source && check_for_banned_keyword_pattern(line)) {
         report_violation_with_actionable_hint(ERR_BANNED_PATTERN, sub, 0, 0, NULL);
     }
@@ -198,7 +198,7 @@ static void check_single_file_for_violations(const char *sub, int is_c, int is_s
                 in_func = 0;
             }
         }
-        check_for_banned_or_hardcoded(line, sub, is_source);
+        verify_line_for_banned_hardcoded(line, sub, is_source);
     }
     fclose(f);
     check_include_headers_for_file(sub, incs, inc_qty);
