@@ -75,7 +75,13 @@ const char *verify_file_line_density_count(const char *path) {
         if (next) *next = 0;
         int tokens = 0, in_str = 0, in_char = 0, in_comment = 0;
         for (const char *p = line; *p; p++) {
-            if (in_comment) { if (*p == '*' && *(p+1) == '/') { in_comment = 0; p++; } continue; }
+        if (in_comment) {
+            if (*p == '*' && *(p+1) == '/') {
+                in_comment = 0;
+                p++;
+            }
+            continue;
+        }
             if (!in_str && !in_char && *p == '/' && *(p+1) == '*') { in_comment = 1; p++; continue; }
             if (!in_str && !in_char && *p == '/' && *(p+1) == '/') break;
             if (*p == '\\' && *(p+1) != '\0') { p++; continue; }
