@@ -138,7 +138,7 @@ static void check_line_density_within_source(const char *line, const char *sub, 
         report_violation_with_actionable_hint(ERR_LINE_TOO_DENSE, sub, file_line, tokens, NULL);
 }
 
-static int process_function_definition(const char *line, const char *sub,
+static int handle_new_function_definition_entry(const char *line, const char *sub,
     int *func_count, fn_entry_t *fns, int *fn_qty, brace_state_t *bstate) {
     (*func_count)++;
     if (*func_count > MAX_FUNCTIONS_PER_FILE) {
@@ -179,7 +179,7 @@ static void check_single_file_for_violations(const char *sub, int is_c, int is_s
             check_line_density_within_source(line, sub, file_line);
             if (!in_func) {
                 if (detect_function_definition_start_line(line)) {
-                    in_func = process_function_definition(line, sub, &func_count, fns, fn_qty, &bstate);
+                    in_func = handle_new_function_definition_entry(line, sub, &func_count, fns, fn_qty, &bstate);
                     func_lines = 1;
                     continue;
                 }

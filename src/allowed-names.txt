@@ -297,4 +297,4 @@ check_non_source_file_allowlist
 check_line_density_within_source
 load_non_source_file_allowlist
 check_non_source_file_allowlist
-process_function_definition
+handle_new_function_definition_entry
