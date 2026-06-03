@@ -244,4 +244,4 @@ enforce_bootstrap_code_freeze_check
 enforce_bootstrap_code_freeze_check
 search_file_using_name_recursive
 search_file_using_name_recursive
-bootstrap-freeze-limits-generated
+bootstrap-freeze-data-compiled-into

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // bootstrap C whitelist + freeze limits — LIMITS COMPILED INTO BINARY
 #include "verify-structural-source-code-rules.h"
-#include "bootstrap-freeze-limits-generated.h"
+#include "bootstrap-freeze-data-compiled-into.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

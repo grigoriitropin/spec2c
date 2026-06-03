@@ -26,4 +26,4 @@ vehir-shared-abstraction-wrapper-code.c
 vehir-shared-abstraction-wrapper-code.h
 verify-structural-source-code-rules.c
 verify-structural-source-code-rules.h
-bootstrap-freeze-limits-generated.h
+bootstrap-freeze-data-compiled-into.h
