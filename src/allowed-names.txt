@@ -218,7 +218,7 @@ check_ipm_ast_depth_limits
 validate_single_ipm_file_content
 emit_new_standard_loop_code
 emit_code_format_primitive_handler
-ipm-handler-code-generated
+ipm-handler-code-generated-output
 emit_json_field_access_handler
 emit_return_statement_handler_code
 emit_function_invocation_handler_code
