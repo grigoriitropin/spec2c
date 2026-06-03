@@ -1,13 +1,15 @@
 // SPDX-License-Identifier: Apache-2.0
-// bootstrap C whitelist + freeze limits — LIMITS COMPILED INTO BINARY
+// bootstrap C whitelist + SHA256 hash verification — HASHES COMPILED INTO BINARY
 #include "verify-structural-source-code-rules.h"
 #include "bootstrap-freeze-data-compiled-into.h"
+#include "bootstrap-file-sha-hashes-generated.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <dirent.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <stdint.h>
 
 static char whitelist_names[64][128];
 static int whitelist_count_now;
@@ -59,21 +61,36 @@ static int search_file_using_name_recursive(const char *dpath, const char *targe
     return 0;
 }
 
-/* freeze check: limits are COMPILED INTO THE BINARY, not read from a file */
+/* Verify SHA256 hashes of bootstrap files — hashes compiled into binary */
 void enforce_bootstrap_code_freeze_check(const char *srcdir) {
-    for (int i = 0; i < BOOTSTRAP_FREEZE_COUNT; i++) {
+    for (int i = 0; i < BOOTSTRAP_HASH_COUNT; i++) {
         char found[8192] = {0};
-        if (!search_file_using_name_recursive(srcdir, freeze_file_names[i], found, sizeof(found)))
+        if (!search_file_using_name_recursive(srcdir, hash_file_names[i], found, sizeof(found)))
             continue;
-        FILE *f2 = fopen(found, "r");
+        /* Compute actual SHA256 of the file */
+        FILE *f2 = fopen(found, "rb");
         if (!f2) continue;
-        int lines = 0, ch;
-        while ((ch = fgetc(f2)) != EOF) if (ch == '\n') lines++;
+        fseek(f2, 0, SEEK_END);
+        long sz = ftell(f2);
+        fseek(f2, 0, SEEK_SET);
+        if (sz <= 0 || sz > 1048576) { fclose(f2); continue; }
+        uint8_t *buf = malloc((size_t)sz);
+        if (!buf) { fclose(f2); continue; }
+        size_t n = fread(buf, 1, (size_t)sz, f2);
         fclose(f2);
-        if (lines > freeze_max_lines[i]) {
-            fprintf(stderr, "spec2c: SOUL §7: bootstrap file %s grew from %d to %d lines — C bootstrap is frozen\n"
-                "  → limits are compiled into the binary, rewrite as IPM module\n",
-                freeze_file_names[i], freeze_max_lines[i], lines);
+        uint8_t hash[32];
+        compute_sha256_hash_into_bytes(buf, (uint32_t)n, hash);
+        char actual_hex[65];
+        for (int j = 0; j < 32; j++)
+            snprintf(actual_hex + j*2, 3, "%02x", hash[j]);
+        actual_hex[64] = 0;
+        free(buf);
+        if (strcmp(actual_hex, hash_sha256_values[i]) != 0) {
+            fprintf(stderr, "spec2c: SOUL §7: bootstrap file %s SHA256 mismatch — file was modified\n"
+                "  → expected %s\n"
+                "  → actual   %s\n"
+                "  → hashes are compiled into the binary, rewrite changes as IPM module\n",
+                hash_file_names[i], hash_sha256_values[i], actual_hex);
             exit(1);
         }
     }
