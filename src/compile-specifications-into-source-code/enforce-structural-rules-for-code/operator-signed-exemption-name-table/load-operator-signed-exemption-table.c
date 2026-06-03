@@ -46,9 +46,17 @@ static int extract_signed_payload_bytes_raw(const char *raw, char *out, size_t o
     while (*p) {
         if (!strncmp(p, ",\"signature_hex\":", 17) || !strncmp(p, ",\"signed_bytes_sha256\":", 23)) {
             while (*p && *p != '"') p++;
-            if (*p == '"') { p++; while (*p && *p != '"') p++; if (*p == '"') p++; }
+            if (*p == '"') {
+                p++;
+                while (*p && *p != '"') p++;
+                if (*p == '"') p++;
+            }
             while (*p && *p != '"') p++;
-            if (*p == '"') { p++; while (*p && *p != '"') p++; if (*p == '"') p++; }
+            if (*p == '"') {
+                p++;
+                while (*p && *p != '"') p++;
+                if (*p == '"') p++;
+            }
         } else {
             if (len < (int)outsz - 1) out[len++] = *p;
             p++;
