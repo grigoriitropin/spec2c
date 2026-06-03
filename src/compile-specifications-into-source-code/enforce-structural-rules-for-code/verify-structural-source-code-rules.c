@@ -50,7 +50,8 @@ static void report_violation_with_actionable_hint(enforce_err_t code, const char
     case ERR_MAIN_COUNT: snprintf(buf, sizeof(buf), "SOUL §7: exactly one main() required, found %d\n  → keep exactly one entry point", v1); break;
     case ERR_FLAG_NOT_IN_HELP: snprintf(buf, sizeof(buf), "SOUL §7: CLI flag '%s' in %s not documented in help text\n  → add flag description to the --help output block", a1, a2); break;
     case ERR_LINE_TOO_DENSE: snprintf(buf, sizeof(buf), "SOUL §7: %s line %d is too dense — %d control tokens (; { ?) (max 3)\n  → split the line into multiple statements", a1, v1, v2); break;
-    case ERR_NOT_IN_BOOTSTRAP_WHITELIST: snprintf(buf, sizeof(buf), "SOUL §7: %s not in bootstrap C whitelist\n  → remove this file or add it to bootstrap-c-whitelist.txt (only bootstrap primitives)", a1); break;
+    case ERR_NOT_IN_BOOTSTRAP_WHITELIST:
+        snprintf(buf, sizeof(buf), "SOUL §7: %s not in bootstrap C whitelist\n  → rewrite this functionality as an IPM module, the C bootstrap is frozen", a1); break;
     }
     report_fatal_error_and_exit(buf);
 }

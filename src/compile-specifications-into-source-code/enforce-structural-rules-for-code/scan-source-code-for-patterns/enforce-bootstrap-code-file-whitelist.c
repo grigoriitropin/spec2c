@@ -12,7 +12,7 @@ void load_bootstrap_whitelist_from_disk(const char *srcdir) {
     char path[4096]; snprintf(path, sizeof(path), "%s/bootstrap-c-whitelist.txt", srcdir);
     FILE *f = fopen(path, "r");
     if (!f) { fprintf(stderr, "spec2c: missing bootstrap-c-whitelist.txt\n"
-        "  → create it listing allowed hand-written C files\n"); exit(1); }
+        "  → create it — the C bootstrap is frozen, do not add entries\n"); exit(1); }
     char line[256];
     while (fgets(line, sizeof(line), f) && whitelist_count_now < 64) {
         size_t l = strlen(line);

@@ -1,3 +1,4 @@
+# FROZEN — do not add entries. New functionality → IPM, not C.
 buffer-output-and-command-launch.c
 check-source-conformance-entry-point.c
 compile-abstract-instructions-into-code.c
