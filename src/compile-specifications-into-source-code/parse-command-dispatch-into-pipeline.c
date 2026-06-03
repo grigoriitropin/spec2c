@@ -193,6 +193,26 @@ static int enforce_ipm_specification_validation_rules(const char *spec_text, cJS
     /* 8. No hardcoded paths + template check */
     validate_ipm_source_for_hardcoded(spec_json);
 
+    /* 6. C-leak detection */
+    void scan_for_c_leak_patterns(cJSON *node) {
+        if (!node) return;
+        if (cJSON_IsString(node) && node->string) {
+            const char *key = node->string;
+            if (strcmp(key, "template_str") && strcmp(key, "str") &&
+                strcmp(key, "code_format") && strcmp(key, "code")) {
+                const char *val = node->valuestring;
+                if (strstr(val, "#include") || strstr(val, "malloc(") ||
+                    strstr(val, "free(") || strstr(val, "sizeof("))
+                    report_fatal_error_and_exit("C-leak detected — IPM string contains C code pattern\n  → remove #include, malloc, free, sizeof from IPM strings");
+            }
+        }
+        if (cJSON_IsObject(node) || cJSON_IsArray(node)) {
+            cJSON *c = node->child;
+            while (c) { scan_for_c_leak_patterns(c); c = c->next; }
+        }
+    }
+    scan_for_c_leak_patterns(spec_json);
+
     return 1;
 }
 
