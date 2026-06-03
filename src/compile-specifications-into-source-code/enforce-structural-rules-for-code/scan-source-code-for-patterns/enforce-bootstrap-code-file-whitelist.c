@@ -12,7 +12,6 @@
 
 
 
-
 extern void compute_sha256_hash_into_bytes(const uint8_t *data, uint32_t len, uint8_t out[32]);
 
 static char whitelist_names[64][128];
