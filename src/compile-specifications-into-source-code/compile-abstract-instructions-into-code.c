@@ -172,7 +172,7 @@ static const instr_dispatch_t INSTR_HANDLERS[] = {
     {"access_json_field",              emit_access_field_into_output},
     {"conditional_branch",             emit_conditional_branch_into_output},
     {"database_execute_parameterized", emit_database_exec_into_output},
-    {"function_invocation",            emit_function_invocation_into_output},
+    {"function_invocation",            emit_function_invocation_code_block_wrap},
     {"iterate_over_collection",        emit_iteration_block_into_output},
     {"iterate_over_object_keys",       emit_iteration_block_into_output},
     {"return_statement",               emit_return_statement_into_output},
