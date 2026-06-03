@@ -1,17 +1,27 @@
 {
   "package_name": "compile-specifications-into-source-code",
+  "description": "Self-referential specification describing compiler structure and named component attributes",
   "module_name": "specification-into-source-code-compiler",
   "imports": [
     "runtime-for-generated-ipm-code"
   ],
   "structural_limits": [
-    { "limit_name": "function_line_count", "maximum_value": 50 },
-    { "limit_name": "file_line_count", "maximum_value": 400 },
-    { "limit_name": "function_count_per_file", "maximum_value": 10 }
+    {
+      "limit_name": "function_line_count",
+      "maximum_value": 50
+    },
+    {
+      "limit_name": "file_line_count",
+      "maximum_value": 400
+    },
+    {
+      "limit_name": "function_count_per_file",
+      "maximum_value": 10
+    }
   ],
   "function_definitions": {
     "main": {
-      "description": "spec2c entry point — parse CLI args, dispatch pipeline",
+      "description": "spec2c entry point \u2014 parse CLI args, dispatch pipeline",
       "return_type": "int",
       "execution_instructions": [
         {
@@ -19,14 +29,18 @@
           "variable_name": "input",
           "variable_type": "string",
           "assignment_operation": "get_arg_value",
-          "source_target": { "source": "1" }
+          "source_target": {
+            "source": "1"
+          }
         },
         {
           "instruction_type": "variable_declaration",
           "variable_name": "output",
           "variable_type": "string",
           "assignment_operation": "get_arg_value",
-          "source_target": { "source": "2" }
+          "source_target": {
+            "source": "2"
+          }
         },
         {
           "instruction_type": "function_invocation",

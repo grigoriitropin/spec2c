@@ -1,4 +1,5 @@
 {
+  "description": "Orchestrates full input-through-output compilation flow from specification to finished result",
   "function_definitions": {
     "run_spec2c_compilation_pipeline_flow": {
       "description": "Main compilation pipeline: read specification file, parse JSON, compute substitution variables, iterate template definitions, apply substitutions, emit generated C source",
@@ -133,7 +134,7 @@
       ]
     },
     "create_substitution_table_for_spec": {
-      "description": "Build a substitution hash table from input specification fields — name, type, config_keys, db_queries",
+      "description": "Build a substitution hash table from input specification fields \u2014 name, type, config_keys, db_queries",
       "return_type": "subst_table",
       "parameter_definitions": [
         {

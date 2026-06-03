@@ -248,6 +248,16 @@ static void validate_single_ipm_file_content(const char *sp,
     check_ipm_imports_against_whitelist(root, sp, allowed_imports, n_allowed);
     check_ipm_cli_flag_docs(root, sp);
 
+    /* require non-empty description for all IPM files */
+    {   cJSON *desc = cJSON_GetObjectItemCaseSensitive(root, "description");
+        if (!desc || !cJSON_IsString(desc) || !desc->valuestring || !desc->valuestring[0]) {
+            char msg[8448]; snprintf(msg, sizeof(msg),
+                "SOUL §7: .ipm %s has no description\n"
+                "  → add a \"description\" field explaining WHAT this module does", sp);
+            fprintf(stderr, "spec2c: %s\n", msg); exit(1);
+        }
+    }
+
     /* dead code + entry point: skip for modules with imports */
     {   cJSON *imps = cJSON_GetObjectItemCaseSensitive(root, "imports");
         int has_imports = imps && cJSON_IsArray(imps) && cJSON_GetArraySize(imps) > 0;

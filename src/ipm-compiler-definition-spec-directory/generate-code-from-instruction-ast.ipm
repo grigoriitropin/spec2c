@@ -1,4 +1,5 @@
 {
+  "description": "Converts abstract instruction nodes into concrete C source lines by dispatching instruction type",
   "function_definitions": {
     "translate_instruction_type_into_code": {
       "description": "Dispatch instruction to its type-specific compiler function",
@@ -1698,7 +1699,7 @@
           "invocation_name": "append_text_into_string_buffer",
           "invocation_arguments": {
             "buf": "buffer",
-            "str": "\"  /* database_execute_parameterized — not yet implemented */\\n\""
+            "str": "\"  /* database_execute_parameterized \u2014 not yet implemented */\\n\""
           }
         }
       ]

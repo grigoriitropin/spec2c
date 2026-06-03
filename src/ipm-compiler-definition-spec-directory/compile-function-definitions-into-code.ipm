@@ -1,4 +1,5 @@
 {
+  "description": "Converts function definition AST nodes into compilable C declarations",
   "function_definitions": {
     "generate_code_from_function_definitions": {
       "description": "Compile all function_definitions to C: includes + forward declarations + bodies",
