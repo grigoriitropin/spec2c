@@ -61,10 +61,6 @@ void write_text_string_into_file(const char *path, const char *content) {
     fclose(f);
 }
 
-json_object* convert_text_into_json_object(string content) {
-    if (!content) return NULL;
-    return cJSON_Parse(content);
-}
 
 void terminate_with_json_error_output(const char *function_name, const char *instruction_index_str,
               const char *error_msg, const char *fix_hint) {
@@ -84,18 +80,6 @@ void terminate_with_json_error_output(const char *function_name, const char *ins
     exit(1);
 }
 
-void builtin_fatal_error_and_exit(const char *msg) {
-    fprintf(stderr, "{\"ok\":false,\"error\":\"%s\"}\n", msg ? msg : "unknown error");
-    exit(1);
-}
-
-void print_error_into_stderr_output(const char *msg) {
-    fprintf(stderr, "error: %s\n", msg ? msg : "unknown");
-}
-
-void terminate_with_status_return_code(int code) {
-    exit(code);
-}
 
 void report_invalid_format_and_exit(void) {
     fprintf(stderr, "FATAL: Binary format detected\n");

@@ -18,7 +18,7 @@ typedef struct {
     uint32_t len;
 } Slice;
 
-static inline Slice make_slice_from_str(const char *s) {
+static inline Slice convert_text_string_into_slice(const char *s) {
     Slice sl;
     sl.data = (const uint8_t *)s;
     sl.len = 0;
@@ -30,7 +30,7 @@ static inline Slice make_slice_from_str(const char *s) {
 
 #define TO_SLICE(x) _Generic((x), \
     Slice: (x), \
-    default: make_slice_from_str((const char*)(x)) \
+    default: convert_text_string_into_slice((const char*)(x)) \
 )
 
 static inline int is_slice_ptr_not_null(const Slice *ps) {
@@ -101,16 +101,9 @@ void free_allocated_string_buffer_memory(string_buffer *buf);
 
 /* Error handling — structured JSON output */
 void terminate_with_json_error_output(const char *function_name, const char *instruction_index_str, const char *error_msg, const char *fix_hint);
-static inline void builtin_fatal_error_and_exit(const char *msg) {
-    fprintf(stderr, "{\"ok\":false,\"error\":\"%s\"}\n", msg ? msg : "unknown error");
-    exit(1);
-}
-static inline void print_error_into_stderr_output(const char *msg) {
-    fprintf(stderr, "error: %s\n", msg ? msg : "unknown");
-}
-static inline void terminate_with_status_return_code(int code) {
-    exit(code);
-}
+void builtin_fatal_error_and_exit(const char *msg);
+void print_error_into_stderr_output(const char *msg);
+void terminate_with_status_return_code(int code);
 void report_invalid_format_and_exit(void);
 
 /* Type mapping */
