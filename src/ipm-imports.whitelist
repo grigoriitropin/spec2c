@@ -1,1 +1,4 @@
 runtime-for-generated-ipm-code
+code-generation-instruction-dispatch-table
+ast-function-compilation-engine-code
+specification-compilation-pipeline-entry-point

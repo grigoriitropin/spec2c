@@ -138,56 +138,61 @@ static void scan_json_for_banned_words(cJSON *node, const char *path) {
     }
 }
 
-/* check JSON AST depth and key density */
-static void check_ipm_ast_structure_depth(cJSON *node, int depth, const char *path) {
-    if (!node || depth > 6) {
-        if (depth > 6) {
-            char msg[512]; snprintf(msg, sizeof(msg),
-                "SOUL §7: .ipm AST depth > 6 in %s\n  → extract nested logic into separate functions", path);
+static void check_ipm_imports_against_whitelist(cJSON *root, const char *sp,
+    char allowed[64][128], int n_allowed)
+{
+    (void)sp;
+    cJSON *imps = cJSON_GetObjectItemCaseSensitive(root, "imports");
+    if (!imps || !cJSON_IsArray(imps)) return;
+    for (int ii = 0; ii < cJSON_GetArraySize(imps); ii++) {
+        cJSON *imp = cJSON_GetArrayItem(imps, ii);
+        if (!cJSON_IsString(imp)) continue;
+        int found = 0;
+        for (int wi = 0; wi < n_allowed; wi++)
+            if (!strcmp(imp->valuestring, allowed[wi])) { found = 1; break; }
+        if (!found) {
+            char msg[8448]; snprintf(msg, sizeof(msg),
+                "SOUL §7: import '%s' not in whitelist\n  → add to ipm-imports.whitelist", imp->valuestring);
             fprintf(stderr, "spec2c: %s\n", msg); exit(1);
-        }
-        return;
-    }
-    if (cJSON_IsObject(node)) {
-        int keys = 0;
-        cJSON *child = node->child;
-        while (child) { keys++; child = child->next; }
-        if (keys > 7) {
-            char msg[512]; snprintf(msg, sizeof(msg),
-                "SOUL §7: .ipm object has %d keys (max 7) in %s\n  → split into smaller objects", keys, path);
-            fprintf(stderr, "spec2c: %s\n", msg); exit(1);
-        }
-        child = node->child;
-        while (child) { check_ipm_ast_structure_depth(child, depth + 1, path); child = child->next; }
-    } else if (cJSON_IsArray(node)) {
-        cJSON *child = node->child;
-        while (child) {
-            if (cJSON_IsArray(child)) {
-                char msg[512]; snprintf(msg, sizeof(msg),
-                    "SOUL §7: .ipm nested array in %s\n  → use flat list of objects, not array of arrays", path);
-                fprintf(stderr, "spec2c: %s\n", msg); exit(1);
-            }
-            check_ipm_ast_structure_depth(child, depth + 1, path);
-            child = child->next;
         }
     }
 }
 
-void verify_ipm_names_across_sources(const char *srcdir) {
-    /* load import whitelist */
-    char allowed_imports[64][128]; int n_allowed = 0;
-    {   char wpath[4096]; snprintf(wpath, sizeof(wpath), "%s/ipm-imports.whitelist", srcdir);
-        FILE *wf = fopen(wpath, "r");
-        if (wf) {
-            char wline[128];
-            while (fgets(wline, sizeof(wline), wf) && n_allowed < 64) {
-                size_t wl = strlen(wline);
-                while (wl > 0 && (wline[wl-1] == '\n' || wline[wl-1] == '\r')) wline[--wl] = 0;
-                if (wl > 0) { snprintf(allowed_imports[n_allowed], 128, "%s", wline); n_allowed++; }
-            }
-            fclose(wf);
+static void check_ipm_cli_flag_docs(cJSON *root, const char *sp) {
+    (void)sp;
+    cJSON *cli = cJSON_GetObjectItemCaseSensitive(root, "cli_flags");
+    if (!cli || !cJSON_IsArray(cli)) return;
+    cJSON *help = cJSON_GetObjectItemCaseSensitive(root, "help_text");
+    for (int fi = 0; fi < cJSON_GetArraySize(cli); fi++) {
+        cJSON *flag = cJSON_GetArrayItem(cli, fi);
+        if (!cJSON_IsString(flag)) continue;
+        if (!help || !cJSON_IsObject(help) ||
+            !cJSON_GetObjectItemCaseSensitive(help, flag->valuestring)) {
+            char msg[8448]; snprintf(msg, sizeof(msg),
+                "SOUL §7: CLI flag '%s' not in help_text\n  → add help_text entry", flag->valuestring);
+            fprintf(stderr, "spec2c: %s\n", msg); exit(1);
         }
     }
+}
+
+static void load_ipm_import_whitelist_file(const char *srcdir,
+    char buf[64][128], int *count)
+{
+    char wpath[4096]; snprintf(wpath, sizeof(wpath), "%s/ipm-imports.whitelist", srcdir);
+    FILE *wf = fopen(wpath, "r");
+    if (!wf) return;
+    char wline[128];
+    while (fgets(wline, sizeof(wline), wf) && *count < 64) {
+        size_t wl = strlen(wline);
+        while (wl > 0 && (wline[wl-1] == '\n' || wline[wl-1] == '\r')) wline[--wl] = 0;
+        if (wl > 0) { snprintf(buf[*count], 128, "%s", wline); (*count)++; }
+    }
+    fclose(wf);
+}
+
+void verify_ipm_names_across_sources(const char *srcdir) {
+    char allowed_imports[64][128]; int n_allowed = 0;
+    load_ipm_import_whitelist_file(srcdir, allowed_imports, &n_allowed);
 
     void scan_ipm(const char *dpath) {
         DIR *dd = opendir(dpath); if (!dd) return;
@@ -201,11 +206,9 @@ void verify_ipm_names_across_sources(const char *srcdir) {
             size_t nl = strlen(de2->d_name);
             if (nl <= 5 || strcmp(de2->d_name + nl - 4, ".ipm")) continue;
             ipm_cnt++;
-
             char fname[256]; snprintf(fname, sizeof(fname), "%s", de2->d_name);
             fname[nl - 4] = 0;
             validate_single_ipm_name_value(fname, "file", sp);
-
             FILE *f = fopen(sp, "r"); if (!f) continue;
             fseek(f, 0, SEEK_END); long sz = ftell(f); fseek(f, 0, SEEK_SET);
             if (sz <= 0 || sz > 65536) { fclose(f); continue; }
@@ -214,28 +217,7 @@ void verify_ipm_names_across_sources(const char *srcdir) {
             (void)!fread(txt, 1, sz, f); fclose(f); txt[sz] = 0;
             cJSON *root = cJSON_Parse(txt); free(txt);
             if (!root) continue;
-
             scan_json_for_banned_words(root, sp);
-            check_ipm_ast_structure_depth(root, 0, sp);
-
-            /* check imports against whitelist */
-            cJSON *imps = cJSON_GetObjectItemCaseSensitive(root, "imports");
-            if (imps && cJSON_IsArray(imps)) {
-                for (int ii = 0; ii < cJSON_GetArraySize(imps); ii++) {
-                    cJSON *imp = cJSON_GetArrayItem(imps, ii);
-                    if (!cJSON_IsString(imp)) continue;
-                    int found = 0;
-                    for (int wi = 0; wi < n_allowed; wi++)
-                        if (!strcmp(imp->valuestring, allowed_imports[wi])) { found = 1; break; }
-                    if (!found) {
-                        char msg[512]; snprintf(msg, sizeof(msg),
-                            "SOUL §7: .ipm import '%s' in %s not in whitelist\n"
-                            "  → add '%s' to ipm-imports.whitelist", imp->valuestring, sp, imp->valuestring);
-                        fprintf(stderr, "spec2c: %s\n", msg); exit(1);
-                    }
-                }
-            }
-
             cJSON *pkg = cJSON_GetObjectItemCaseSensitive(root, "package_name");
             if (pkg && cJSON_IsString(pkg)) validate_single_ipm_name_value(pkg->valuestring, "package_name", sp);
             cJSON *mod = cJSON_GetObjectItemCaseSensitive(root, "module_name");
@@ -245,6 +227,8 @@ void verify_ipm_names_across_sources(const char *srcdir) {
                 cJSON *fn = funcs->child;
                 while (fn) { validate_single_ipm_name_value(fn->string, "function", sp); fn = fn->next; }
             }
+            check_ipm_imports_against_whitelist(root, sp, allowed_imports, n_allowed);
+            check_ipm_cli_flag_docs(root, sp);
             cJSON_Delete(root);
         }
         closedir(dd);

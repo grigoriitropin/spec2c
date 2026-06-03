@@ -1,6 +1,6 @@
 {
   "function_definitions": {
-    "compile_instruction": {
+    "translate_instruction_type_into_code": {
       "description": "Dispatch instruction to its type-specific compiler function",
       "return_type": "void",
       "parameter_definitions": [
@@ -31,7 +31,7 @@
           "branch_on_success": [
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "compile_variable_declaration",
+              "invocation_name": "generate_code_for_variable_declaration",
               "invocation_arguments": {
                 "inst": "inst",
                 "buffer": "buffer"
@@ -48,7 +48,7 @@
               "branch_on_success": [
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "compile_function_invocation",
+                  "invocation_name": "generate_code_for_function_invocation",
                   "invocation_arguments": {
                     "inst": "inst",
                     "buffer": "buffer"
@@ -65,7 +65,7 @@
                   "branch_on_success": [
                     {
                       "instruction_type": "function_invocation",
-                      "invocation_name": "compile_conditional_branch",
+                      "invocation_name": "generate_code_for_conditional_branch",
                       "invocation_arguments": {
                         "inst": "inst",
                         "buffer": "buffer"
@@ -82,7 +82,7 @@
                       "branch_on_success": [
                         {
                           "instruction_type": "function_invocation",
-                          "invocation_name": "compile_return_statement",
+                          "invocation_name": "generate_code_for_return_statement",
                           "invocation_arguments": {
                             "inst": "inst",
                             "buffer": "buffer"
@@ -99,7 +99,7 @@
                           "branch_on_success": [
                             {
                               "instruction_type": "function_invocation",
-                              "invocation_name": "compile_iterate_over_collection",
+                              "invocation_name": "generate_code_for_iterate_collection",
                               "invocation_arguments": {
                                 "inst": "inst",
                                 "buffer": "buffer"
@@ -116,7 +116,7 @@
                               "branch_on_success": [
                                 {
                                   "instruction_type": "function_invocation",
-                                  "invocation_name": "compile_iterate_over_object_keys",
+                                  "invocation_name": "generate_code_for_key_iteration",
                                   "invocation_arguments": {
                                     "inst": "inst",
                                     "buffer": "buffer"
@@ -133,7 +133,7 @@
                                   "branch_on_success": [
                                     {
                                       "instruction_type": "function_invocation",
-                                      "invocation_name": "compile_access_json_field",
+                                      "invocation_name": "generate_json_field_access_code",
                                       "invocation_arguments": {
                                         "inst": "inst",
                                         "buffer": "buffer"
@@ -150,7 +150,7 @@
                                       "branch_on_success": [
                                         {
                                           "instruction_type": "function_invocation",
-                                          "invocation_name": "compile_database_execute_parameterized",
+                                          "invocation_name": "generate_code_for_database_execution",
                                           "invocation_arguments": {
                                             "inst": "inst",
                                             "buffer": "buffer"
@@ -161,14 +161,14 @@
                                       "branch_on_failure": [
                                         {
                                           "instruction_type": "function_invocation",
-                                          "invocation_name": "create_hash_table",
+                                          "invocation_name": "allocate_and_init_hash_table",
                                           "invocation_arguments": {},
                                           "result_assignment_variable": "t_err",
                                           "result_type": "subst_table"
                                         },
                                         {
                                           "instruction_type": "function_invocation",
-                                          "invocation_name": "hash_table_insert",
+                                          "invocation_name": "hash_table_insert_key_value",
                                           "invocation_arguments": {
                                             "table_handle": "t_err",
                                             "entry_key": "\"TYPE\"",
@@ -177,7 +177,7 @@
                                         },
                                         {
                                           "instruction_type": "function_invocation",
-                                          "invocation_name": "string_substitute",
+                                          "invocation_name": "apply_substitution_against_raw_text",
                                           "invocation_arguments": {
                                             "template_str": "\"unknown instruction type: {{TYPE}}\"",
                                             "table": "t_err"
@@ -187,7 +187,7 @@
                                         },
                                         {
                                           "instruction_type": "function_invocation",
-                                          "invocation_name": "json_die",
+                                          "invocation_name": "terminate_with_json_error_output",
                                           "invocation_arguments": {
                                             "function_name": "\"compile_instruction\"",
                                             "instruction_index": "\"0\"",
@@ -213,7 +213,7 @@
         }
       ]
     },
-    "compile_body": {
+    "process_instruction_array_into_code": {
       "description": "Compile an array of instructions by dispatching each one",
       "return_type": "void",
       "parameter_definitions": [
@@ -236,7 +236,7 @@
           "body_instructions": [
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "compile_instruction",
+              "invocation_name": "translate_instruction_type_into_code",
               "invocation_arguments": {
                 "inst": "inst",
                 "buffer": "buffer"
@@ -247,7 +247,7 @@
         }
       ]
     },
-    "compile_variable_declaration": {
+    "generate_code_for_variable_declaration": {
       "description": "Generate C code for variable_declaration instruction: TYPE VAR = OP(SRC);",
       "return_type": "void",
       "parameter_definitions": [
@@ -303,7 +303,7 @@
               "branch_on_success": [
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "vartype_to_c",
+                  "invocation_name": "resolve_spec_type_into_lang",
                   "invocation_arguments": {
                     "t": "var_type"
                   },
@@ -312,14 +312,14 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "create_hash_table",
+                  "invocation_name": "allocate_and_init_hash_table",
                   "invocation_arguments": {},
                   "result_assignment_variable": "tbl",
                   "result_type": "subst_table"
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "hash_table_insert",
+                  "invocation_name": "hash_table_insert_key_value",
                   "invocation_arguments": {
                     "table_handle": "tbl",
                     "entry_key": "\"CTYPE\"",
@@ -328,7 +328,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "hash_table_insert",
+                  "invocation_name": "hash_table_insert_key_value",
                   "invocation_arguments": {
                     "table_handle": "tbl",
                     "entry_key": "\"VNAME\"",
@@ -337,7 +337,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "hash_table_insert",
+                  "invocation_name": "hash_table_insert_key_value",
                   "invocation_arguments": {
                     "table_handle": "tbl",
                     "entry_key": "\"FUNC\"",
@@ -346,7 +346,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "hash_table_insert",
+                  "invocation_name": "hash_table_insert_key_value",
                   "invocation_arguments": {
                     "table_handle": "tbl",
                     "entry_key": "\"SRC\"",
@@ -355,7 +355,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "string_substitute",
+                  "invocation_name": "apply_substitution_against_raw_text",
                   "invocation_arguments": {
                     "template_str": "\"  {{CTYPE}} {{VNAME}} = {{FUNC}}({{SRC}});\\n\"",
                     "table": "tbl"
@@ -365,7 +365,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "append_to_buffer",
+                  "invocation_name": "append_text_into_string_buffer",
                   "invocation_arguments": {
                     "buf": "buffer",
                     "str": "line"
@@ -379,7 +379,7 @@
         }
       ]
     },
-    "compile_function_invocation": {
+    "generate_code_for_function_invocation": {
       "description": "Generate C code for function_invocation",
       "return_type": "void",
       "parameter_definitions": [
@@ -433,7 +433,7 @@
               "branch_on_success": [
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "vartype_to_c",
+                  "invocation_name": "resolve_spec_type_into_lang",
                   "invocation_arguments": {
                     "t": "rt"
                   },
@@ -442,14 +442,14 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "create_hash_table",
+                  "invocation_name": "allocate_and_init_hash_table",
                   "invocation_arguments": {},
                   "result_assignment_variable": "t_hdr",
                   "result_type": "subst_table"
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "hash_table_insert",
+                  "invocation_name": "hash_table_insert_key_value",
                   "invocation_arguments": {
                     "table_handle": "t_hdr",
                     "entry_key": "\"CTYPE\"",
@@ -458,7 +458,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "hash_table_insert",
+                  "invocation_name": "hash_table_insert_key_value",
                   "invocation_arguments": {
                     "table_handle": "t_hdr",
                     "entry_key": "\"VAR\"",
@@ -467,7 +467,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "hash_table_insert",
+                  "invocation_name": "hash_table_insert_key_value",
                   "invocation_arguments": {
                     "table_handle": "t_hdr",
                     "entry_key": "\"FUNC\"",
@@ -476,7 +476,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "string_substitute",
+                  "invocation_name": "apply_substitution_against_raw_text",
                   "invocation_arguments": {
                     "template_str": "\"  {{CTYPE}} {{VAR}} = {{FUNC}}(\"",
                     "table": "t_hdr"
@@ -486,7 +486,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "append_to_buffer",
+                  "invocation_name": "append_text_into_string_buffer",
                   "invocation_arguments": {
                     "buf": "buffer",
                     "str": "header"
@@ -499,14 +499,14 @@
                   "branch_on_success": [
                     {
                       "instruction_type": "function_invocation",
-                      "invocation_name": "create_hash_table",
+                      "invocation_name": "allocate_and_init_hash_table",
                       "invocation_arguments": {},
                       "result_assignment_variable": "t_flags",
                       "result_type": "subst_table"
                     },
                     {
                       "instruction_type": "function_invocation",
-                      "invocation_name": "hash_table_insert",
+                      "invocation_name": "hash_table_insert_key_value",
                       "invocation_arguments": {
                         "table_handle": "t_flags",
                         "entry_key": "\"first\"",
@@ -520,7 +520,7 @@
                       "body_instructions": [
                         {
                           "instruction_type": "function_invocation",
-                          "invocation_name": "hash_table_lookup",
+                          "invocation_name": "hash_table_lookup_key_value",
                           "invocation_arguments": {
                             "table": "t_flags",
                             "key": "\"first\""
@@ -536,7 +536,7 @@
                           "branch_on_success": [
                             {
                               "instruction_type": "function_invocation",
-                              "invocation_name": "hash_table_insert",
+                              "invocation_name": "hash_table_insert_key_value",
                               "invocation_arguments": {
                                 "table_handle": "t_flags",
                                 "entry_key": "\"first\"",
@@ -547,7 +547,7 @@
                           "branch_on_failure": [
                             {
                               "instruction_type": "function_invocation",
-                              "invocation_name": "append_to_buffer",
+                              "invocation_name": "append_text_into_string_buffer",
                               "invocation_arguments": {
                                 "buf": "buffer",
                                 "str": "\", \""
@@ -557,7 +557,7 @@
                         },
                         {
                           "instruction_type": "function_invocation",
-                          "invocation_name": "append_to_buffer",
+                          "invocation_name": "append_text_into_string_buffer",
                           "invocation_arguments": {
                             "buf": "buffer",
                             "str": "arg_val_valstr"
@@ -571,7 +571,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "append_to_buffer",
+                  "invocation_name": "append_text_into_string_buffer",
                   "invocation_arguments": {
                     "buf": "buffer",
                     "str": "\");\\n\""
@@ -581,14 +581,14 @@
               "branch_on_failure": [
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "create_hash_table",
+                  "invocation_name": "allocate_and_init_hash_table",
                   "invocation_arguments": {},
                   "result_assignment_variable": "t_hdr2",
                   "result_type": "subst_table"
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "hash_table_insert",
+                  "invocation_name": "hash_table_insert_key_value",
                   "invocation_arguments": {
                     "table_handle": "t_hdr2",
                     "entry_key": "\"FUNC\"",
@@ -597,7 +597,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "string_substitute",
+                  "invocation_name": "apply_substitution_against_raw_text",
                   "invocation_arguments": {
                     "template_str": "\"  {{FUNC}}(\"",
                     "table": "t_hdr2"
@@ -607,7 +607,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "append_to_buffer",
+                  "invocation_name": "append_text_into_string_buffer",
                   "invocation_arguments": {
                     "buf": "buffer",
                     "str": "header"
@@ -620,14 +620,14 @@
                   "branch_on_success": [
                     {
                       "instruction_type": "function_invocation",
-                      "invocation_name": "create_hash_table",
+                      "invocation_name": "allocate_and_init_hash_table",
                       "invocation_arguments": {},
                       "result_assignment_variable": "t_flags",
                       "result_type": "subst_table"
                     },
                     {
                       "instruction_type": "function_invocation",
-                      "invocation_name": "hash_table_insert",
+                      "invocation_name": "hash_table_insert_key_value",
                       "invocation_arguments": {
                         "table_handle": "t_flags",
                         "entry_key": "\"first\"",
@@ -641,7 +641,7 @@
                       "body_instructions": [
                         {
                           "instruction_type": "function_invocation",
-                          "invocation_name": "hash_table_lookup",
+                          "invocation_name": "hash_table_lookup_key_value",
                           "invocation_arguments": {
                             "table": "t_flags",
                             "key": "\"first\""
@@ -657,7 +657,7 @@
                           "branch_on_success": [
                             {
                               "instruction_type": "function_invocation",
-                              "invocation_name": "hash_table_insert",
+                              "invocation_name": "hash_table_insert_key_value",
                               "invocation_arguments": {
                                 "table_handle": "t_flags",
                                 "entry_key": "\"first\"",
@@ -668,7 +668,7 @@
                           "branch_on_failure": [
                             {
                               "instruction_type": "function_invocation",
-                              "invocation_name": "append_to_buffer",
+                              "invocation_name": "append_text_into_string_buffer",
                               "invocation_arguments": {
                                 "buf": "buffer",
                                 "str": "\", \""
@@ -678,7 +678,7 @@
                         },
                         {
                           "instruction_type": "function_invocation",
-                          "invocation_name": "append_to_buffer",
+                          "invocation_name": "append_text_into_string_buffer",
                           "invocation_arguments": {
                             "buf": "buffer",
                             "str": "arg_val_valstr"
@@ -692,7 +692,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "append_to_buffer",
+                  "invocation_name": "append_text_into_string_buffer",
                   "invocation_arguments": {
                     "buf": "buffer",
                     "str": "\");\\n\""
@@ -706,7 +706,7 @@
         }
       ]
     },
-    "compile_conditional_branch": {
+    "generate_code_for_conditional_branch": {
       "description": "Generate C code for conditional_branch: if/else with compile_body",
       "return_type": "void",
       "parameter_definitions": [
@@ -770,14 +770,14 @@
           "branch_on_success": [
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "create_hash_table",
+              "invocation_name": "allocate_and_init_hash_table",
               "invocation_arguments": {},
               "result_assignment_variable": "tbl",
               "result_type": "subst_table"
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "hash_table_insert",
+              "invocation_name": "hash_table_insert_key_value",
               "invocation_arguments": {
                 "table_handle": "tbl",
                 "entry_key": "\"TGT\"",
@@ -786,7 +786,7 @@
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "hash_table_insert",
+              "invocation_name": "hash_table_insert_key_value",
               "invocation_arguments": {
                 "table_handle": "tbl",
                 "entry_key": "\"KEY\"",
@@ -795,7 +795,7 @@
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "string_substitute",
+              "invocation_name": "apply_substitution_against_raw_text",
               "invocation_arguments": {
                 "template_str": "\"  if (cJSON_HasObjectItem({{TGT}}, \\\"{{KEY}}\\\")) {\\n\"",
                 "table": "tbl"
@@ -805,7 +805,7 @@
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "append_to_buffer",
+              "invocation_name": "append_text_into_string_buffer",
               "invocation_arguments": {
                 "buf": "buffer",
                 "str": "header"
@@ -813,7 +813,7 @@
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "compile_body",
+              "invocation_name": "process_instruction_array_into_code",
               "invocation_arguments": {
                 "instructions": "bon",
                 "buffer": "buffer"
@@ -821,7 +821,7 @@
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "append_to_buffer",
+              "invocation_name": "append_text_into_string_buffer",
               "invocation_arguments": {
                 "buf": "buffer",
                 "str": "\"  } else {\\n\""
@@ -829,7 +829,7 @@
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "compile_body",
+              "invocation_name": "process_instruction_array_into_code",
               "invocation_arguments": {
                 "instructions": "bof",
                 "buffer": "buffer"
@@ -837,7 +837,7 @@
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "append_to_buffer",
+              "invocation_name": "append_text_into_string_buffer",
               "invocation_arguments": {
                 "buf": "buffer",
                 "str": "\"  }\\n\""
@@ -853,14 +853,14 @@
               "branch_on_success": [
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "create_hash_table",
+                  "invocation_name": "allocate_and_init_hash_table",
                   "invocation_arguments": {},
                   "result_assignment_variable": "tbl",
                   "result_type": "subst_table"
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "hash_table_insert",
+                  "invocation_name": "hash_table_insert_key_value",
                   "invocation_arguments": {
                     "table_handle": "tbl",
                     "entry_key": "\"TGT\"",
@@ -869,7 +869,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "string_substitute",
+                  "invocation_name": "apply_substitution_against_raw_text",
                   "invocation_arguments": {
                     "template_str": "\"  if ({{TGT}} != NULL) {\\n\"",
                     "table": "tbl"
@@ -879,7 +879,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "append_to_buffer",
+                  "invocation_name": "append_text_into_string_buffer",
                   "invocation_arguments": {
                     "buf": "buffer",
                     "str": "header"
@@ -887,7 +887,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "compile_body",
+                  "invocation_name": "process_instruction_array_into_code",
                   "invocation_arguments": {
                     "instructions": "bon",
                     "buffer": "buffer"
@@ -895,7 +895,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "append_to_buffer",
+                  "invocation_name": "append_text_into_string_buffer",
                   "invocation_arguments": {
                     "buf": "buffer",
                     "str": "\"  } else {\\n\""
@@ -903,7 +903,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "compile_body",
+                  "invocation_name": "process_instruction_array_into_code",
                   "invocation_arguments": {
                     "instructions": "bof",
                     "buffer": "buffer"
@@ -911,7 +911,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "append_to_buffer",
+                  "invocation_name": "append_text_into_string_buffer",
                   "invocation_arguments": {
                     "buf": "buffer",
                     "str": "\"  }\\n\""
@@ -921,14 +921,14 @@
               "branch_on_failure": [
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "create_hash_table",
+                  "invocation_name": "allocate_and_init_hash_table",
                   "invocation_arguments": {},
                   "result_assignment_variable": "tbl",
                   "result_type": "subst_table"
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "hash_table_insert",
+                  "invocation_name": "hash_table_insert_key_value",
                   "invocation_arguments": {
                     "table_handle": "tbl",
                     "entry_key": "\"TGT\"",
@@ -937,7 +937,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "hash_table_insert",
+                  "invocation_name": "hash_table_insert_key_value",
                   "invocation_arguments": {
                     "table_handle": "tbl",
                     "entry_key": "\"VAL\"",
@@ -946,7 +946,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "string_substitute",
+                  "invocation_name": "apply_substitution_against_raw_text",
                   "invocation_arguments": {
                     "template_str": "\"  if (strcmp({{TGT}}, \\\"{{VAL}}\\\") == 0) {\\n\"",
                     "table": "tbl"
@@ -956,7 +956,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "append_to_buffer",
+                  "invocation_name": "append_text_into_string_buffer",
                   "invocation_arguments": {
                     "buf": "buffer",
                     "str": "header"
@@ -964,7 +964,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "compile_body",
+                  "invocation_name": "process_instruction_array_into_code",
                   "invocation_arguments": {
                     "instructions": "bon",
                     "buffer": "buffer"
@@ -972,7 +972,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "append_to_buffer",
+                  "invocation_name": "append_text_into_string_buffer",
                   "invocation_arguments": {
                     "buf": "buffer",
                     "str": "\"  } else {\\n\""
@@ -980,7 +980,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "compile_body",
+                  "invocation_name": "process_instruction_array_into_code",
                   "invocation_arguments": {
                     "instructions": "bof",
                     "buffer": "buffer"
@@ -988,7 +988,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "append_to_buffer",
+                  "invocation_name": "append_text_into_string_buffer",
                   "invocation_arguments": {
                     "buf": "buffer",
                     "str": "\"  }\\n\""
@@ -1000,7 +1000,7 @@
         }
       ]
     },
-    "compile_return_statement": {
+    "generate_code_for_return_statement": {
       "description": "Generate C return statement from return_payload",
       "return_type": "void",
       "parameter_definitions": [
@@ -1048,14 +1048,14 @@
               "branch_on_success": [
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "create_hash_table",
+                  "invocation_name": "allocate_and_init_hash_table",
                   "invocation_arguments": {},
                   "result_assignment_variable": "tbl",
                   "result_type": "subst_table"
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "hash_table_insert",
+                  "invocation_name": "hash_table_insert_key_value",
                   "invocation_arguments": {
                     "table_handle": "tbl",
                     "entry_key": "\"MSG\"",
@@ -1064,7 +1064,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "string_substitute",
+                  "invocation_name": "apply_substitution_against_raw_text",
                   "invocation_arguments": {
                     "template_str": "\"  die(\\\"{{MSG}}\\\");\\n  return 1;\\n\"",
                     "table": "tbl"
@@ -1074,7 +1074,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "append_to_buffer",
+                  "invocation_name": "append_text_into_string_buffer",
                   "invocation_arguments": {
                     "buf": "buffer",
                     "str": "line"
@@ -1089,14 +1089,14 @@
                   "branch_on_success": [
                     {
                       "instruction_type": "function_invocation",
-                      "invocation_name": "create_hash_table",
+                      "invocation_name": "allocate_and_init_hash_table",
                       "invocation_arguments": {},
                       "result_assignment_variable": "tbl2",
                       "result_type": "subst_table"
                     },
                     {
                       "instruction_type": "function_invocation",
-                      "invocation_name": "hash_table_insert",
+                      "invocation_name": "hash_table_insert_key_value",
                       "invocation_arguments": {
                         "table_handle": "tbl2",
                         "entry_key": "\"VAL\"",
@@ -1105,7 +1105,7 @@
                     },
                     {
                       "instruction_type": "function_invocation",
-                      "invocation_name": "string_substitute",
+                      "invocation_name": "apply_substitution_against_raw_text",
                       "invocation_arguments": {
                         "template_str": "\"  return {{VAL}};\\n\"",
                         "table": "tbl2"
@@ -1115,7 +1115,7 @@
                     },
                     {
                       "instruction_type": "function_invocation",
-                      "invocation_name": "append_to_buffer",
+                      "invocation_name": "append_text_into_string_buffer",
                       "invocation_arguments": {
                         "buf": "buffer",
                         "str": "line"
@@ -1125,7 +1125,7 @@
                   "branch_on_failure": [
                     {
                       "instruction_type": "function_invocation",
-                      "invocation_name": "append_to_buffer",
+                      "invocation_name": "append_text_into_string_buffer",
                       "invocation_arguments": {
                         "buf": "buffer",
                         "str": "\"  return 0;\\n\""
@@ -1140,7 +1140,7 @@
           "branch_on_failure": [
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "append_to_buffer",
+              "invocation_name": "append_text_into_string_buffer",
               "invocation_arguments": {
                 "buf": "buffer",
                 "str": "\"  return 0;\\n\""
@@ -1150,7 +1150,7 @@
         }
       ]
     },
-    "compile_iterate_over_collection": {
+    "generate_code_for_iterate_collection": {
       "description": "Generate C code for iterate_over_collection: for loop with compile_body",
       "return_type": "void",
       "parameter_definitions": [
@@ -1192,14 +1192,14 @@
           "branch_on_success": [
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "create_hash_table",
+              "invocation_name": "allocate_and_init_hash_table",
               "invocation_arguments": {},
               "result_assignment_variable": "tbl",
               "result_type": "subst_table"
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "hash_table_insert",
+              "invocation_name": "hash_table_insert_key_value",
               "invocation_arguments": {
                 "table_handle": "tbl",
                 "entry_key": "\"COL\"",
@@ -1208,7 +1208,7 @@
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "hash_table_insert",
+              "invocation_name": "hash_table_insert_key_value",
               "invocation_arguments": {
                 "table_handle": "tbl",
                 "entry_key": "\"ITEM\"",
@@ -1217,7 +1217,7 @@
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "string_substitute",
+              "invocation_name": "apply_substitution_against_raw_text",
               "invocation_arguments": {
                 "template_str": "\"  for (int _i_{{COL}} = 0; _i_{{COL}} < cJSON_GetArraySize({{COL}}); _i_{{COL}}++) {\\n\"",
                 "table": "tbl"
@@ -1227,7 +1227,7 @@
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "append_to_buffer",
+              "invocation_name": "append_text_into_string_buffer",
               "invocation_arguments": {
                 "buf": "buffer",
                 "str": "header"
@@ -1235,14 +1235,14 @@
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "create_hash_table",
+              "invocation_name": "allocate_and_init_hash_table",
               "invocation_arguments": {},
               "result_assignment_variable": "tbl2",
               "result_type": "subst_table"
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "hash_table_insert",
+              "invocation_name": "hash_table_insert_key_value",
               "invocation_arguments": {
                 "table_handle": "tbl2",
                 "entry_key": "\"ITEM\"",
@@ -1251,7 +1251,7 @@
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "hash_table_insert",
+              "invocation_name": "hash_table_insert_key_value",
               "invocation_arguments": {
                 "table_handle": "tbl2",
                 "entry_key": "\"COL\"",
@@ -1260,7 +1260,7 @@
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "string_substitute",
+              "invocation_name": "apply_substitution_against_raw_text",
               "invocation_arguments": {
                 "template_str": "\"    cJSON *{{ITEM}} = cJSON_GetArrayItem({{COL}}, _i_{{COL}});\\n\"",
                 "table": "tbl2"
@@ -1270,7 +1270,7 @@
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "append_to_buffer",
+              "invocation_name": "append_text_into_string_buffer",
               "invocation_arguments": {
                 "buf": "buffer",
                 "str": "item_line"
@@ -1278,14 +1278,14 @@
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "create_hash_table",
+              "invocation_name": "allocate_and_init_hash_table",
               "invocation_arguments": {},
               "result_assignment_variable": "t_valstr",
               "result_type": "subst_table"
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "hash_table_insert",
+              "invocation_name": "hash_table_insert_key_value",
               "invocation_arguments": {
                 "table_handle": "t_valstr",
                 "entry_key": "\"ITEM\"",
@@ -1294,7 +1294,7 @@
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "string_substitute",
+              "invocation_name": "apply_substitution_against_raw_text",
               "invocation_arguments": {
                 "template_str": "\"    const char *{{ITEM}}_valstr = {{ITEM}} ? {{ITEM}}->valuestring : \\\"\\\";\\n\"",
                 "table": "t_valstr"
@@ -1304,7 +1304,7 @@
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "append_to_buffer",
+              "invocation_name": "append_text_into_string_buffer",
               "invocation_arguments": {
                 "buf": "buffer",
                 "str": "valstr_line"
@@ -1312,7 +1312,7 @@
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "compile_body",
+              "invocation_name": "process_instruction_array_into_code",
               "invocation_arguments": {
                 "instructions": "body",
                 "buffer": "buffer"
@@ -1320,7 +1320,7 @@
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "append_to_buffer",
+              "invocation_name": "append_text_into_string_buffer",
               "invocation_arguments": {
                 "buf": "buffer",
                 "str": "\"  }\\n\""
@@ -1331,7 +1331,7 @@
         }
       ]
     },
-    "compile_iterate_over_object_keys": {
+    "generate_code_for_key_iteration": {
       "description": "Generate C code for iterate_over_object_keys: foreach with compile_body",
       "return_type": "void",
       "parameter_definitions": [
@@ -1380,14 +1380,14 @@
           "branch_on_success": [
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "create_hash_table",
+              "invocation_name": "allocate_and_init_hash_table",
               "invocation_arguments": {},
               "result_assignment_variable": "tbl",
               "result_type": "subst_table"
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "hash_table_insert",
+              "invocation_name": "hash_table_insert_key_value",
               "invocation_arguments": {
                 "table_handle": "tbl",
                 "entry_key": "\"VAL\"",
@@ -1396,7 +1396,7 @@
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "hash_table_insert",
+              "invocation_name": "hash_table_insert_key_value",
               "invocation_arguments": {
                 "table_handle": "tbl",
                 "entry_key": "\"COL\"",
@@ -1405,7 +1405,7 @@
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "string_substitute",
+              "invocation_name": "apply_substitution_against_raw_text",
               "invocation_arguments": {
                 "template_str": "\"  cJSON *{{VAL}} = {{COL}};\\n\"",
                 "table": "tbl"
@@ -1415,7 +1415,7 @@
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "append_to_buffer",
+              "invocation_name": "append_text_into_string_buffer",
               "invocation_arguments": {
                 "buf": "buffer",
                 "str": "line1"
@@ -1423,7 +1423,7 @@
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "string_substitute",
+              "invocation_name": "apply_substitution_against_raw_text",
               "invocation_arguments": {
                 "template_str": "\"  cJSON_ArrayForEach({{VAL}}, {{COL}}) {\\n\"",
                 "table": "tbl"
@@ -1433,7 +1433,7 @@
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "append_to_buffer",
+              "invocation_name": "append_text_into_string_buffer",
               "invocation_arguments": {
                 "buf": "buffer",
                 "str": "line2"
@@ -1441,14 +1441,14 @@
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "create_hash_table",
+              "invocation_name": "allocate_and_init_hash_table",
               "invocation_arguments": {},
               "result_assignment_variable": "tbl2",
               "result_type": "subst_table"
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "hash_table_insert",
+              "invocation_name": "hash_table_insert_key_value",
               "invocation_arguments": {
                 "table_handle": "tbl2",
                 "entry_key": "\"KEY\"",
@@ -1457,7 +1457,7 @@
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "hash_table_insert",
+              "invocation_name": "hash_table_insert_key_value",
               "invocation_arguments": {
                 "table_handle": "tbl2",
                 "entry_key": "\"VAL\"",
@@ -1466,7 +1466,7 @@
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "string_substitute",
+              "invocation_name": "apply_substitution_against_raw_text",
               "invocation_arguments": {
                 "template_str": "\"    const char *{{KEY}} = {{VAL}}->string;\\n\"",
                 "table": "tbl2"
@@ -1476,7 +1476,7 @@
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "append_to_buffer",
+              "invocation_name": "append_text_into_string_buffer",
               "invocation_arguments": {
                 "buf": "buffer",
                 "str": "line3"
@@ -1484,7 +1484,7 @@
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "string_substitute",
+              "invocation_name": "apply_substitution_against_raw_text",
               "invocation_arguments": {
                 "template_str": "\"    const char *{{VAL}}_valstr = {{VAL}}->valuestring;\\n\"",
                 "table": "tbl2"
@@ -1494,7 +1494,7 @@
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "append_to_buffer",
+              "invocation_name": "append_text_into_string_buffer",
               "invocation_arguments": {
                 "buf": "buffer",
                 "str": "line4"
@@ -1502,7 +1502,7 @@
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "compile_body",
+              "invocation_name": "process_instruction_array_into_code",
               "invocation_arguments": {
                 "instructions": "body",
                 "buffer": "buffer"
@@ -1510,7 +1510,7 @@
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "append_to_buffer",
+              "invocation_name": "append_text_into_string_buffer",
               "invocation_arguments": {
                 "buf": "buffer",
                 "str": "\"  }\\n\""
@@ -1521,7 +1521,7 @@
         }
       ]
     },
-    "compile_access_json_field": {
+    "generate_json_field_access_code": {
       "description": "Generate C code for access_json_field: read a JSON field into a typed variable",
       "return_type": "void",
       "parameter_definitions": [
@@ -1571,14 +1571,14 @@
           "branch_on_success": [
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "create_hash_table",
+              "invocation_name": "allocate_and_init_hash_table",
               "invocation_arguments": {},
               "result_assignment_variable": "tbl",
               "result_type": "subst_table"
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "hash_table_insert",
+              "invocation_name": "hash_table_insert_key_value",
               "invocation_arguments": {
                 "table_handle": "tbl",
                 "entry_key": "\"VAR\"",
@@ -1587,7 +1587,7 @@
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "hash_table_insert",
+              "invocation_name": "hash_table_insert_key_value",
               "invocation_arguments": {
                 "table_handle": "tbl",
                 "entry_key": "\"SOBJ\"",
@@ -1596,7 +1596,7 @@
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "hash_table_insert",
+              "invocation_name": "hash_table_insert_key_value",
               "invocation_arguments": {
                 "table_handle": "tbl",
                 "entry_key": "\"FNAME\"",
@@ -1605,7 +1605,7 @@
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "string_substitute",
+              "invocation_name": "apply_substitution_against_raw_text",
               "invocation_arguments": {
                 "template_str": "\"  const char *{{VAR}} = cJSON_GetObjectItemCaseSensitive({{SOBJ}},\\\"{{FNAME}}\\\") ? cJSON_GetObjectItemCaseSensitive({{SOBJ}},\\\"{{FNAME}}\\\")->valuestring : \\\"\\\";\\n\"",
                 "table": "tbl"
@@ -1615,7 +1615,7 @@
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "append_to_buffer",
+              "invocation_name": "append_text_into_string_buffer",
               "invocation_arguments": {
                 "buf": "buffer",
                 "str": "line"
@@ -1625,14 +1625,14 @@
           "branch_on_failure": [
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "create_hash_table",
+              "invocation_name": "allocate_and_init_hash_table",
               "invocation_arguments": {},
               "result_assignment_variable": "tbl2",
               "result_type": "subst_table"
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "hash_table_insert",
+              "invocation_name": "hash_table_insert_key_value",
               "invocation_arguments": {
                 "table_handle": "tbl2",
                 "entry_key": "\"VAR\"",
@@ -1641,7 +1641,7 @@
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "hash_table_insert",
+              "invocation_name": "hash_table_insert_key_value",
               "invocation_arguments": {
                 "table_handle": "tbl2",
                 "entry_key": "\"SOBJ\"",
@@ -1650,7 +1650,7 @@
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "hash_table_insert",
+              "invocation_name": "hash_table_insert_key_value",
               "invocation_arguments": {
                 "table_handle": "tbl2",
                 "entry_key": "\"FNAME\"",
@@ -1659,7 +1659,7 @@
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "string_substitute",
+              "invocation_name": "apply_substitution_against_raw_text",
               "invocation_arguments": {
                 "template_str": "\"  cJSON *{{VAR}} = cJSON_GetObjectItemCaseSensitive({{SOBJ}}, \\\"{{FNAME}}\\\");\\n\"",
                 "table": "tbl2"
@@ -1669,7 +1669,7 @@
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "append_to_buffer",
+              "invocation_name": "append_text_into_string_buffer",
               "invocation_arguments": {
                 "buf": "buffer",
                 "str": "line"
@@ -1679,7 +1679,7 @@
         }
       ]
     },
-    "compile_database_execute_parameterized": {
+    "generate_code_for_database_execution": {
       "description": "Generate C code for database_execute_parameterized (placeholder)",
       "return_type": "void",
       "parameter_definitions": [
@@ -1695,7 +1695,7 @@
       "execution_instructions": [
         {
           "instruction_type": "function_invocation",
-          "invocation_name": "append_to_buffer",
+          "invocation_name": "append_text_into_string_buffer",
           "invocation_arguments": {
             "buf": "buffer",
             "str": "\"  /* database_execute_parameterized — not yet implemented */\\n\""
@@ -1704,7 +1704,7 @@
       ]
     }
   },
-  "module_name": "codegen",
-  "package_name": "codegen",
+  "module_name": "code-generation-instruction-dispatch-table",
+  "package_name": "code-generation-instruction-dispatch-table",
   "package_type": "module"
 }

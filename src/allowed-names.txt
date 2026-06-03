@@ -197,3 +197,13 @@ emit_invocation_code_into_output
 check_ipm_ast_structure_depth
 check_ipm_imports_against_whitelist
 load_ipm_import_whitelist_file
+validate_single_ipm_file_content
+scan_instructions_for_invocation_names
+execute-full-compilation-pipeline-flow
+compile-function-definitions-into-code
+generate-code-from-instruction-ast
+execute-full-compilation-pipeline-flow
+check_ipm_imports_against_whitelist
+check_ipm_cli_flag_docs
+check_ipm_imports_against_whitelist
+load_ipm_import_whitelist_file

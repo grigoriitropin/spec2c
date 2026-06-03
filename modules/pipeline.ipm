@@ -1,6 +1,6 @@
 {
   "function_definitions": {
-    "execute_pipeline": {
+    "run_spec2c_compilation_pipeline_flow": {
       "description": "Main compilation pipeline: read specification file, parse JSON, compute substitution variables, iterate template definitions, apply substitutions, emit generated C source",
       "return_type": "int",
       "parameter_definitions": [
@@ -18,7 +18,7 @@
       "execution_instructions": [
         {
           "instruction_type": "function_invocation",
-          "invocation_name": "write_string_to_file",
+          "invocation_name": "write_text_string_into_file",
           "invocation_arguments": {
             "path": "output_file_path",
             "content": "\"\""
@@ -27,7 +27,7 @@
         },
         {
           "instruction_type": "function_invocation",
-          "invocation_name": "read_file",
+          "invocation_name": "read_entire_text_into_memory",
           "invocation_arguments": {
             "file_path": "specification_file_path"
           },
@@ -43,7 +43,7 @@
         },
         {
           "instruction_type": "function_invocation",
-          "invocation_name": "parse_json_string",
+          "invocation_name": "parse_json_text_into_object",
           "invocation_arguments": {
             "content": "specification_content"
           },
@@ -52,7 +52,7 @@
         },
         {
           "instruction_type": "function_invocation",
-          "invocation_name": "compile_ast_functions_to_c",
+          "invocation_name": "generate_code_from_function_definitions",
           "invocation_arguments": {
             "spec_json": "parsed_ast",
             "out_file": "output_file_path"
@@ -68,7 +68,7 @@
         },
         {
           "instruction_type": "function_invocation",
-          "invocation_name": "compute_substs",
+          "invocation_name": "create_substitution_table_for_spec",
           "invocation_arguments": {
             "parsed_spec": "parsed_ast"
           },
@@ -77,7 +77,7 @@
         },
         {
           "instruction_type": "function_invocation",
-          "invocation_name": "generate_from_ipm",
+          "invocation_name": "handle_ipm_spec_emit_code",
           "invocation_arguments": {
             "parsed_spec": "parsed_ast",
             "subst_table": "subst_table",
@@ -95,7 +95,7 @@
         }
       ]
     },
-    "read_file": {
+    "read_entire_text_into_memory": {
       "description": "Open file (or stdin if path is null), read entire content into a string buffer, close file",
       "return_type": "string",
       "parameter_definitions": [
@@ -108,7 +108,7 @@
       "execution_instructions": [
         {
           "instruction_type": "function_invocation",
-          "invocation_name": "read_file_to_string",
+          "invocation_name": "read_entire_file_into_string",
           "invocation_arguments": {
             "path": "file_path"
           },
@@ -132,7 +132,7 @@
         }
       ]
     },
-    "compute_substs": {
+    "create_substitution_table_for_spec": {
       "description": "Build a substitution hash table from package specification fields — name, type, config_keys, db_queries",
       "return_type": "subst_table",
       "parameter_definitions": [
@@ -145,7 +145,7 @@
       "execution_instructions": [
         {
           "instruction_type": "function_invocation",
-          "invocation_name": "create_hash_table",
+          "invocation_name": "allocate_and_init_hash_table",
           "invocation_arguments": {},
           "result_assignment_variable": "subst_table",
           "result_type": "subst_table"
@@ -159,7 +159,7 @@
         },
         {
           "instruction_type": "function_invocation",
-          "invocation_name": "hash_table_insert",
+          "invocation_name": "hash_table_insert_key_value",
           "invocation_arguments": {
             "table_handle": "subst_table",
             "entry_key": "\"package_name\"",
@@ -176,7 +176,7 @@
         },
         {
           "instruction_type": "function_invocation",
-          "invocation_name": "hash_table_insert",
+          "invocation_name": "hash_table_insert_key_value",
           "invocation_arguments": {
             "table_handle": "subst_table",
             "entry_key": "\"package_type\"",
@@ -193,7 +193,7 @@
           "branch_on_success": [
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "hash_table_insert",
+              "invocation_name": "hash_table_insert_key_value",
               "invocation_arguments": {
                 "table_handle": "subst_table",
                 "entry_key": "\"has_configuration\"",
@@ -204,7 +204,7 @@
           "branch_on_failure": [
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "hash_table_insert",
+              "invocation_name": "hash_table_insert_key_value",
               "invocation_arguments": {
                 "table_handle": "subst_table",
                 "entry_key": "\"has_configuration\"",
@@ -223,7 +223,7 @@
         }
       ]
     },
-    "generate_from_ipm": {
+    "handle_ipm_spec_emit_code": {
       "description": "Iterate over template_definitions in the spec, apply substitution table to each template, and write generated C source to output file",
       "return_type": "int",
       "parameter_definitions": [
@@ -266,7 +266,7 @@
           "body_instructions": [
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "write_string_to_file",
+              "invocation_name": "write_text_string_into_file",
               "invocation_arguments": {
                 "path": "output_file_path",
                 "content": "\"/* --- template: \""
@@ -274,7 +274,7 @@
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "write_string_to_file",
+              "invocation_name": "write_text_string_into_file",
               "invocation_arguments": {
                 "path": "output_file_path",
                 "content": "template_name"
@@ -282,7 +282,7 @@
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "write_string_to_file",
+              "invocation_name": "write_text_string_into_file",
               "invocation_arguments": {
                 "path": "output_file_path",
                 "content": "\" --- */\\n\""
@@ -290,7 +290,7 @@
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "write_string_to_file",
+              "invocation_name": "write_text_string_into_file",
               "invocation_arguments": {
                 "path": "output_file_path",
                 "content": "template_entry_valstr"
@@ -307,11 +307,11 @@
       ]
     }
   },
-  "module_name": "pipeline",
-  "package_name": "pipeline",
+  "module_name": "specification-compilation-pipeline-entry-point",
+  "package_name": "specification-compilation-pipeline-entry-point",
   "package_type": "module",
   "imports": [
-    "codegen",
-    "compile_ast"
+    "code-generation-instruction-dispatch-table",
+    "ast-function-compilation-engine-code"
   ]
 }

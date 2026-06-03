@@ -1,6 +1,6 @@
 {
   "function_definitions": {
-    "compile_ast_functions_to_c": {
+    "generate_code_from_function_definitions": {
       "description": "Compile all function_definitions to C: includes + forward declarations + bodies",
       "return_type": "void",
       "parameter_definitions": [
@@ -16,7 +16,7 @@
       "execution_instructions": [
         {
           "instruction_type": "function_invocation",
-          "invocation_name": "create_string_buffer",
+          "invocation_name": "create_empty_growable_string_buffer",
           "invocation_arguments": {},
           "result_assignment_variable": "buf",
           "result_type": "string_buffer"
@@ -35,7 +35,7 @@
           "branch_on_success": [
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "compile_ast_generate_header",
+              "invocation_name": "generate_header_from_function_definitions",
               "invocation_arguments": {
                 "spec_json": "spec_json",
                 "modname": "modname"
@@ -44,14 +44,14 @@
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "create_hash_table",
+              "invocation_name": "allocate_and_init_hash_table",
               "invocation_arguments": {},
               "result_assignment_variable": "t_modinc",
               "result_type": "subst_table"
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "hash_table_insert",
+              "invocation_name": "hash_table_insert_key_value",
               "invocation_arguments": {
                 "table_handle": "t_modinc",
                 "entry_key": "\"MOD\"",
@@ -60,7 +60,7 @@
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "string_substitute",
+              "invocation_name": "apply_substitution_against_raw_text",
               "invocation_arguments": {
                 "template_str": "\"#include \\\"{{MOD}}.h\\\"\\n\\n\"",
                 "table": "t_modinc"
@@ -70,7 +70,7 @@
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "append_to_buffer",
+              "invocation_name": "append_text_into_string_buffer",
               "invocation_arguments": {
                 "buf": "buf",
                 "str": "mod_include"
@@ -80,7 +80,7 @@
           "branch_on_failure": [
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "append_to_buffer",
+              "invocation_name": "append_text_into_string_buffer",
               "invocation_arguments": {
                 "buf": "buf",
                 "str": "\"#include <string.h>\\n#include <stdio.h>\\n#include <stdlib.h>\\n#include <cjson/cJSON.h>\\n#include \\\"ipm_builtins.h\\\"\\n\\n\""
@@ -114,7 +114,7 @@
                   "branch_on_failure": [
                     {
                       "instruction_type": "function_invocation",
-                      "invocation_name": "append_to_buffer",
+                      "invocation_name": "append_text_into_string_buffer",
                       "invocation_arguments": {
                         "buf": "buf",
                         "str": "\"static \""
@@ -131,7 +131,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "vartype_to_c",
+                  "invocation_name": "resolve_spec_type_into_lang",
                   "invocation_arguments": {
                     "t": "ret_type"
                   },
@@ -140,7 +140,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "append_to_buffer",
+                  "invocation_name": "append_text_into_string_buffer",
                   "invocation_arguments": {
                     "buf": "buf",
                     "str": "ret_c"
@@ -148,7 +148,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "append_to_buffer",
+                  "invocation_name": "append_text_into_string_buffer",
                   "invocation_arguments": {
                     "buf": "buf",
                     "str": "\" \""
@@ -156,7 +156,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "append_to_buffer",
+                  "invocation_name": "append_text_into_string_buffer",
                   "invocation_arguments": {
                     "buf": "buf",
                     "str": "fn_name"
@@ -164,7 +164,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "append_to_buffer",
+                  "invocation_name": "append_text_into_string_buffer",
                   "invocation_arguments": {
                     "buf": "buf",
                     "str": "\"(\""
@@ -184,14 +184,14 @@
                   "branch_on_success": [
                     {
                       "instruction_type": "function_invocation",
-                      "invocation_name": "create_hash_table",
+                      "invocation_name": "allocate_and_init_hash_table",
                       "invocation_arguments": {},
                       "result_assignment_variable": "t_parflag",
                       "result_type": "subst_table"
                     },
                     {
                       "instruction_type": "function_invocation",
-                      "invocation_name": "hash_table_insert",
+                      "invocation_name": "hash_table_insert_key_value",
                       "invocation_arguments": {
                         "table_handle": "t_parflag",
                         "entry_key": "\"first\"",
@@ -219,7 +219,7 @@
                         },
                         {
                           "instruction_type": "function_invocation",
-                          "invocation_name": "vartype_to_c",
+                          "invocation_name": "resolve_spec_type_into_lang",
                           "invocation_arguments": {
                             "t": "pt"
                           },
@@ -228,7 +228,7 @@
                         },
                         {
                           "instruction_type": "function_invocation",
-                          "invocation_name": "hash_table_lookup",
+                          "invocation_name": "hash_table_lookup_key_value",
                           "invocation_arguments": {
                             "table": "t_parflag",
                             "key": "\"first\""
@@ -244,7 +244,7 @@
                           "branch_on_success": [
                             {
                               "instruction_type": "function_invocation",
-                              "invocation_name": "hash_table_insert",
+                              "invocation_name": "hash_table_insert_key_value",
                               "invocation_arguments": {
                                 "table_handle": "t_parflag",
                                 "entry_key": "\"first\"",
@@ -255,7 +255,7 @@
                           "branch_on_failure": [
                             {
                               "instruction_type": "function_invocation",
-                              "invocation_name": "append_to_buffer",
+                              "invocation_name": "append_text_into_string_buffer",
                               "invocation_arguments": {
                                 "buf": "buf",
                                 "str": "\", \""
@@ -265,7 +265,7 @@
                         },
                         {
                           "instruction_type": "function_invocation",
-                          "invocation_name": "append_to_buffer",
+                          "invocation_name": "append_text_into_string_buffer",
                           "invocation_arguments": {
                             "buf": "buf",
                             "str": "pct"
@@ -273,7 +273,7 @@
                         },
                         {
                           "instruction_type": "function_invocation",
-                          "invocation_name": "append_to_buffer",
+                          "invocation_name": "append_text_into_string_buffer",
                           "invocation_arguments": {
                             "buf": "buf",
                             "str": "\" \""
@@ -281,7 +281,7 @@
                         },
                         {
                           "instruction_type": "function_invocation",
-                          "invocation_name": "append_to_buffer",
+                          "invocation_name": "append_text_into_string_buffer",
                           "invocation_arguments": {
                             "buf": "buf",
                             "str": "pn"
@@ -294,7 +294,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "append_to_buffer",
+                  "invocation_name": "append_text_into_string_buffer",
                   "invocation_arguments": {
                     "buf": "buf",
                     "str": "\");\\n\""
@@ -304,7 +304,7 @@
             },
             {
               "instruction_type": "function_invocation",
-              "invocation_name": "append_to_buffer",
+              "invocation_name": "append_text_into_string_buffer",
               "invocation_arguments": {
                 "buf": "buf",
                 "str": "\"\\n\""
@@ -318,7 +318,7 @@
               "body_instructions": [
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "append_to_buffer",
+                  "invocation_name": "append_text_into_string_buffer",
                   "invocation_arguments": {
                     "buf": "buf",
                     "str": "\"/* \""
@@ -326,7 +326,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "append_to_buffer",
+                  "invocation_name": "append_text_into_string_buffer",
                   "invocation_arguments": {
                     "buf": "buf",
                     "str": "fn_name"
@@ -334,7 +334,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "append_to_buffer",
+                  "invocation_name": "append_text_into_string_buffer",
                   "invocation_arguments": {
                     "buf": "buf",
                     "str": "\": \""
@@ -349,7 +349,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "append_to_buffer",
+                  "invocation_name": "append_text_into_string_buffer",
                   "invocation_arguments": {
                     "buf": "buf",
                     "str": "desc"
@@ -357,7 +357,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "append_to_buffer",
+                  "invocation_name": "append_text_into_string_buffer",
                   "invocation_arguments": {
                     "buf": "buf",
                     "str": "\" */\\n\""
@@ -371,7 +371,7 @@
                   "branch_on_failure": [
                     {
                       "instruction_type": "function_invocation",
-                      "invocation_name": "append_to_buffer",
+                      "invocation_name": "append_text_into_string_buffer",
                       "invocation_arguments": {
                         "buf": "buf",
                         "str": "\"static \""
@@ -388,7 +388,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "vartype_to_c",
+                  "invocation_name": "resolve_spec_type_into_lang",
                   "invocation_arguments": {
                     "t": "ret_type"
                   },
@@ -397,7 +397,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "append_to_buffer",
+                  "invocation_name": "append_text_into_string_buffer",
                   "invocation_arguments": {
                     "buf": "buf",
                     "str": "ret_c"
@@ -405,7 +405,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "append_to_buffer",
+                  "invocation_name": "append_text_into_string_buffer",
                   "invocation_arguments": {
                     "buf": "buf",
                     "str": "\" \""
@@ -413,7 +413,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "append_to_buffer",
+                  "invocation_name": "append_text_into_string_buffer",
                   "invocation_arguments": {
                     "buf": "buf",
                     "str": "fn_name"
@@ -421,7 +421,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "append_to_buffer",
+                  "invocation_name": "append_text_into_string_buffer",
                   "invocation_arguments": {
                     "buf": "buf",
                     "str": "\"(\""
@@ -441,14 +441,14 @@
                   "branch_on_success": [
                     {
                       "instruction_type": "function_invocation",
-                      "invocation_name": "create_hash_table",
+                      "invocation_name": "allocate_and_init_hash_table",
                       "invocation_arguments": {},
                       "result_assignment_variable": "t_parflag2",
                       "result_type": "subst_table"
                     },
                     {
                       "instruction_type": "function_invocation",
-                      "invocation_name": "hash_table_insert",
+                      "invocation_name": "hash_table_insert_key_value",
                       "invocation_arguments": {
                         "table_handle": "t_parflag2",
                         "entry_key": "\"first\"",
@@ -476,7 +476,7 @@
                         },
                         {
                           "instruction_type": "function_invocation",
-                          "invocation_name": "vartype_to_c",
+                          "invocation_name": "resolve_spec_type_into_lang",
                           "invocation_arguments": {
                             "t": "pt"
                           },
@@ -485,7 +485,7 @@
                         },
                         {
                           "instruction_type": "function_invocation",
-                          "invocation_name": "hash_table_lookup",
+                          "invocation_name": "hash_table_lookup_key_value",
                           "invocation_arguments": {
                             "table": "t_parflag2",
                             "key": "\"first\""
@@ -501,7 +501,7 @@
                           "branch_on_success": [
                             {
                               "instruction_type": "function_invocation",
-                              "invocation_name": "hash_table_insert",
+                              "invocation_name": "hash_table_insert_key_value",
                               "invocation_arguments": {
                                 "table_handle": "t_parflag2",
                                 "entry_key": "\"first\"",
@@ -512,7 +512,7 @@
                           "branch_on_failure": [
                             {
                               "instruction_type": "function_invocation",
-                              "invocation_name": "append_to_buffer",
+                              "invocation_name": "append_text_into_string_buffer",
                               "invocation_arguments": {
                                 "buf": "buf",
                                 "str": "\", \""
@@ -522,7 +522,7 @@
                         },
                         {
                           "instruction_type": "function_invocation",
-                          "invocation_name": "append_to_buffer",
+                          "invocation_name": "append_text_into_string_buffer",
                           "invocation_arguments": {
                             "buf": "buf",
                             "str": "pct"
@@ -530,7 +530,7 @@
                         },
                         {
                           "instruction_type": "function_invocation",
-                          "invocation_name": "append_to_buffer",
+                          "invocation_name": "append_text_into_string_buffer",
                           "invocation_arguments": {
                             "buf": "buf",
                             "str": "\" \""
@@ -538,7 +538,7 @@
                         },
                         {
                           "instruction_type": "function_invocation",
-                          "invocation_name": "append_to_buffer",
+                          "invocation_name": "append_text_into_string_buffer",
                           "invocation_arguments": {
                             "buf": "buf",
                             "str": "pn"
@@ -551,7 +551,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "append_to_buffer",
+                  "invocation_name": "append_text_into_string_buffer",
                   "invocation_arguments": {
                     "buf": "buf",
                     "str": "\") {\\n\""
@@ -566,7 +566,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "compile_body",
+                  "invocation_name": "process_instruction_array_into_code",
                   "invocation_arguments": {
                     "instructions": "body",
                     "buffer": "buf"
@@ -574,7 +574,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "append_to_buffer",
+                  "invocation_name": "append_text_into_string_buffer",
                   "invocation_arguments": {
                     "buf": "buf",
                     "str": "\"}\\n\\n\""
@@ -587,7 +587,7 @@
         },
         {
           "instruction_type": "function_invocation",
-          "invocation_name": "write_buffer_to_file",
+          "invocation_name": "write_string_buffer_into_file",
           "invocation_arguments": {
             "buf": "buf",
             "path": "output_path"
@@ -595,14 +595,14 @@
         },
         {
           "instruction_type": "function_invocation",
-          "invocation_name": "free_string_buffer",
+          "invocation_name": "free_allocated_string_buffer_memory",
           "invocation_arguments": {
             "buf": "buf"
           }
         }
       ]
     },
-    "compile_ast_generate_header": {
+    "generate_header_from_function_definitions": {
       "description": "Generate .h file: include guard, imports, forward declarations",
       "return_type": "void",
       "parameter_definitions": [
@@ -618,21 +618,21 @@
       "execution_instructions": [
         {
           "instruction_type": "function_invocation",
-          "invocation_name": "create_string_buffer",
+          "invocation_name": "create_empty_growable_string_buffer",
           "invocation_arguments": {},
           "result_assignment_variable": "hdr_buf",
           "result_type": "string_buffer"
         },
         {
           "instruction_type": "function_invocation",
-          "invocation_name": "create_hash_table",
+          "invocation_name": "allocate_and_init_hash_table",
           "invocation_arguments": {},
           "result_assignment_variable": "t_guard",
           "result_type": "subst_table"
         },
         {
           "instruction_type": "function_invocation",
-          "invocation_name": "hash_table_insert",
+          "invocation_name": "hash_table_insert_key_value",
           "invocation_arguments": {
             "table_handle": "t_guard",
             "entry_key": "\"MOD\"",
@@ -641,7 +641,7 @@
         },
         {
           "instruction_type": "function_invocation",
-          "invocation_name": "string_substitute",
+          "invocation_name": "apply_substitution_against_raw_text",
           "invocation_arguments": {
             "template_str": "\"/* Auto-generated from {{MOD}}.ipm */\\n#ifndef {{MOD}}_H\\n#define {{MOD}}_H\\n\\n#include \\\"ipm_builtins.h\\\"\\n\"",
             "table": "t_guard"
@@ -651,7 +651,7 @@
         },
         {
           "instruction_type": "function_invocation",
-          "invocation_name": "append_to_buffer",
+          "invocation_name": "append_text_into_string_buffer",
           "invocation_arguments": {
             "buf": "hdr_buf",
             "str": "guard_hdr"
@@ -676,14 +676,14 @@
               "body_instructions": [
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "create_hash_table",
+                  "invocation_name": "allocate_and_init_hash_table",
                   "invocation_arguments": {},
                   "result_assignment_variable": "t_imp",
                   "result_type": "subst_table"
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "hash_table_insert",
+                  "invocation_name": "hash_table_insert_key_value",
                   "invocation_arguments": {
                     "table_handle": "t_imp",
                     "entry_key": "\"IMP\"",
@@ -692,7 +692,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "string_substitute",
+                  "invocation_name": "apply_substitution_against_raw_text",
                   "invocation_arguments": {
                     "template_str": "\"#include \\\"{{IMP}}.h\\\"\\n\"",
                     "table": "t_imp"
@@ -702,7 +702,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "append_to_buffer",
+                  "invocation_name": "append_text_into_string_buffer",
                   "invocation_arguments": {
                     "buf": "hdr_buf",
                     "str": "imp_line"
@@ -740,7 +740,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "vartype_to_c",
+                  "invocation_name": "resolve_spec_type_into_lang",
                   "invocation_arguments": {
                     "t": "ret_fwd"
                   },
@@ -749,7 +749,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "append_to_buffer",
+                  "invocation_name": "append_text_into_string_buffer",
                   "invocation_arguments": {
                     "buf": "hdr_buf",
                     "str": "ret_c_fwd"
@@ -757,7 +757,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "append_to_buffer",
+                  "invocation_name": "append_text_into_string_buffer",
                   "invocation_arguments": {
                     "buf": "hdr_buf",
                     "str": "\" \""
@@ -765,7 +765,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "append_to_buffer",
+                  "invocation_name": "append_text_into_string_buffer",
                   "invocation_arguments": {
                     "buf": "hdr_buf",
                     "str": "fn_name_fwd"
@@ -773,7 +773,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "append_to_buffer",
+                  "invocation_name": "append_text_into_string_buffer",
                   "invocation_arguments": {
                     "buf": "hdr_buf",
                     "str": "\"(\""
@@ -793,14 +793,14 @@
                   "branch_on_success": [
                     {
                       "instruction_type": "function_invocation",
-                      "invocation_name": "create_hash_table",
+                      "invocation_name": "allocate_and_init_hash_table",
                       "invocation_arguments": {},
                       "result_assignment_variable": "t_pflag",
                       "result_type": "subst_table"
                     },
                     {
                       "instruction_type": "function_invocation",
-                      "invocation_name": "hash_table_insert",
+                      "invocation_name": "hash_table_insert_key_value",
                       "invocation_arguments": {
                         "table_handle": "t_pflag",
                         "entry_key": "\"first\"",
@@ -828,7 +828,7 @@
                         },
                         {
                           "instruction_type": "function_invocation",
-                          "invocation_name": "vartype_to_c",
+                          "invocation_name": "resolve_spec_type_into_lang",
                           "invocation_arguments": {
                             "t": "par_type"
                           },
@@ -837,7 +837,7 @@
                         },
                         {
                           "instruction_type": "function_invocation",
-                          "invocation_name": "hash_table_lookup",
+                          "invocation_name": "hash_table_lookup_key_value",
                           "invocation_arguments": {
                             "table": "t_pflag",
                             "key": "\"first\""
@@ -853,7 +853,7 @@
                           "branch_on_success": [
                             {
                               "instruction_type": "function_invocation",
-                              "invocation_name": "hash_table_insert",
+                              "invocation_name": "hash_table_insert_key_value",
                               "invocation_arguments": {
                                 "table_handle": "t_pflag",
                                 "entry_key": "\"first\"",
@@ -864,7 +864,7 @@
                           "branch_on_failure": [
                             {
                               "instruction_type": "function_invocation",
-                              "invocation_name": "append_to_buffer",
+                              "invocation_name": "append_text_into_string_buffer",
                               "invocation_arguments": {
                                 "buf": "hdr_buf",
                                 "str": "\", \""
@@ -874,7 +874,7 @@
                         },
                         {
                           "instruction_type": "function_invocation",
-                          "invocation_name": "append_to_buffer",
+                          "invocation_name": "append_text_into_string_buffer",
                           "invocation_arguments": {
                             "buf": "hdr_buf",
                             "str": "par_ct"
@@ -882,7 +882,7 @@
                         },
                         {
                           "instruction_type": "function_invocation",
-                          "invocation_name": "append_to_buffer",
+                          "invocation_name": "append_text_into_string_buffer",
                           "invocation_arguments": {
                             "buf": "hdr_buf",
                             "str": "\" \""
@@ -890,7 +890,7 @@
                         },
                         {
                           "instruction_type": "function_invocation",
-                          "invocation_name": "append_to_buffer",
+                          "invocation_name": "append_text_into_string_buffer",
                           "invocation_arguments": {
                             "buf": "hdr_buf",
                             "str": "par_name"
@@ -903,7 +903,7 @@
                 },
                 {
                   "instruction_type": "function_invocation",
-                  "invocation_name": "append_to_buffer",
+                  "invocation_name": "append_text_into_string_buffer",
                   "invocation_arguments": {
                     "buf": "hdr_buf",
                     "str": "\");\\n\""
@@ -916,7 +916,7 @@
         },
         {
           "instruction_type": "function_invocation",
-          "invocation_name": "append_to_buffer",
+          "invocation_name": "append_text_into_string_buffer",
           "invocation_arguments": {
             "buf": "hdr_buf",
             "str": "\"\\n\""
@@ -924,14 +924,14 @@
         },
         {
           "instruction_type": "function_invocation",
-          "invocation_name": "create_hash_table",
+          "invocation_name": "allocate_and_init_hash_table",
           "invocation_arguments": {},
           "result_assignment_variable": "t_endguard",
           "result_type": "subst_table"
         },
         {
           "instruction_type": "function_invocation",
-          "invocation_name": "hash_table_insert",
+          "invocation_name": "hash_table_insert_key_value",
           "invocation_arguments": {
             "table_handle": "t_endguard",
             "entry_key": "\"MOD\"",
@@ -940,7 +940,7 @@
         },
         {
           "instruction_type": "function_invocation",
-          "invocation_name": "string_substitute",
+          "invocation_name": "apply_substitution_against_raw_text",
           "invocation_arguments": {
             "template_str": "\"\\n#endif /* {{MOD}}_H */\\n\"",
             "table": "t_endguard"
@@ -950,7 +950,7 @@
         },
         {
           "instruction_type": "function_invocation",
-          "invocation_name": "append_to_buffer",
+          "invocation_name": "append_text_into_string_buffer",
           "invocation_arguments": {
             "buf": "hdr_buf",
             "str": "end_guard"
@@ -958,14 +958,14 @@
         },
         {
           "instruction_type": "function_invocation",
-          "invocation_name": "create_hash_table",
+          "invocation_name": "allocate_and_init_hash_table",
           "invocation_arguments": {},
           "result_assignment_variable": "t_hdrpath",
           "result_type": "subst_table"
         },
         {
           "instruction_type": "function_invocation",
-          "invocation_name": "hash_table_insert",
+          "invocation_name": "hash_table_insert_key_value",
           "invocation_arguments": {
             "table_handle": "t_hdrpath",
             "entry_key": "\"MOD\"",
@@ -974,7 +974,7 @@
         },
         {
           "instruction_type": "function_invocation",
-          "invocation_name": "string_substitute",
+          "invocation_name": "apply_substitution_against_raw_text",
           "invocation_arguments": {
             "template_str": "\"{{MOD}}.h\"",
             "table": "t_hdrpath"
@@ -984,7 +984,7 @@
         },
         {
           "instruction_type": "function_invocation",
-          "invocation_name": "write_buffer_to_file",
+          "invocation_name": "write_string_buffer_into_file",
           "invocation_arguments": {
             "buf": "hdr_buf",
             "path": "hdr_path"
@@ -992,7 +992,7 @@
         },
         {
           "instruction_type": "function_invocation",
-          "invocation_name": "free_string_buffer",
+          "invocation_name": "free_allocated_string_buffer_memory",
           "invocation_arguments": {
             "buf": "hdr_buf"
           }
@@ -1000,10 +1000,10 @@
       ]
     }
   },
-  "module_name": "compile_ast",
+  "module_name": "ast-function-compilation-engine-code",
   "imports": [
-    "codegen"
+    "code-generation-instruction-dispatch-table"
   ],
-  "package_name": "compile_ast",
+  "package_name": "ast-function-compilation-engine-code",
   "package_type": "module"
 }
