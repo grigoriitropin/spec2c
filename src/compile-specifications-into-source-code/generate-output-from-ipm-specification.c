@@ -43,6 +43,7 @@ void write_component_header_with_prototypes(const ipm_spec_t *spec, const char *
     FILE *hdr = fopen(hdr_path, "w");
     if (!hdr) report_fatal_error_and_exit("cannot open header file");
 
+    char guard[256];
     char *cguard = convert_hyphen_name_into_underscore(modname);
     snprintf(guard, sizeof(guard), "%s_H", cguard);
     free(cguard);
