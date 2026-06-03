@@ -83,16 +83,26 @@ static int emit_builtin_call_when_matched(cJSON *inst, FILE *out) {
     cJSON *args = cJSON_GetObjectItemCaseSensitive(inst, "invocation_arguments");
 
     if (!strcmp(fn, "report_error_and_exit")) {
-        const char *file = "", *msg = "violation", *fix = "fix the issue";
+        const char *a0 = "", *a1 = "violation", *a2 = "fix the issue";
         if (args && cJSON_IsArray(args)) {
-            if (cJSON_GetArraySize(args) > 0 && cJSON_IsString(cJSON_GetArrayItem(args, 0)))
-                file = cJSON_GetArrayItem(args, 0)->valuestring;
-            if (cJSON_GetArraySize(args) > 1 && cJSON_IsString(cJSON_GetArrayItem(args, 1)))
-                msg = cJSON_GetArrayItem(args, 1)->valuestring;
-            if (cJSON_GetArraySize(args) > 2 && cJSON_IsString(cJSON_GetArrayItem(args, 2)))
-                fix = cJSON_GetArrayItem(args, 2)->valuestring;
+            for (int ai = 0; ai < cJSON_GetArraySize(args) && ai < 3; ai++) {
+                cJSON *a = cJSON_GetArrayItem(args, ai);
+                const char *val = "";
+                int is_var = 0;
+                if (cJSON_IsString(a))
+                    { val = a->valuestring; }
+                else if (cJSON_IsObject(a)) {
+                    val = extract_json_field_string_value(a, "value");
+                    const char *k = extract_json_field_string_value(a, "kind");
+                    if (!strcmp(k, "var")) is_var = 1;
+                }
+                if (ai == 0) a0 = val;
+                else if (ai == 1) a1 = val;
+                else a2 = val;
+                (void)is_var;
+            }
         }
-        fprintf(out, "  fprintf(stderr, \"spec2c: SOUL §7: %%s — %%s\\n  → %%s\\n\", \"%s\", \"%s\", \"%s\");\n", file, msg, fix);
+        fprintf(out, "  fprintf(stderr, \"spec2c: SOUL §7: %%s — %%s\\n  → %%s\\n\", %s, \"%s\", \"%s\");\n", a0, a1, a2);
         fprintf(out, "  exit(1);\n");
         return 1;
     }
