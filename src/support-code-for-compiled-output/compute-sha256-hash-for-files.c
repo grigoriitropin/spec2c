@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
-#include "runtime-for-generated-ipm-code.h"
 #include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 /* ── SHA256 (public domain, no dependencies) ───────────────────────── */
 #define ROTR(x,n) (((x)>>(n))|((x)<<(32-(n))))
