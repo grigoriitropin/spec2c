@@ -37,3 +37,4 @@ void enforce_bootstrap_code_freeze_check(const char *srcdir);
 
 
 int match_type_against_strict_whitelist(const char *t);
+void check_single_file_for_violations(const char *sub, int is_c, int is_source, fn_entry_t *fns, int *fn_qty, inc_entry_t *incs, int *inc_qty);
