@@ -28,3 +28,7 @@ int  match_name_against_stdlib_list(const char *name);
 void verify_ipm_names_across_sources(const char *srcdir);
 
 #endif
+void check_ipm_ast_depth_limits(cJSON *node, int depth, const char *path);
+void check_ipm_imports_against_whitelist(cJSON *root, const char *sp, char allowed[64][128], int n_allowed);
+void check_ipm_cli_flag_docs(cJSON *root, const char *sp);
+void load_ipm_import_whitelist_file(const char *srcdir, char buf[64][128], int *count);
