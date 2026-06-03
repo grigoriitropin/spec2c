@@ -115,16 +115,16 @@ instructions.append({
 })
 
 spec = {
-    "package_name": "detect-main-function-in-source-code",
+    "package_name": "find-every-main-function-block",
     "build_type": "library",
-    "module_name": "detect-main-function-in-source-code",
+    "module_name": "find-every-main-function-block",
     "description": "DFA scanner for int main( pattern",
     "extern_imports": [
         {"name": "read_entire_file_into_string", "return_type": "str",
          "arguments": [{"name": "path", "type": "str"}]}
     ],
     "function_definitions": {
-        "detect-main-function-in-source-code": {
+        "find-every-main-function-block": {
             "return_type": "i32",
             "parameter_definitions": [{"parameter_name": "path", "parameter_type": "str"}],
             "execution_instructions": instructions
@@ -135,4 +135,4 @@ spec = {
 with open("modules/rules/find-every-main-function-block.ipm", "w") as f:
     json.dump(spec, f, separators=(",", ":"), indent=None)
     f.write("\n")
-print(f"OK: {len(instructions)} top-level, {len(body)} body, {len(spec['function_definitions']['detect-main-function-in-source-code']['execution_instructions'])} exec")
+print(f"OK: {len(instructions)} top-level, {len(body)} body, {len(spec['function_definitions']['find-every-main-function-block']['execution_instructions'])} exec")
