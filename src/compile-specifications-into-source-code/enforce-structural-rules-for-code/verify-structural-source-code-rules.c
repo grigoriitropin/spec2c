@@ -157,14 +157,6 @@ static int handle_new_function_definition_entry(const char *line, const char *su
     return bstate->depth <= 0 ? 0 : 1;
 }
 
-static void verify_line_for_banned_hardcoded(const char *line, const char *sub, int is_source) {
-    if (is_source && check_for_banned_keyword_pattern(line)) {
-        report_violation_with_actionable_hint(ERR_BANNED_PATTERN, sub, 0, 0, NULL);
-    }
-    if (is_source && detect_hardcoded_file_path_string(line)) {
-        report_violation_with_actionable_hint(ERR_HARDCODED_PATH, sub, 0, 0, NULL);
-    }
-}
 
 static void check_single_file_for_violations(const char *sub, int is_c, int is_source,
     fn_entry_t *fns, int *fn_qty, inc_entry_t *incs, int *inc_qty)
