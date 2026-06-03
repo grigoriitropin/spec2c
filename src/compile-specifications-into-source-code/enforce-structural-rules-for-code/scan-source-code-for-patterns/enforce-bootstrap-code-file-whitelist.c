@@ -11,11 +11,7 @@
 static char whitelist_names[64][128];
 static int whitelist_count_now;
 
-typedef struct {
-    char name[128];
-    int max_lines;
-    int max_funcs;
-} freeze_t;
+typedef struct { char name[128]; int max_lines; int max_funcs; } freeze_t;
 static freeze_t freeze_limits[64];
 static int freeze_count;
 
@@ -33,10 +29,9 @@ void load_bootstrap_whitelist_from_disk(const char *srcdir) {
     }
     fclose(f);
 
-    /* load freeze limits */
     snprintf(path, sizeof(path), "%s/bootstrap-c-freeze-limits.txt", srcdir);
     f = fopen(path, "r");
-    if (!f) return; /* optional — limits not enforced if missing */
+    if (!f) return;
     char name[128]; int ml, mf;
     while (fgets(line, sizeof(line), f) && freeze_count < 64) {
         size_t l = strlen(line);
@@ -60,39 +55,45 @@ int match_name_against_bootstrap_list(const char *basename) {
     return 0;
 }
 
-void enforce_bootstrap_code_freeze_check(const char *srcdir) {
-    void walk(const char *dpath) {
-        for (int i = 0; i < freeze_count; i++) {
-            /* find the file */
-            char full[4096];
-            snprintf(full, sizeof(full), "%s", srcdir);
-            /* find the file by walking entire source tree */
-            DIR *dd = opendir(dpath);
-            if (!dd) return;
-            struct dirent *de;
-            while ((de = readdir(dd)) != NULL) {
-                if (de->d_name[0] == '.') continue;
-                char sub[8192]; snprintf(sub, sizeof(sub), "%s/%s", dpath, de->d_name);
-                struct stat st;
-                if (stat(sub, &st) != 0) continue;
-                if (S_ISDIR(st.st_mode)) { walk(sub); continue; }
-                if (!strcmp(de->d_name, freeze_limits[i].name)) {
-                    FILE *f2 = fopen(sub, "r");
-                    if (!f2) return;
-                    int lines = 0, ch;
-                    while ((ch = fgetc(f2)) != EOF) if (ch == '\n') lines++;
-                    fclose(f2);
-                    if (lines > freeze_limits[i].max_lines) {
-                        fprintf(stderr, "spec2c: SOUL §7: bootstrap file %s grew from %d to %d lines — C bootstrap is frozen\n"
-                            "  → rewrite the added functionality as an IPM module\n",
-                            freeze_limits[i].name, freeze_limits[i].max_lines, lines);
-                        exit(1);
-                    }
-                    return; /* found */
-                }
-            }
-            closedir(dd);
+/* find a file by basename anywhere under dpath, fill found_path */
+static int search_file_by_name_recursive(const char *dpath, const char *target, char *out, size_t outsz) {
+    DIR *d = opendir(dpath);
+    if (!d) return 0;
+    struct dirent *de;
+    while ((de = readdir(d)) != NULL) {
+        if (de->d_name[0] == '.') continue;
+        char sub[8192]; snprintf(sub, sizeof(sub), "%s/%s", dpath, de->d_name);
+        struct stat st;
+        if (stat(sub, &st) != 0) continue;
+        if (S_ISDIR(st.st_mode)) {
+            if (search_file_by_name_recursive(sub, target, out, outsz)) { closedir(d); return 1; }
+            continue;
+        }
+        if (!strcmp(de->d_name, target)) {
+            snprintf(out, outsz, "%s", sub);
+            closedir(d);
+            return 1;
         }
     }
-    walk(srcdir);
+    closedir(d);
+    return 0;
+}
+
+void enforce_bootstrap_code_freeze_check(const char *srcdir) {
+    for (int i = 0; i < freeze_count; i++) {
+        char found[8192] = {0};
+        if (!search_file_by_name_recursive(srcdir, freeze_limits[i].name, found, sizeof(found)))
+            continue;
+        FILE *f2 = fopen(found, "r");
+        if (!f2) continue;
+        int lines = 0, ch;
+        while ((ch = fgetc(f2)) != EOF) if (ch == '\n') lines++;
+        fclose(f2);
+        if (lines > freeze_limits[i].max_lines) {
+            fprintf(stderr, "spec2c: SOUL §7: bootstrap file %s grew from %d to %d lines — C bootstrap is frozen\n"
+                "  → rewrite the added functionality as an IPM module\n",
+                freeze_limits[i].name, freeze_limits[i].max_lines, lines);
+            exit(1);
+        }
+    }
 }
