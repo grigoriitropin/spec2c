@@ -15,10 +15,7 @@
     {
       "name": "check_file_line_limit_ffi",
       "return_type": "str",
-      "arguments": [
-        {"name": "path", "type": "str"},
-        {"name": "max", "type": "i32"}
-      ]
+      "arguments": [{"name": "path", "type": "str"}]
     },
     {
       "name": "check_banned_pattern_inside_file",

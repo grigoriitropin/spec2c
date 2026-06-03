@@ -16,9 +16,9 @@ int count_lines_inside_file_ffi(const char *path) {
     return lines;
 }
 
-const char *check_file_line_limit_ffi(const char *path, int max_lines) {
+const char *check_file_line_limit_ffi(const char *path) {
     int lines = count_lines_inside_file_ffi(path);
-    if (lines > max_lines) return "file too long";
+    if (lines > 400) return "file too long";
     return NULL;
 }
 
