@@ -163,7 +163,7 @@
             src/support-code-for-compiled-output/validate-type-name-against-whitelist/validate-type-name-against-whitelist.c \
             src/compile-specifications-into-source-code/enforce-structural-rules-for-code/scan-source-code-for-patterns/check-naming-rules-for-ffi.c \
             src/compile-specifications-into-source-code/enforce-structural-rules-for-code/scan-source-code-for-patterns/ffi-function-export-layer-here/enforce-ffi-function-export-layer.c \
-            -o ipm-enforce -lcjson
+            -o ipm-enforce -L${pkgs.cjson}/lib -lcjson
 
           runHook postBuild
         '';
