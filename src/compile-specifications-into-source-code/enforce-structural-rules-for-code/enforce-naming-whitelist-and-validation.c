@@ -78,6 +78,68 @@ static int check_name_against_allowed_whitelist(const char *name) {
     return 0;
 }
 
+static int validate_file_stem_with_dfa(const char *stem, const char *fullname, const char *path) {
+    size_t nl = strlen(fullname);
+    int is_c = nl > 2 && !strcmp(fullname + nl - 2, ".c");
+    int is_ipm = nl > 4 && !strcmp(fullname + nl - 4, ".ipm");
+    if (!is_c && !is_ipm) return 0;
+    if (strchr(stem, '.')) {
+        fprintf(stderr, "SOUL §10: file '%s' at %s has multiple dots\n"
+                "  → source files must have exactly one dot (before extension)\n", fullname, path);
+        return 1;
+    }
+    if (!stem[0]) {
+        fprintf(stderr, "SOUL §10: file '%s' at %s has empty stem\n", fullname, path);
+        return 1;
+    }
+    if (stem[0] == '-') {
+        fprintf(stderr, "SOUL §10: file '%s' at %s has leading hyphen\n"
+                "  → rename without leading '-'\n", fullname, path);
+        return 1;
+    }
+    int tokens = 0, tok_len = 0;
+    const char *p = stem;
+    while (*p) {
+        if (*p == '-') {
+            if (tok_len < 3) {
+                fprintf(stderr, "SOUL §10: file '%s' at %s — token has %d chars (min 3)\n"
+                        "  → use full words separated by single '-'\n", fullname, path, tok_len);
+                return 1;
+            }
+            tokens++; tok_len = 0; p++;
+            if (*p == '-') {
+                fprintf(stderr, "SOUL §10: file '%s' at %s has double hyphen\n"
+                        "  → exactly one '-' between each word\n", fullname, path);
+                return 1;
+            }
+            if (*p == '\0') {
+                fprintf(stderr, "SOUL §10: file '%s' at %s has trailing hyphen\n"
+                        "  → remove trailing '-'\n", fullname, path);
+                return 1;
+            }
+            continue;
+        }
+        if (*p < 'a' || *p > 'z') {
+            fprintf(stderr, "SOUL §10: file '%s' at %s — char '%c' (0x%02x) not allowed\n"
+                    "  → use only lowercase a-z and single '-'\n", fullname, path, *p, (unsigned char)*p);
+            return 1;
+        }
+        tok_len++; p++;
+    }
+    if (tok_len < 3) {
+        fprintf(stderr, "SOUL §10: file '%s' at %s — last token has %d chars (min 3)\n"
+                "  → each word must be ≥3 characters\n", fullname, path, tok_len);
+        return 1;
+    }
+    tokens++;
+    if (tokens < 5) {
+        fprintf(stderr, "SOUL §10: file '%s' at %s has %d word(s) — at least 5 required\n"
+                "  → rename to ≥5 hyphen-separated words\n", fullname, path, tokens);
+        return 1;
+    }
+    return 0;
+}
+
 void validate_name_against_soul_rules(const char *what, const char *name, const char *fp) {
     if (skip_name_validation_for_keywords(name)) return;
 

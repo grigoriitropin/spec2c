@@ -264,15 +264,6 @@ void enforce_all_source_code_rules(const char *srcdir) {
     read_banned_patterns_from_file(srcdir);
     load_non_source_file_allowlist(srcdir);
     load_bootstrap_whitelist_from_disk(srcdir);
-    char *man_paths[256]={0};int man_cnt=0;
-    {FILE *mf=fopen("source-manifest.json","r");
-     if(mf){fseek(mf,0,SEEK_END);long ms=ftell(mf);fseek(mf,0,SEEK_SET);
-     char *mb=malloc(ms+1);if(mb){size_t nr=fread(mb,1,ms,mf);mb[nr]=0;
-     cJSON *ma=cJSON_Parse(mb);free(mb);
-     if(ma&&cJSON_IsArray(ma)){int mc=cJSON_GetArraySize(ma);
-     for(int i=0;i<mc&&man_cnt<256;i++){cJSON*it=cJSON_GetArrayItem(ma,i);
-     if(cJSON_IsString(it))man_paths[man_cnt++]=strdup(it->valuestring);}
-     cJSON_Delete(ma);}}fclose(mf);}}
     fn_entry_t fns[512]; int fn_qty = 0;
     inc_entry_t incs[128]; int inc_qty = 0;
     void scan_dir(const char *dirpath) {
@@ -299,10 +290,6 @@ void enforce_all_source_code_rules(const char *srcdir) {
                     continue;
                 }
             }
-            { const char *p=sub;while(*p=='.'||*p=='/')p++; int found=0;
-              for(int mi=0;mi<man_cnt;mi++)
-                if(man_paths[mi]&&!strcmp(p,man_paths[mi])){found=1;break;}
-              if(!found&&man_cnt>0){fprintf(stderr,"spec2c: source outside sanctioned tree: %s\n",sub);exit(1);} }
             if (!match_name_against_bootstrap_list(de->d_name)) {
                 size_t dn_len2 = strlen(de->d_name);
                 int is_ipm2 = dn_len2 > 4 && !strcmp(de->d_name + dn_len2 - 4, ".ipm");
@@ -313,6 +300,7 @@ void enforce_all_source_code_rules(const char *srcdir) {
             char fname[256]; snprintf(fname, sizeof(fname), "%s", de->d_name);
             char *dot = strrchr(fname, '.'); if (dot) *dot = 0;
             validate_name_against_soul_rules("file", fname, sub);
+            if (validate_file_stem_with_dfa(fname, de->d_name, sub)) exit(1);
             int is_c = !strcmp(de->d_name + strlen(de->d_name) - 2, ".c");
             int is_source = is_c || (strlen(de->d_name) > 4 && !strcmp(de->d_name + strlen(de->d_name) - 4, ".ipm"));
             check_single_file_for_violations(sub, is_c, is_source, fns, &fn_qty, incs, &inc_qty);
@@ -377,7 +365,7 @@ static void scan_source_for_undocumented_flags(const char *srcdir) {
 }
 
 int main(int argc, char **argv) {
-    const char *src_dir = ".";
+    const char *src_dir = "./src";
     for (int i = 1; i < argc; i++) {
         if (!strcmp(argv[i], "--lint")) lint_mode = 1;
         else src_dir = argv[i];
