@@ -1,17 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
 // main.c — entry point, CLI argument parsing, utility functions
-
 #include "shared-type-declarations-across-modules/share-type-definitions-across-files.h"
 #include "shared-type-declarations-across-modules/soul-rules-for-naming-validation.h"
-
 extern int match_type_against_strict_whitelist(const char *t);
-
 const char *extract_json_field_string_value(const cJSON *obj, const char *key) {
     const cJSON *v = cJSON_GetObjectItemCaseSensitive(obj, key);
     if (!v || !cJSON_IsString(v)) return "";
     return v->valuestring;
 }
-
 _Noreturn void report_fatal_error_and_exit(const char *msg) {
     cJSON *r = cJSON_CreateObject();
     if (!r) { fprintf(stderr, "spec2c: FATAL: cJSON alloc failed\n"); exit(1); }
@@ -23,7 +19,6 @@ _Noreturn void report_fatal_error_and_exit(const char *msg) {
     fprintf(stderr, "spec2c: %s\n", msg);
     exit(1);
 }
-
 char *convert_hyphen_name_into_underscore(const char *name) {
     char *s = strdup(name);
     if (!s) return NULL;
@@ -31,7 +26,6 @@ char *convert_hyphen_name_into_underscore(const char *name) {
         if (*p == '-') *p = '_';
     return s;
 }
-
 char *read_entire_file_into_memory(const char *path) {
     FILE *f;
     if (strcmp(path, "-") == 0) f = stdin;
@@ -54,10 +48,8 @@ char *read_entire_file_into_memory(const char *path) {
     if (f != stdin) fclose(f);
     return buf;
 }
-
 static int run_spec2c_pipeline_after_parsing(const char *spec_path, const char *out_path,
     const char *base_dir, int check_mode, const char *check_spec, int is_library);
-
 static void parse_command_line_arguments(int argc, char *argv[],
     const char **spec_path, const char **out_path, const char **base_dir,
     int *check_mode, const char **check_spec, int *is_library)
@@ -107,7 +99,6 @@ static void parse_command_line_arguments(int argc, char *argv[],
         }
     }
 }
-
 int main(int argc, char *argv[]) {
     const char *spec_path = NULL, *out_path = NULL, *base_dir = NULL;
     const char *check_spec = NULL;
@@ -116,7 +107,6 @@ int main(int argc, char *argv[]) {
                                  &check_mode, &check_spec, &is_library);
     return run_spec2c_pipeline_after_parsing(spec_path, out_path, base_dir, check_mode, check_spec, is_library);
 }
-
 /* ── IPM/JSON specification validator (12 rules, SOUL §7 + §10) ───── */
 static void validate_ipm_source_for_hardcoded(cJSON *spec_json);
 static void validate_ipm_function_strict_types(cJSON *fn) {
@@ -146,16 +136,13 @@ static void validate_ipm_function_strict_types(cJSON *fn) {
         }
     }
 }
-
 static int enforce_ipm_specification_validation_rules(const char *spec_text, cJSON *spec_json) {
     if (!spec_text || !spec_json) return 1;
-
     /* 1. File line count */
     int lines = 0;
     for (const char *p = spec_text; *p; p++) if (*p == '\n') lines++;
     if (lines > 400)
         report_fatal_error_and_exit("IPM validation: spec file exceeds 400 lines\n  → split the function_definitions across multiple .ipm files");
-
     /* 2-3. Function count + instruction count */
     cJSON *funcs = cJSON_GetObjectItemCaseSensitive(spec_json, "function_definitions");
     if (funcs && cJSON_IsObject(funcs)) {
@@ -164,7 +151,6 @@ static int enforce_ipm_specification_validation_rules(const char *spec_text, cJS
         while (fn) { nf++; fn = fn->next; }
         if (nf > 10)
             report_fatal_error_and_exit("IPM validation: more than 10 function definitions\n  → split into multiple .ipm files or modules");
-
         fn = funcs->child;
         while (fn) {
             cJSON *body = cJSON_GetObjectItemCaseSensitive(fn, "execution_instructions");
@@ -178,18 +164,15 @@ static int enforce_ipm_specification_validation_rules(const char *spec_text, cJS
             fn = fn->next;
         }
     }
-
     /* 4. Import count */
     cJSON *imports = cJSON_GetObjectItemCaseSensitive(spec_json, "imports");
     if (imports && cJSON_IsArray(imports) && cJSON_GetArraySize(imports) > 5)
         report_fatal_error_and_exit("IPM validation: more than 5 imports\n  → consolidate or use fewer external dependencies");
-
     /* 5-7. Name validation */
     cJSON *pn = cJSON_GetObjectItemCaseSensitive(spec_json, "package_name");
     if (pn && cJSON_IsString(pn)) verify_name_complies_with_soul(pn->valuestring);
     cJSON *mn = cJSON_GetObjectItemCaseSensitive(spec_json, "module_name");
     if (mn && cJSON_IsString(mn)) verify_name_complies_with_soul(mn->valuestring);
-
     /* 8. No hardcoded paths + template check */
     validate_ipm_source_for_hardcoded(spec_json);
 
