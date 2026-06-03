@@ -52,7 +52,7 @@ static void emit_return_into_output(cJSON *inst, FILE *out, int indent, const ch
 static void emit_iterate_into_output(cJSON *inst, FILE *out, int indent, const char *rt) {
     emit_iteration_instruction_code_block(inst, out, indent, rt);
 }
-static void emit_field_into_output(cJSON *inst, FILE *out, int indent, const char *rt) {
+static void emit_field_access_into_output(cJSON *inst, FILE *out, int indent, const char *rt) {
     (void)indent; (void)rt;
     const char *vn = extract_json_field_string_value(inst, "variable_name");
     const char *vt = extract_json_field_string_value(inst, "variable_type");
@@ -72,7 +72,7 @@ static void emit_dbexec_into_output(cJSON *inst, FILE *out, int indent, const ch
 typedef struct { const char *type; instr_hdlr handler; } instr_dispatch_t;
 
 static const instr_dispatch_t INSTR_HANDLERS[] = {
-    {"access_json_field",              emit_field_into_output},
+    {"access_json_field",              emit_field_access_into_output},
     {"conditional_branch",             emit_branch_into_output},
     {"database_execute_parameterized", emit_dbexec_into_output},
     {"function_invocation",            emit_invocation_into_output},
