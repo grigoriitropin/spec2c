@@ -185,7 +185,6 @@ static void emit_scan_directory_with_body(cJSON *inst, FILE *out, int indent) {
     fprintf(out, "    for (int _i = 0; _i < cJSON_GetArraySize(_entries); _i++) {\n");
     fprintf(out, "      cJSON *_entry = cJSON_GetArrayItem(_entries, _i);\n");
     fprintf(out, "      const char *_name = cJSON_GetObjectItemCaseSensitive(_entry, \"name\")->valuestring;\n");
-    fprintf(out, "      const char *_path = cJSON_GetObjectItemCaseSensitive(_entry, \"path\")->valuestring;\n");
     /* filter: only .c and .h files */
     fprintf(out, "      size_t _nl = strlen(_name);\n");
     fprintf(out, "      if (_nl < 3) continue;\n");
