@@ -105,3 +105,25 @@ void enforce_bootstrap_code_freeze_check(const char *srcdir) {
 
 }
 // rebuild
+
+static char non_source_files[64][256];
+static int non_source_files_qty;
+
+void load_non_source_file_allowlist(const char *srcdir) {
+    char path[4096]; snprintf(path, sizeof(path), "%s/allowed-non-source-files.txt", srcdir);
+    FILE *f = fopen(path, "r");
+    if (!f) { fprintf(stderr, "FATAL: cannot open allowed-non-source-files.txt\n"); exit(1); }
+    char line[256];
+    while (fgets(line, sizeof(line), f) && non_source_files_qty < 64) {
+        size_t len = strlen(line);
+        while (len > 0 && (line[len-1] == '\n' || line[len-1] == '\r')) line[--len] = 0;
+        if (len > 0 && line[0] != '#')
+            snprintf(non_source_files[non_source_files_qty++], 256, "%s", line);
+    }
+    fclose(f);
+}
+int check_non_source_file_allowlist(const char *name) {
+    for (int i = 0; i < non_source_files_qty; i++)
+        if (!strcmp(non_source_files[i], name)) return 1;
+    return 0;
+}
