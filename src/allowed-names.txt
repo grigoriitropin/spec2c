@@ -330,3 +330,4 @@ emit_single_alu_operation_code
 emit_single_alu_operation_code
 tokenizer-loop-code-generator-func
 emit-report-error-and-exit
+emit_alu_operation_into_output
