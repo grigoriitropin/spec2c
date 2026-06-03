@@ -153,7 +153,6 @@ static void detect_ipm_native_code_injection(cJSON *node) {
         while (c) { detect_ipm_native_code_injection(c); c = c->next; }
     }
 }
-
 static int enforce_ipm_specification_validation_rules(const char *spec_text, cJSON *spec_json) {
     if (!spec_text || !spec_json) return 1;
     /* 1. File line count */
