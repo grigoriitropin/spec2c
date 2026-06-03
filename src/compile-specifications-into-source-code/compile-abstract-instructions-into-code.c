@@ -49,8 +49,13 @@ static const char *resolve_function_return_type_code(const char *ret) {
 
 static void emit_function_body_into_output(cJSON *fn, FILE *out, int is_library, int has_modname, const char *modname) {
     const char *name = fn->string;
-    char cname[256]; int ci = 0;
-    for (; name[ci]; ci++) cname[ci] = (name[ci] == '-') ? '_' : name[ci];
+    char cname[256];
+    int ci = 0;
+    while (name[ci]) {
+        cname[ci] = name[ci];
+        if (cname[ci] == '-') cname[ci] = '_';
+        ci++;
+    }
     cname[ci] = 0;
     cJSON *params = cJSON_GetObjectItemCaseSensitive(fn, "parameter_definitions");
     cJSON *body  = cJSON_GetObjectItemCaseSensitive(fn, "execution_instructions");

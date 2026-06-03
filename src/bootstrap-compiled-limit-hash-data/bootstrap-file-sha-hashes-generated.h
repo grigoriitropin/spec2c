@@ -43,7 +43,7 @@ static const char *hash_file_names[] = {
 static const char *hash_sha256_values[] = {
     "4d88b5954a0a470f8afa1a82685616a3888f440fe8b0c6cdd1f58335295fcfad",
     "99789730fe09876fa0f65eeb95d1bf1620a6152cd50b3cd8b6a8104b1834b1ff",
-    "da73adaa3482cb5b6911cb703f76c206c8f74195d58a48d5af017f751c459eee",
+    "654b6cc32352554e23f59815566af16b6d43e8a468236eec9c59ad0ee67a9a0c",
     "0547ba8ebac1df4214322119e92faf18ccb1bc369e9ea6c6d63d645233cd0a9a",
     "658bd2d7ce7e89b60d00e47b92e82c343907161142e80df92aeea09af6130b11",
     "809b09cce40bd9f6fba7fa64a879ce1e05bd19b73d35e1a225e3c70380945045",
@@ -83,7 +83,7 @@ static const char *hash_sha256_values[] = {
 static const int hash_max_lines[] = {
     70,
     298,
-    147,
+    152,
     413,
     109,
     320,
