@@ -217,7 +217,7 @@ static void emit_alu_operation_into_output(cJSON *inst, FILE *out) {
     }
 }
 
-static void emit_for_count_loop_with_body(cJSON *inst, FILE *out, int indent, const char *rt) {
+static void emit_iteration_loop_with_count(cJSON *inst, FILE *out, int indent, const char *rt) {
     const char *cv = extract_json_field_string_value(inst, "counter_variable");
     const char *lv = extract_json_field_string_value(inst, "limit_variable");
     cJSON *body = cJSON_GetObjectItemCaseSensitive(inst, "body_instructions");
@@ -257,7 +257,7 @@ static void emit_bootstrap_central_dispatcher_func(cJSON *inst, FILE *out, int i
     if (!strcmp(ty, "alu_operation")) { emit_alu_operation_into_output(inst, out); return; }
     if (!strcmp(ty, "conditional_branch")) { emit_conditional_branch_code_primitive(inst, out, indent, return_type); return; }
     if (!strcmp(ty, "emit_formatted_code")) { emit_formatted_code_primitive_handler(inst, out); return; }
-    if (!strcmp(ty, "for_count_loop")) { emit_for_count_loop_with_body(inst, out, indent, return_type); return; }
+    if (!strcmp(ty, "for_count_loop")) { emit_iteration_loop_with_count(inst, out, indent, return_type); return; }
     if (!strcmp(ty, "function_invocation")) { emit_function_invocation_with_arguments(inst, out, indent); return; }
     if (!strcmp(ty, "read_file_content")) { emit_read_file_into_variable(inst, out); return; }
     if (!strcmp(ty, "scan_directory_entries")) { emit_scan_directory_with_body(inst, out, indent); return; }
