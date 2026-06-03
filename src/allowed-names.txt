@@ -172,3 +172,10 @@ compile-specifications-into-source-code
 spec2c-own-self-compilation-spec
 specification-into-source-code-compiler
 scan_json_for_banned_words
+emit_variable_declaration_into_output
+emit_function_invocation_into_output
+emit_conditional_branch_into_output
+emit_return_statement_into_output
+emit_iteration_block_into_output
+emit_access_field_into_output
+emit_database_exec_into_output
