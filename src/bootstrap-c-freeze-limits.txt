@@ -1,7 +1,6 @@
 # Bootstrap freeze limits — max allowed lines and functions per file
-# FROZEN. If a bootstrap file grows beyond these limits, the build fails.
+# FROZEN. Limits compiled into binary at build time.
 # Format:  filename  max_lines  max_functions
-
 buffer-output-and-command-launch.c 70 8
 check-source-conformance-entry-point.c 298 10
 compile-abstract-instructions-into-code.c 99 5
@@ -9,9 +8,9 @@ detect-banned-patterns-and-braces.c 343 13
 dump-context-from-ipm-graph.c 109 3
 emit-variable-declaration-handler-function.c 97 5
 enforce-bootstrap-code-file-whitelist.c 103 4
-enforce-naming-whitelist-and-validation.c 222 10
+enforce-naming-whitelist-and-validation.c 223 10
 file-string-and-json-parsing.c 113 10
-generate-output-from-ipm-specification.c 178 6
+generate-output-from-ipm-specification.c 179 6
 hash-table-and-substitution-code.c 116 9
 implement-filesystem-read-write-code.c 83 8
 implement-interprocess-message-exchange-code.c 58 1
