@@ -54,7 +54,10 @@ static void emit_bootstrap_primitive_handler_code(cJSON *inst, FILE *out, int in
         const char *vt = extract_json_field_string_value(inst, "variable_type");
         const char *op = extract_json_field_string_value(inst, "assignment_operation");
         const char *src = extract_json_field_string_value(inst, "source_target");
-        (void)vn; (void)vt; (void)op; (void)src;
+        (void)vn;
+        (void)vt;
+        (void)op;
+        (void)src;
         fprintf(out, "%s %s = %s(%s);\n", vt, vn, op, src);
         return;
     }
