@@ -5,6 +5,7 @@
 #define ENFORCE_H
 
 #include <stddef.h>
+#include <cjson/cJSON.h>
 
 void enforce_all_source_code_rules(const char *srcdir);
 void display_current_source_structure_report(const char *srcdir);

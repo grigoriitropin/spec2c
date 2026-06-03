@@ -2,7 +2,6 @@
 // IPM content validators — called from verify_ipm_names_across_sources
 
 #include "verify-structural-source-code-rules.h"
-#include "soul-naming-forbidden-words-list.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
