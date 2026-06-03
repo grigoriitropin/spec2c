@@ -121,8 +121,10 @@
           spec2c enforce-naming-rules-via-ffi.ipm | sed 's/{"ok":true.*//' > $TMPDIR/build/ipm_enforce_gen.c
           # Remove duplicate includes and non-existent headers
           sed -i '/"enforce-naming-rules-via-ffi.h"/d' $TMPDIR/build/ipm_enforce_gen.c
-          # Fix extern const-correctness
+          # Fix extern const-correctness (all params + return type)
           sed -i 's/extern char \* check_name_following_soul_rules(char \*/extern const char * check_name_following_soul_rules(const char */' $TMPDIR/build/ipm_enforce_gen.c
+          sed -i 's/, char \* name, char \* fp/, const char *name, const char *fp/' $TMPDIR/build/ipm_enforce_gen.c
+          sed -i 's/char \*err =/const char *err =/' $TMPDIR/build/ipm_enforce_gen.c
           sed -i "s/int errors = 0;/int errors = 0;\n    (void)errors;/" $TMPDIR/build/ipm_enforce_gen.c
           # Add runtime header
           sed -i '1i#include "runtime-for-generated-ipm-code.h"' $TMPDIR/build/ipm_enforce_gen.c
