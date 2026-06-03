@@ -192,7 +192,7 @@ int match_source_code_header_filename(const char *name) {
 }
 static int detect_function_definition_start_line(const char *line) {
     const char *s = line;
-static void report_fatal_error_and_exit(const char *msg) {
+void report_fatal_error_and_exit(const char *msg) {
     fprintf(stderr, "spec2c: %s\n", msg); exit(1);
 }
 void report_violation_with_actionable_hint(enforce_err_t code, const char *a1,
