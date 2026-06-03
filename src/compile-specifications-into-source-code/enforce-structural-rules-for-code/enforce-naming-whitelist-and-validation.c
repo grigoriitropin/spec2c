@@ -269,9 +269,6 @@ void read_allowed_names_from_file(const char *srcdir) {
     fclose(f);
 }
 
-int return_total_count_allowed_names(void) { return allowed_qty; }
-const char *get_allowed_name_from_whitelist(int index) { return index < allowed_qty ? allowed[index].name : NULL; }
-
 char banned_patterns[32][64];
 int banned_patterns_count;
 

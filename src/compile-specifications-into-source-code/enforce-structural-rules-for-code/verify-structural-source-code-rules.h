@@ -12,8 +12,6 @@ void display_current_source_structure_report(const char *srcdir);
 int  match_header_against_include_whitelist(const char *hdr);
 void validate_name_against_soul_rules(const char *what, const char *name, const char *fp);
 void read_allowed_names_from_file(const char *srcdir);
-int  return_total_count_allowed_names(void);
-const char *get_allowed_name_from_whitelist(int index);
 void read_banned_patterns_from_file(const char *srcdir);
 extern int banned_patterns_count;
 extern char banned_patterns[32][64];

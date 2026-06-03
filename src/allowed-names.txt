@@ -168,7 +168,6 @@ generate-code-from-instruction-ast
 generate-output-from-ipm-specification
 generate_auto_entry_point_code
 generate_code_via_dispatch_table
-get_allowed_name_from_whitelist
 get_argument_count_from_global
 get_argument_value_from_global
 get_array_item_from_json
@@ -247,7 +246,6 @@ resolve_default_config_file_path
 resolve_function_return_type_code
 resolve_spec_type_into_lang
 resolve_template_file_from_base
-return_total_count_allowed_names
 runtime-abstraction-layer-for-vehir
 runtime-for-generated-ipm-code
 scan-empty-folder-for-violations
