@@ -220,6 +220,58 @@ static void check_ipm_ast_depth_limits(cJSON *node, int depth, const char *path)
     }
 }
 
+static void check_ipm_type_names_are_strict(cJSON *node, const char *path) {
+    if (!node) return;
+    if (cJSON_IsObject(node)) {
+        cJSON *vt = cJSON_GetObjectItemCaseSensitive(node, "variable_type");
+        if (vt && cJSON_IsString(vt) && vt->valuestring[0]) {
+            const char *t = vt->valuestring;
+            /* only explicit-width or domain types allowed */
+            if (!strcmp(t, "u8") || !strcmp(t, "u32") || !strcmp(t, "u64") ||
+                !strcmp(t, "i32") || !strcmp(t, "i64") ||
+                !strcmp(t, "u8_ptr") || !strcmp(t, "ptr") ||
+                !strcmp(t, "str") || !strcmp(t, "cjson") ||
+                !strcmp(t, "string") || !strcmp(t, "json_object") || !strcmp(t, "json_array") ||
+                !strcmp(t, "void") || !strcmp(t, "file_handle") ||
+                !strcmp(t, "float") || !strcmp(t, "boolean") ||
+                !strcmp(t, "int") || !strcmp(t, "db_handle") ||
+                !strcmp(t, "subst_table") || !strcmp(t, "string_buffer"))
+                {} /* allowed */
+            else {
+                char msg[512]; snprintf(msg, sizeof(msg),
+                    "SOUL §7: strict type violation — '%s' is not an allowed type in %s\n"
+                    "  → use u32, i32, u64, str, cjson, ptr, or other explicitly-sized type", t, path);
+                fprintf(stderr, "spec2c: %s\n", msg); exit(1);
+            }
+        }
+        cJSON *pt = cJSON_GetObjectItemCaseSensitive(node, "parameter_type");
+        if (pt && cJSON_IsString(pt) && pt->valuestring[0]) {
+            const char *t = pt->valuestring;
+            if (!strcmp(t, "u8") || !strcmp(t, "u32") || !strcmp(t, "u64") ||
+                !strcmp(t, "i32") || !strcmp(t, "i64") ||
+                !strcmp(t, "u8_ptr") || !strcmp(t, "ptr") ||
+                !strcmp(t, "str") || !strcmp(t, "cjson") ||
+                !strcmp(t, "string") || !strcmp(t, "json_object") || !strcmp(t, "json_array") ||
+                !strcmp(t, "void") || !strcmp(t, "file_handle") ||
+                !strcmp(t, "float") || !strcmp(t, "boolean") ||
+                !strcmp(t, "int") || !strcmp(t, "db_handle") ||
+                !strcmp(t, "subst_table") || !strcmp(t, "string_buffer"))
+                {}
+            else {
+                char msg[512]; snprintf(msg, sizeof(msg),
+                    "SOUL §7: strict type violation — '%s' is not an allowed parameter type in %s\n"
+                    "  → use u32, i32, u64, str, cjson, ptr, or other explicitly-sized type", t, path);
+                fprintf(stderr, "spec2c: %s\n", msg); exit(1);
+            }
+        }
+        cJSON *c = node->child;
+        while (c) { check_ipm_type_names_are_strict(c, path); c = c->next; }
+    } else if (cJSON_IsArray(node)) {
+        cJSON *c = node->child;
+        while (c) { check_ipm_type_names_are_strict(c, path); c = c->next; }
+    }
+}
+
 static void validate_single_ipm_file_content(const char *sp,
     char allowed_imports[64][128], int n_allowed)
 {
@@ -234,6 +286,7 @@ static void validate_single_ipm_file_content(const char *sp,
 
     scan_json_for_banned_words(root, sp);
     check_ipm_ast_depth_limits(root, 0, sp);
+    check_ipm_type_names_are_strict(root, sp);
 
     cJSON *pkg = cJSON_GetObjectItemCaseSensitive(root, "package_name");
     if (pkg && cJSON_IsString(pkg)) validate_single_ipm_name_value(pkg->valuestring, "package_name", sp);

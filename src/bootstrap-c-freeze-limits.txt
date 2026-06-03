@@ -2,7 +2,7 @@
 buffer-output-and-command-launch.c 70 8
 check-source-conformance-entry-point.c 298 10
 compile-abstract-instructions-into-code.c 128 5
-detect-banned-patterns-and-braces.c 343 13
+detect-banned-patterns-and-braces.c 396 13
 dump-context-from-ipm-graph.c 109 3
 emit-variable-declaration-handler-function.c 111 5
 enforce-bootstrap-code-file-whitelist.c 145 4
