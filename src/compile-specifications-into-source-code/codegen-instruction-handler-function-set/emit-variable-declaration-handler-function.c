@@ -175,6 +175,25 @@ static void emit_new_standard_loop_code(cJSON *inst, FILE *out, int indent, cons
         fprintf(out, "for (int %s = 0; %s < %s; %s++) {\n", cv, cv, lv, cv);
         generate_code_from_ast_instructions(body, out, indent + 1, return_type);
         fprintf(out, "}\n");
+    } else if (!strcmp(ty, "emit_formatted_code")) {
+        const char *fmt = extract_json_field_string_value(inst, "code_format");
+        cJSON *args = cJSON_GetObjectItemCaseSensitive(inst, "code_arguments");
+        if (!fmt[0]) return;
+        fprintf(out, "fprintf(out, \"");
+        for (const char *p = fmt; *p; p++) {
+            if (*p == '"' || *p == '\\') fputc('\\', out);
+            else if (*p == '\n') fprintf(out, "\\n");
+            fputc(*p, out);
+        }
+        fprintf(out, "\"");
+        if (args && cJSON_IsArray(args)) {
+            for (int a = 0; a < cJSON_GetArraySize(args); a++) {
+                cJSON *arg = cJSON_GetArrayItem(args, a);
+                if (cJSON_IsString(arg) && arg->valuestring[0])
+                    fprintf(out, ", %s", arg->valuestring);
+            }
+        }
+        fprintf(out, ");\n");
     }
 }
 
@@ -211,6 +230,7 @@ static const instr_dispatch_t INSTR_HANDLERS[] = {
     {"access_json_field",              emit_field_access_into_output},
     {"conditional_branch",             emit_branch_code_into_output},
     {"database_execute_parameterized", emit_new_standard_loop_code},
+    {"emit_formatted_code",            emit_new_standard_loop_code},
     {"for_count_loop",                 emit_new_standard_loop_code},
     {"function_invocation",            emit_invocation_code_into_output},
     {"iterate_over_collection",        emit_iterate_code_into_output},
