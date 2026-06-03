@@ -116,21 +116,19 @@
         buildPhase = ''
           runHook preBuild
 
-          # Step 1: compile IPM enforcer spec → C, strip trailing JSON
+          # Step 1: compile IPM enforcer spec → C
           mkdir -p $TMPDIR/build
-          echo "=== Running spec2c ==="
-          spec2c enforce-naming-rules-via-ffi.ipm > $TMPDIR/build/ipm_enforce_gen.c 2>$TMPDIR/build/spec2c_err.log || true
-          echo "=== spec2c exit: $? ==="
-          cat $TMPDIR/build/spec2c_err.log
-          echo "=== Generated lines: $(wc -l < $TMPDIR/build/ipm_enforce_gen.c) ==="
-          head -5 $TMPDIR/build/ipm_enforce_gen.c
+          spec2c enforce-naming-rules-via-ffi.ipm > $TMPDIR/build/ipm_enforce_gen.c
           sed -i '/^{"ok"/d' $TMPDIR/build/ipm_enforce_gen.c
           # Remove duplicate includes and non-existent headers
           sed -i '/"enforce-naming-rules-via-ffi.h"/d' $TMPDIR/build/ipm_enforce_gen.c
-          # Fix extern const-correctness (all params + return type)
+          # Add runtime header
+          sed -i '1i#include "runtime-for-generated-ipm-code.h"' $TMPDIR/build/ipm_enforce_gen.c
+          # Fix extern const-correctness
           sed -i 's/extern char \* check_name_following_soul_rules(char \*/extern const char * check_name_following_soul_rules(const char */' $TMPDIR/build/ipm_enforce_gen.c
           sed -i 's/, char \* name, char \* fp/, const char *name, const char *fp/' $TMPDIR/build/ipm_enforce_gen.c
           sed -i 's/char \*err =/const char *err =/' $TMPDIR/build/ipm_enforce_gen.c
+          sed -i 's/int errors = 0;/int errors = 0; (void)errors;/' $TMPDIR/build/ipm_enforce_gen.c
           sed -i "s/int errors = 0;/int errors = 0;\n    (void)errors;/" $TMPDIR/build/ipm_enforce_gen.c
           # Add runtime header
           sed -i '1i#include "runtime-for-generated-ipm-code.h"' $TMPDIR/build/ipm_enforce_gen.c
