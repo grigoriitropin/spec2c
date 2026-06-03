@@ -80,3 +80,4 @@ FILE *execute_command_capture_stdout_pipe(char *const argv[], pid_t *out_pid);
 int   close_pipe_await_child_finish(FILE *fp, pid_t pid);
 
 #endif /* IPM_BUILTINS_H */
+char*  check_name_following_soul_rules(const char *what, const char *name, const char *fp);

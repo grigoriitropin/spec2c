@@ -28,6 +28,7 @@
       ];
       runtime_src = [
         "src/runtime-for-generated-ipm-code.c"
+        "src/compile-specifications-into-source-code/enforce-structural-rules-for-code/scan-source-code-for-patterns/check-naming-rules-for-ffi.c"
         "src/support-code-for-compiled-output/file-string-and-json-parsing.c"
         "src/support-code-for-compiled-output/hash-table-and-substitution-code.c"
             "src/support-code-for-compiled-output/compute-file-sha-hash-digest/compute-sha256-hash-for-files.c"
