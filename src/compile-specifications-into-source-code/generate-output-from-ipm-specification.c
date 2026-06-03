@@ -8,6 +8,7 @@ static void emit_function_prototypes_into_header(FILE *hdr, cJSON *funcs) {
     cJSON *fn = funcs->child;
     while (fn) {
         const char *name = fn->string;
+        char *cname = convert_hyphen_name_into_underscore(name);
         const char *ret = extract_json_field_string_value(fn, "return_type");
         const char *ret_c = "void";
         if (ret[0]) {
@@ -19,7 +20,8 @@ static void emit_function_prototypes_into_header(FILE *hdr, cJSON *funcs) {
             else if (!strcmp(ret, "subst_table")) ret_c = "subst_table *";
             else if (!strcmp(ret, "string_buffer")) ret_c = "string_buffer *";
         }
-        fprintf(hdr, "%s %s(", ret_c, name);
+        fprintf(hdr, "%s %s(", ret_c, cname);
+        free(cname);
         cJSON *params = cJSON_GetObjectItemCaseSensitive(fn, "parameter_definitions");
         if (params && cJSON_IsArray(params)) {
             for (int p = 0; p < cJSON_GetArraySize(params); p++) {
@@ -81,13 +83,15 @@ static void emit_ipm_component_header_file(const ipm_spec_t *spec, const char *o
     if (!hdr) return;
     fprintf(hdr, "/* Auto-generated library header */\n");
     fprintf(hdr, "#ifndef IPM_LIB_H\n#define IPM_LIB_H\n\n");
-    fprintf(hdr, "#include \"ipm_builtins.h\"\n\n");
+    fprintf(hdr, "#include \"runtime-for-generated-ipm-code.h\"\n\n");
     cJSON *funcs = cJSON_GetObjectItemCaseSensitive(spec->meta, "function_definitions");
     if (funcs && cJSON_IsObject(funcs)) {
         cJSON *fn = funcs->child;
         while (fn) {
             const char *name = fn->string;
-            fprintf(hdr, "%s %s(", resolve_spec_type_into_lang(extract_json_field_string_value(fn, "return_type")), name);
+            char *cname = convert_hyphen_name_into_underscore(name);
+            fprintf(hdr, "%s %s(", resolve_spec_type_into_lang(extract_json_field_string_value(fn, "return_type")), cname);
+            free(cname);
             cJSON *params = cJSON_GetObjectItemCaseSensitive(fn, "parameter_definitions");
             if (params && cJSON_IsArray(params)) {
                 for (int p = 0; p < cJSON_GetArraySize(params); p++) {
