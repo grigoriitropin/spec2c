@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // AUTO-GENERATED — SHA256 hashes of bootstrap files, compiled into binary
-#define BOOTSTRAP_HASH_COUNT 38
+#define BOOTSTRAP_HASH_COUNT 39
 static const char *hash_file_names[] = {
     "buffer-output-and-command-launch.c",
     "check-source-conformance-entry-point.c",
@@ -40,6 +40,7 @@ static const char *hash_file_names[] = {
     "remaining-rules-ffi-batch-four.c",
     "dead-code-header-check-batch.c",
     "extracted-codegen-helper-functions-here/emit-report-error-and-exit.c",
+    "recurse-scan-source-tree.c",
 };
 static const char *hash_sha256_values[] = {
     "4d88b5954a0a470f8afa1a82685616a3888f440fe8b0c6cdd1f58335295fcfad",
@@ -67,7 +68,7 @@ static const char *hash_sha256_values[] = {
     "d294e6c33b2c48f35bcbadab89646a6c8a7da30b70689bc4acc0a2faae77813a",
     "725202704ba2459b176f27d0a2ff194757c7198f65ac083c1ffdefa927aa8f0b",
     "cc2c097f1eefcc70f864e49dee674d9dc5df60afcb89fafdc1ad679c54956219",
-    "fdc2c5bc801de32957bad13071708678d7896a893d77c1b341b2e4881633ec1e",
+    "a3835f056f7f81d76ac4a4dfa26cf956c5ac9f5e278dcf081e0e7e548896f367",
     "02c641f29d18df2d255fe36e55a2d78219cd591815717e7302f16cc9ebe57c30",
     "efa0f37f4c38b3e9e7da6b2208ccd63b7cb6705db678d7afb00fd18c9dceae81",
     "0000000000000000000000000000000000000000000000000000000000000000",
@@ -80,6 +81,7 @@ static const char *hash_sha256_values[] = {
     "d6946cc6f07f9aebbb3bcc2a240c75c6692779f77d089d093bdb9a6aa203eb41",
     "de250a88b8376b985dd5264781aa66ad80989a5daa8493e939318ef8310ee66a",
     "0000000000000000000000000000000000000000000000000000000000000000",
+    "3b5300f6e1789f8c39c2a55ab61bc48449ca0a8ad5c9d398f22bd5eb65e6bb55",
 };
 static const int hash_max_lines[] = {
     70,
@@ -109,6 +111,7 @@ static const int hash_max_lines[] = {
     53,
     421,
     50,
+    0,
     0,
     0,
     0,
