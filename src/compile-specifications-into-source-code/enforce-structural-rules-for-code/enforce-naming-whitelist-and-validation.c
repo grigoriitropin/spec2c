@@ -54,6 +54,7 @@ int match_header_against_include_whitelist(const char *hdr) {
         "vehir-shared-abstraction-wrapper-code.h",
         "verify-structural-source-code-rules.h",
         "bootstrap-freeze-data-compiled-into.h",
+        "bootstrap-file-sha-hashes-generated.h",
         "shared-type-declarations-across-modules/share-type-definitions-across-files.h",
         "../shared-type-declarations-across-modules/share-type-definitions-across-files.h",
         "share-check-types-and-declarations.h",
