@@ -35,7 +35,7 @@ void count_open_close_brace_pairs(const char *line, brace_state_t *state) {
 }
 
 void pull_function_name_from_definition(const char *line, char *out, size_t sz) {
-    const char *lp = strrchr(line, '(');
+    const char *lp = strchr(line, '(');
     if (!lp) { out[0] = 0; return; }
     while (lp > line && (*(lp-1) == ' ' || *(lp-1) == '\t' || *(lp-1) == '*' || *(lp-1) == '!' || *(lp-1) == '(')) lp--;
     const char *start = lp;
