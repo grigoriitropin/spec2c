@@ -63,9 +63,43 @@ static void emit_variable_declaration_code_line(cJSON *inst, FILE *out, int inde
         return;
     }
     (void)vt;
-    (void)op;
+    if (!strcmp(op, "literal")) {
+        cJSON *st = cJSON_GetObjectItemCaseSensitive(inst, "source_target");
+        if (cJSON_IsNumber(st))
+            fprintf(out, "  %s %s = %d;\n", resolve_spec_type_into_lang(vt), vn, st->valueint);
+        else if (cJSON_IsString(st))
+            fprintf(out, "  const char *%s = \"%s\";\n", vn, st->valuestring);
+        else
+            fprintf(out, "  %s %s = 0;\n", resolve_spec_type_into_lang(vt), vn);
+        return;
+    }
     fprintf(out, "%s %s = %s(%s);\n", vt, vn, op,
         extract_json_field_string_value(inst, "source_target"));
+}
+
+static void emit_function_invocation_with_arguments(cJSON *inst, FILE *out, int indent) {
+    (void)indent;
+    const char *fn = extract_json_field_string_value(inst, "invocation_name");
+    const char *rv = extract_json_field_string_value(inst, "result_assignment_variable");
+    cJSON *args = cJSON_GetObjectItemCaseSensitive(inst, "invocation_arguments");
+    if (!fn[0]) return;
+    if (rv[0]) fprintf(out, "  %s = ", rv);
+    fprintf(out, "%s(", fn);
+    if (args && cJSON_IsObject(args)) {
+        cJSON *arg = args->child;
+        int first = 1;
+        while (arg) {
+            if (!first) fprintf(out, ", ");
+            /* treat as string literal (quoted) */
+            if (cJSON_IsString(arg))
+                fprintf(out, "\"%s\"", arg->valuestring);
+            else if (cJSON_IsNumber(arg))
+                fprintf(out, "%d", arg->valueint);
+            first = 0;
+            arg = arg->next;
+        }
+    }
+    fprintf(out, ");\n");
 }
 
 static void emit_bootstrap_central_dispatcher_func(cJSON *inst, FILE *out, int indent, const char *return_type) {
@@ -73,6 +107,7 @@ static void emit_bootstrap_central_dispatcher_func(cJSON *inst, FILE *out, int i
     const char *ty = extract_json_field_string_value(inst, "instruction_type");
     if (!strcmp(ty, "emit_formatted_code")) { emit_formatted_code_primitive_handler(inst, out); return; }
     if (!strcmp(ty, "conditional_branch")) { emit_conditional_branch_code_primitive(inst, out, indent, return_type); return; }
+    if (!strcmp(ty, "function_invocation")) { emit_function_invocation_with_arguments(inst, out, indent); return; }
     if (!strcmp(ty, "variable_declaration")) { emit_variable_declaration_code_line(inst, out, indent); return; }
 }
 
