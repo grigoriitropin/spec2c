@@ -10,31 +10,10 @@
 #include <cjson/cJSON.h>
 static int lint_mode = 0;
 static int lint_errors = 0;
-#define MAX_FILES_PER_DIR 3
-#define MAX_LINES_PER_FILE 400
-#define MAX_INCLUDES 5
-#define MAX_FUNCTIONS_PER_FILE 10
-#define MAX_LINES_PER_FUNCTION 50
-#define MAX_LINE_LENGTH 120
-typedef enum {
-    ERR_FILE_TOO_LONG,
-    ERR_TOO_MANY_FUNCTIONS,
-    ERR_FUNCTION_TOO_LONG,
-    ERR_TOO_MANY_FILES_IN_DIR,
-    ERR_BANNED_PATTERN,
-    ERR_HARDCODED_PATH,
-    ERR_HEADER_NOT_IN_WHITELIST,
-    ERR_HEADER_INCLUDED_TOO_OFTEN,
-    ERR_DEAD_CODE,
-    ERR_MAIN_COUNT,
-    ERR_FLAG_NOT_IN_HELP,
-    ERR_LINE_TOO_DENSE,
-    ERR_NOT_IN_BOOTSTRAP_WHITELIST
-} enforce_err_t;
 static void report_fatal_error_and_exit(const char *msg) {
     fprintf(stderr, "spec2c: %s\n", msg); exit(1);
 }
-static void report_violation_with_actionable_hint(enforce_err_t code, const char *a1,
+void report_violation_with_actionable_hint(enforce_err_t code, const char *a1,
     int v1, int v2, const char *a2)
 {
     char buf[8448];
@@ -72,7 +51,7 @@ static void report_violation_with_actionable_hint(enforce_err_t code, const char
     } else
         report_fatal_error_and_exit(buf);
 }
-static int count_lines_within_source_file(const char *path) {
+int count_lines_within_source_file(const char *path) {
     FILE *f = fopen(path, "r"); if (!f) return -1;
     int lines = 0, ch; while ((ch = fgetc(f)) != EOF) if (ch == '\n') lines++;
     fclose(f); return lines;
@@ -105,7 +84,7 @@ static int detect_function_definition_start_line(const char *line) {
     if (match_name_against_stdlib_list(first)) return 0;
     return 1;
 }
-static void check_include_headers_for_file(const char *sub, inc_entry_t *incs, int *inc_qty);
+void check_include_headers_for_file(const char *sub, inc_entry_t *incs, int *inc_qty);
 static void check_line_density_within_source(const char *line, const char *sub, int file_line) {
     int in_str = 0, in_char = 0, in_comment = 0, tokens = 0;
     for (const char *p = line; *p; p++) {
@@ -158,7 +137,7 @@ static void verify_line_for_banned_hardcoded(const char *line, const char *sub, 
     }
 }
 
-static void check_single_file_for_violations(const char *sub, int is_c, int is_source,
+void check_single_file_for_violations(const char *sub, int is_c, int is_source,
     fn_entry_t *fns, int *fn_qty, inc_entry_t *incs, int *inc_qty)
 {
     if (is_c) {
@@ -195,7 +174,7 @@ static void check_single_file_for_violations(const char *sub, int is_c, int is_s
     fclose(f);
     check_include_headers_for_file(sub, incs, inc_qty);
 }
-static void check_include_headers_for_file(const char *sub, inc_entry_t *incs, int *inc_qty) {
+void check_include_headers_for_file(const char *sub, inc_entry_t *incs, int *inc_qty) {
     FILE *f2 = fopen(sub, "r");
     if (f2) {
         char line[512];
