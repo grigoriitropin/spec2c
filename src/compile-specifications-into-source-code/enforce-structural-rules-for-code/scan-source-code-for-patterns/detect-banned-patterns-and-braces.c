@@ -179,21 +179,6 @@ static void check_ipm_cli_flag_docs(cJSON *root, const char *sp) {
     }
 }
 
-static void load_ipm_import_whitelist_file(const char *srcdir,
-    char buf[64][128], int *count)
-{
-    char wpath[4096]; snprintf(wpath, sizeof(wpath), "%s/ipm-imports.whitelist", srcdir);
-    FILE *wf = fopen(wpath, "r");
-    if (!wf) return;
-    char wline[128];
-    while (fgets(wline, sizeof(wline), wf) && *count < 64) {
-        size_t wl = strlen(wline);
-        while (wl > 0 && (wline[wl-1] == '\n' || wline[wl-1] == '\r')) wline[--wl] = 0;
-        if (wl > 0) { snprintf(buf[*count], 128, "%s", wline); (*count)++; }
-    }
-    fclose(wf);
-}
-
 static void check_ipm_ast_depth_limits(cJSON *node, int depth, const char *path) {
     if (!node || depth > 20) {
         if (depth > 20) { char msg[8448]; snprintf(msg, sizeof(msg),
@@ -357,7 +342,18 @@ static void validate_single_ipm_file_content(const char *sp,
 
 void verify_ipm_names_across_sources(const char *srcdir) {
     char allowed_imports[64][128]; int n_allowed = 0;
-    load_ipm_import_whitelist_file(srcdir, allowed_imports, &n_allowed);
+    {   char wpath[4096]; snprintf(wpath, sizeof(wpath), "%s/ipm-imports.whitelist", srcdir);
+        FILE *wf = fopen(wpath, "r");
+        if (wf) {
+            char wline[128];
+            while (fgets(wline, sizeof(wline), wf) && n_allowed < 64) {
+                size_t wl = strlen(wline);
+                while (wl > 0 && (wline[wl-1] == '\n' || wline[wl-1] == '\r')) wline[--wl] = 0;
+                if (wl > 0) { snprintf(allowed_imports[n_allowed], 128, "%s", wline); n_allowed++; }
+            }
+            fclose(wf);
+        }
+    }
 
     void scan_ipm(const char *dpath) {
         DIR *dd = opendir(dpath); if (!dd) return;
