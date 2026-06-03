@@ -281,3 +281,4 @@ check_bootstrap_whitelist_for_ffi
 verify_file_line_density_count
 verify_file_line_density_count
 ffi-function-export-layer-here
+enforce-ffi-function-export-layer
