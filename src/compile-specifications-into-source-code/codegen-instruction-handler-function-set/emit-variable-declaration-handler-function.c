@@ -227,12 +227,6 @@ static void emit_iteration_loop_with_count(cJSON *inst, FILE *out, int indent, c
     fprintf(out, "  }\n");
 }
 
-static void emit_read_file_into_variable(cJSON *inst, FILE *out) {
-    const char *fp = extract_json_field_string_value(inst, "file_path");
-    const char *rv = extract_json_field_string_value(inst, "result_variable");
-    if (!fp[0] || !rv[0]) return;
-    fprintf(out, "  char *%s = read_entire_file_into_string(%s);\n", rv, fp);
-}
 
 static void emit_string_tokenizer_with_body(cJSON *inst, FILE *out, int indent, const char *rt) {
     const char *src = extract_json_field_string_value(inst, "source_string");
@@ -259,7 +253,13 @@ static void emit_bootstrap_central_dispatcher_func(cJSON *inst, FILE *out, int i
     if (!strcmp(ty, "emit_formatted_code")) { emit_formatted_code_primitive_handler(inst, out); return; }
     if (!strcmp(ty, "for_count_loop")) { emit_iteration_loop_with_count(inst, out, indent, return_type); return; }
     if (!strcmp(ty, "function_invocation")) { emit_function_invocation_with_arguments(inst, out, indent); return; }
-    if (!strcmp(ty, "read_file_content")) { emit_read_file_into_variable(inst, out); return; }
+    if (!strcmp(ty, "read_file_content")) {
+        const char *fp = extract_json_field_string_value(inst, "file_path");
+        const char *rv = extract_json_field_string_value(inst, "result_variable");
+        if (fp[0] && rv[0])
+            fprintf(out, "  char *%s = read_entire_file_into_string(%s);\n", rv, fp);
+        return;
+    }
     if (!strcmp(ty, "scan_directory_entries")) { emit_scan_directory_with_body(inst, out, indent); return; }
     if (!strcmp(ty, "string_tokenizer_loop")) { emit_string_tokenizer_with_body(inst, out, indent, return_type); return; }
     if (!strcmp(ty, "variable_declaration")) { emit_variable_declaration_code_line(inst, out, indent); return; }
