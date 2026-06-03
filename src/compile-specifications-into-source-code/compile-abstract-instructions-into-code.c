@@ -121,8 +121,11 @@ static void emit_iteration_instruction_code_block(cJSON *inst, FILE *out, int in
     }
 }
 
-/* ── dispatch table for code generation ────────────────────────────── */
-typedef void (*instr_handler_t)(cJSON *inst, FILE *out, int indent, const char *return_type);
+/* ── dispatch table ────────────────────────────────────────────────── */
+typedef struct {
+    const char *type;
+    void (*handler)(cJSON *inst, FILE *out, int indent, const char *ret);
+} instr_dispatch_t;
 
 static void emit_variable_declaration_into_output(cJSON *inst, FILE *out, int indent, const char *return_type) {
     (void)return_type;
@@ -146,6 +149,65 @@ static void emit_variable_declaration_into_output(cJSON *inst, FILE *out, int in
                 for (int s = 0; s < indent; s++) fputs("  ", out);
                 fprintf(out, "%s %s_%s[%d];\n", resolve_spec_type_into_lang(ft), vn, fn, array_size);
             }
+        }
+        for (int s = 0; s < indent; s++) fputs("  ", out);
+        fprintf(out, "%s(%s", op, src ? src : "");
+        cJSON_ArrayForEach(field, fields) {
+            if (!cJSON_IsString(field)) continue;
+            char fn[64] = {0}, ft[64] = {0};
+            if (sscanf(field->valuestring, "%63[^:]:%63s", fn, ft) == 2)
+                fprintf(out, ", %s_%s", vn, fn);
+        }
+        fprintf(out, ", %d);\n", array_size);
+    } else {
+        fprintf(out, "%s %s = %s(%s);\n", resolve_spec_type_into_lang(vt), vn, op, src);
+    }
+}
+
+void generate_code_from_ast_instructions(cJSON *instructions, FILE *out, int indent, const char *return_type) {
+    static const instr_dispatch_t table[] = {
+        {"access_json_field",              handle_access_json_field_dispatch},
+        {"conditional_branch",             handle_conditional_branch_dispatch},
+        {"database_execute_parameterized", handle_database_exec_dispatch},
+        {"function_invocation",            handle_invocation_dispatch},
+        {"iterate_over_collection",        handle_iteration_dispatch},
+        {"iterate_over_object_keys",       handle_iteration_dispatch},
+        {"return_statement",               handle_return_dispatch},
+        {"variable_declaration",           emit_variable_declaration_into_output},
+        {NULL, NULL}
+    };
+
+    void handle_invocation_dispatch(cJSON *i, FILE *o, int ind, const char *r) { (void)r; emit_function_invocation_code_block(i, o, ind); }
+    void handle_conditional_branch_dispatch(cJSON *i, FILE *o, int ind, const char *r) { emit_conditional_branch_code_block(i, o, ind, r); }
+    void handle_return_dispatch(cJSON *i, FILE *o, int ind, const char *r) { (void)ind; emit_return_statement_code_block(i, o, r); }
+    void handle_iteration_dispatch(cJSON *i, FILE *o, int ind, const char *r) { emit_iteration_instruction_code_block(i, o, ind, r); }
+    void handle_access_json_field_dispatch(cJSON *i, FILE *o, int ind, const char *r) { (void)ind; (void)r;
+        const char *vn = extract_json_field_string_value(i, "variable_name");
+        const char *vt = extract_json_field_string_value(i, "variable_type");
+        const char *so = extract_json_field_string_value(i, "source_object");
+        const char *fn = extract_json_field_string_value(i, "field_name");
+        if (!vn[0] || !so[0] || !fn[0]) return;
+        if (vt && (!strcmp(vt, "string") || !strcmp(vt, "char")))
+            fprintf(o, "const char *%s = cJSON_GetObjectItemCaseSensitive(%s,\"%s\") ? cJSON_GetObjectItemCaseSensitive(%s,\"%s\")->valuestring : \"\";\n", vn, so, fn, so, fn);
+        else fprintf(o, "cJSON *%s = cJSON_GetObjectItemCaseSensitive(%s, \"%s\");\n", vn, so, fn);
+    }
+    void handle_database_exec_dispatch(cJSON *i, FILE *o, int ind, const char *r) { (void)ind; (void)r;
+        const char *sql = extract_json_field_string_value(i, "sql_query_string");
+        fprintf(o, "/* DB exec: %s */\n", sql ? sql : "?");
+    }
+
+    if (!cJSON_IsArray(instructions)) return;
+    for (int ii = 0; ii < cJSON_GetArraySize(instructions); ii++) {
+        cJSON *inst = cJSON_GetArrayItem(instructions, ii);
+        if (!inst) continue;
+        cJSON *it = cJSON_GetObjectItemCaseSensitive(inst, "instruction_type");
+        if (!cJSON_IsString(it)) continue;
+        for (int s = 0; s < indent; s++) fputs("  ", out);
+        for (int d = 0; table[d].type; d++)
+            if (!strcmp(it->valuestring, table[d].type))
+                { table[d].handler(inst, out, indent, return_type); break; }
+    }
+}
         }
         for (int s = 0; s < indent; s++) fputs("  ", out);
         fprintf(out, "%s(%s", op, src ? src : "");
