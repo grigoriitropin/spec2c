@@ -1,5 +1,5 @@
 // AUTO-GENERATED — SHA256 hashes of bootstrap files, compiled into binary
-#define BOOTSTRAP_HASH_COUNT 30
+#define BOOTSTRAP_HASH_COUNT 28
 static const char *hash_file_names[] = {
     "buffer-output-and-command-launch.c",
     "check-source-conformance-entry-point.c",
@@ -28,9 +28,7 @@ static const char *hash_file_names[] = {
     "vehir-shared-abstraction-wrapper-code.h",
     "verify-structural-source-code-rules.c",
     "verify-structural-source-code-rules.h",
-    "bootstrap-freeze-data-compiled-into.h",
     "compute-sha256-hash-for-files.c",
-    "bootstrap-file-sha-hashes-generated.h",
 };
 static const char *hash_sha256_values[] = {
     "4d88b5954a0a470f8afa1a82685616a3888f440fe8b0c6cdd1f58335295fcfad",
@@ -39,8 +37,8 @@ static const char *hash_sha256_values[] = {
     "803320687537d44adf87431d046c473de3263863fa9b5685797509860922b9a1",
     "658bd2d7ce7e89b60d00e47b92e82c343907161142e80df92aeea09af6130b11",
     "4854e31736980daa0473a5c8ee99032f658d26270f062bbd25a6ac74bb018122",
-    "96d78969ee8b8bbd3437c3b13408a1bbc7a3b9c1bf80c06d36881e461cfcf19d",
-    "b6a74d114db4ab6571451afece4b199332e932c7edd8510babf9e25c7a71b948",
+    "0c13bef32cb64eb6ee166e627d3b4e4392fe1eac32dcfb8ff107a69ca62bc67f",
+    "8687e10bad6101167c10eaf24b485b588b6d2185b1832407439e116642722cec",
     "9b7f4b4b41afc3f4c244dd156a9170fd90e807d105d325ece866efbe1f74f17a",
     "20c92067dae2c73ba4b77dc9e5552d162f1be35ae8deac971579192d1df5976b",
     "1a3cb98f776b13d2ff37186855a72534a755e35b31f12bd4e4167b9b1e703265",
@@ -60,9 +58,7 @@ static const char *hash_sha256_values[] = {
     "cc2c097f1eefcc70f864e49dee674d9dc5df60afcb89fafdc1ad679c54956219",
     "a7c289747d3e6171eb5b11ff3c18adf9bb4c88c1b1f833868abef5f179b90890",
     "cf2a6406ccf17ee4717a6339110e59f094b4f706642fccc67c01142a2ccf3a7b",
-    "78c5665566205d08c88005bb1cf5a3affd3b7b9283e330d14a84cde2bc45750d",
     "efa0f37f4c38b3e9e7da6b2208ccd63b7cb6705db678d7afb00fd18c9dceae81",
-    "8bac8f81121c4e34cf0b7bf895187a854363c8f652f30acee01e8d6fb3c52586",
 };
 static const int hash_max_lines[] = {
     70,
@@ -72,7 +68,7 @@ static const int hash_max_lines[] = {
     109,
     97,
     103,
-    223,
+    224,
     241,
     179,
     116,
@@ -92,7 +88,5 @@ static const int hash_max_lines[] = {
     53,
     395,
     36,
-    0,
-    0,
     0,
 };

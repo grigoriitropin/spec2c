@@ -26,6 +26,4 @@ vehir-shared-abstraction-wrapper-code.c
 vehir-shared-abstraction-wrapper-code.h
 verify-structural-source-code-rules.c
 verify-structural-source-code-rules.h
-bootstrap-compiled-limit-hash-data/bootstrap-freeze-data-compiled-into.h
 compute-sha256-hash-for-files.c
-bootstrap-compiled-limit-hash-data/bootstrap-file-sha-hashes-generated.h

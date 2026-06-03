@@ -4,7 +4,7 @@ import os, subprocess, sys
 
 SRC_DIR = sys.argv[1] if len(sys.argv) > 1 else 'src'
 WHITELIST = os.path.join(SRC_DIR, 'bootstrap-c-whitelist.txt')
-OUTPUT = os.path.join(SRC_DIR, 'bootstrap-file-sha-hashes-generated.h')
+OUTPUT = os.path.join(SRC_DIR, 'bootstrap-compiled-limit-hash-data/bootstrap-file-sha-hashes-generated.h')
 
 def read_whitelist():
     names = []
