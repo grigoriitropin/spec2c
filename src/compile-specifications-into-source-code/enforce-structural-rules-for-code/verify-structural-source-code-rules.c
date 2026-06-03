@@ -267,7 +267,7 @@ void enforce_all_source_code_rules(const char *srcdir) {
     char *man_paths[256]={0};int man_cnt=0;
     {FILE *mf=fopen("source-manifest.json","r");
      if(mf){fseek(mf,0,SEEK_END);long ms=ftell(mf);fseek(mf,0,SEEK_SET);
-     char *mb=malloc(ms+1);if(mb){fread(mb,1,ms,mf);mb[ms]=0;
+     char *mb=malloc(ms+1);if(mb){size_t nr=fread(mb,1,ms,mf);mb[nr]=0;
      cJSON *ma=cJSON_Parse(mb);free(mb);
      if(ma&&cJSON_IsArray(ma)){int mc=cJSON_GetArraySize(ma);
      for(int i=0;i<mc&&man_cnt<256;i++){cJSON*it=cJSON_GetArrayItem(ma,i);
