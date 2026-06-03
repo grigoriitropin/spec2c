@@ -212,4 +212,5 @@ validate-ipm-content-structure-deeply
 execute-full-compilation-pipeline-flow
 compile-function-definitions-into-code
 generate-code-from-instruction-ast
-ipm-compiler-module-specifications
+ipm-compiler-definition-spec-directory
+ipm-compiler-definition-spec-directory
