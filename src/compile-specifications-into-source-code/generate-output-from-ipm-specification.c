@@ -43,9 +43,9 @@ void write_component_header_with_prototypes(const ipm_spec_t *spec, const char *
     FILE *hdr = fopen(hdr_path, "w");
     if (!hdr) report_fatal_error_and_exit("cannot open header file");
 
-    char guard[256];
-    convert_hyphen_name_into_underscore(guard, modname);
-    strcat(guard, "_H");
+    char *cguard = convert_hyphen_name_into_underscore(modname);
+    snprintf(guard, sizeof(guard), "%s_H", cguard);
+    free(cguard);
 
     fprintf(hdr, "/* Auto-generated from %s.ipm */\n", modname);
     fprintf(hdr, "#ifndef %s\n#define %s\n\n", guard, guard);
@@ -124,18 +124,6 @@ static void generate_auto_entry_point_code(FILE *out_fp, const ipm_spec_t *spec)
     fprintf(out_fp, "    return %s();\n}\n", entry);
 }
 
-static void convert_hyphen_name_into_underscore(char *dst, const char *src) {
-    int i = 0;
-    while (src[i]) {
-        if (src[i] == '-')
-            dst[i] = '_';
-        else
-            dst[i] = src[i];
-        i++;
-    }
-    dst[i] = 0;
-}
-
 void handle_ipm_spec_emit_code(const ipm_spec_t *spec, const char *out_path, int is_library) {
     if (is_library && out_path)
         emit_ipm_component_header_file(spec, out_path);
@@ -143,11 +131,11 @@ void handle_ipm_spec_emit_code(const ipm_spec_t *spec, const char *out_path, int
     const char *modname = extract_json_field_string_value(spec->meta, "module_name");
     if (modname[0] && out_path) {
         char hdr_path[4096];
-        char cmod[256];
-        convert_hyphen_name_into_underscore(cmod, modname);
+        char *cmod = convert_hyphen_name_into_underscore(modname);
         const char *slash = strrchr(out_path, '/');
         int dirlen = slash ? (int)(slash - out_path + 1) : 0;
         snprintf(hdr_path, sizeof(hdr_path), "%.*s%s.h", dirlen, out_path, cmod);
+        free(cmod);
         write_component_header_with_prototypes(spec, hdr_path);
     }
 
@@ -155,10 +143,10 @@ void handle_ipm_spec_emit_code(const ipm_spec_t *spec, const char *out_path, int
     if (!out_fp) report_fatal_error_and_exit("cannot open output file");
 
     if (modname[0]) {
-        char cname[256];
-        convert_hyphen_name_into_underscore(cname, modname);
+        char *cname = convert_hyphen_name_into_underscore(modname);
         fprintf(out_fp, "#include <string.h>\n#include <stdio.h>\n#include <stdlib.h>\n#include <cjson/cJSON.h>\n");
         fprintf(out_fp, "#include \"%s.h\"\n\n", cname);
+        free(cname);
     }
 
     subst_t subs[SUBST_MAX]; int nsubs = 0;
