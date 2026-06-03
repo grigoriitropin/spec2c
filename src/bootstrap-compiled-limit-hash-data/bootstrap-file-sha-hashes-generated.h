@@ -38,7 +38,7 @@ static const char *hash_file_names[] = {
     "ipm-file-validator-ffi-batch/ipm-file-validator-ffi-batch.c",
     "remaining-rules-ffi-batch-four.c",
     "dead-code-header-check-batch.c",
-    "emit-string-tokenizer-loop-code.c",
+    "tokenizer-loop-code/emit-string-tokenizer-loop-code.c",
 };
 static const char *hash_sha256_values[] = {
     "4d88b5954a0a470f8afa1a82685616a3888f440fe8b0c6cdd1f58335295fcfad",
@@ -78,7 +78,7 @@ static const char *hash_sha256_values[] = {
     "0000000000000000000000000000000000000000000000000000000000000000",
     "d6946cc6f07f9aebbb3bcc2a240c75c6692779f77d089d093bdb9a6aa203eb41",
     "de250a88b8376b985dd5264781aa66ad80989a5daa8493e939318ef8310ee66a",
-    "affe3c267688cd228b640fcbf7894113ccd64e3a55b74b017aa1f092ff1ef6ec",
+    "0000000000000000000000000000000000000000000000000000000000000000",
 };
 static const int hash_max_lines[] = {
     70,
