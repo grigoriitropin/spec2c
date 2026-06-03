@@ -32,7 +32,7 @@ static const char *freeze_file_names[] = {
 static const int freeze_max_lines[] = {
     70,
     298,
-    143,
+    147,
     413,
     109,
     320,

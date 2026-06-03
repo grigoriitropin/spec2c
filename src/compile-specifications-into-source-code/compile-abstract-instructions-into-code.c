@@ -49,6 +49,9 @@ static const char *resolve_function_return_type_code(const char *ret) {
 
 static void emit_function_body_into_output(cJSON *fn, FILE *out, int is_library, int has_modname, const char *modname) {
     const char *name = fn->string;
+    char cname[256]; int ci = 0;
+    for (; name[ci]; ci++) cname[ci] = (name[ci] == '-') ? '_' : name[ci];
+    cname[ci] = 0;
     cJSON *params = cJSON_GetObjectItemCaseSensitive(fn, "parameter_definitions");
     cJSON *body  = cJSON_GetObjectItemCaseSensitive(fn, "execution_instructions");
     if (!body || !cJSON_IsArray(body)) return;
@@ -61,7 +64,7 @@ static void emit_function_body_into_output(cJSON *fn, FILE *out, int is_library,
         return;
     }
     fprintf(out, "%s%s %s(", is_library ? "" : (has_modname ? "" : "static "),
-        resolve_function_return_type_code(ret), name);
+        resolve_function_return_type_code(ret), cname);
     if (params && cJSON_IsArray(params)) {
         for (int p = 0; p < cJSON_GetArraySize(params); p++) {
             cJSON *par = cJSON_GetArrayItem(params, p);
@@ -72,6 +75,7 @@ static void emit_function_body_into_output(cJSON *fn, FILE *out, int is_library,
         }
     }
     fprintf(out, ") {\n");
+    fprintf(out, "    const char *_name = \"%s\";\n", name);
     generate_code_from_ast_instructions(body, out, 1, ret);
     fprintf(out, "}\n\n");
 }
