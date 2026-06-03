@@ -217,12 +217,51 @@ static void emit_alu_operation_into_output(cJSON *inst, FILE *out) {
     }
 }
 
+static void emit_for_count_loop_with_body(cJSON *inst, FILE *out, int indent, const char *rt) {
+    const char *cv = extract_json_field_string_value(inst, "counter_variable");
+    const char *lv = extract_json_field_string_value(inst, "limit_variable");
+    cJSON *body = cJSON_GetObjectItemCaseSensitive(inst, "body_instructions");
+    if (!cv[0] || !lv[0]) return;
+    fprintf(out, "  for (int %s = 0; %s < %s; %s++) {\n", cv, cv, lv, cv);
+    if (body) generate_code_from_ast_instructions(body, out, indent + 2, rt);
+    fprintf(out, "  }\n");
+}
+
+static void emit_read_file_into_variable(cJSON *inst, FILE *out) {
+    const char *fp = extract_json_field_string_value(inst, "file_path");
+    const char *rv = extract_json_field_string_value(inst, "result_variable");
+    if (!fp[0] || !rv[0]) return;
+    fprintf(out, "  char *%s = read_entire_file_into_string(%s);\n", rv, fp);
+}
+
+static void emit_string_tokenizer_with_body(cJSON *inst, FILE *out, int indent, const char *rt) {
+    const char *src = extract_json_field_string_value(inst, "source_string");
+    const char *sep = extract_json_field_string_value(inst, "separator");
+    const char *tok = extract_json_field_string_value(inst, "token_variable");
+    cJSON *body = cJSON_GetObjectItemCaseSensitive(inst, "body_instructions");
+    if (!src[0] || !sep[0]) return;
+    fprintf(out, "  {\n");
+    fprintf(out, "    char _buf[256]; snprintf(_buf, sizeof(_buf), \"%%s\", %s);\n", src);
+    fprintf(out, "    char *_save;\n");
+    fprintf(out, "    for (char *_t = strtok_r(_buf, \"%s\", &_save); _t; _t = strtok_r(NULL, \"%s\", &_save)) {\n", sep, sep);
+    if (tok[0]) fprintf(out, "      const char *%s = _t;\n", tok);
+    if (body) generate_code_from_ast_instructions(body, out, indent + 3, rt);
+    fprintf(out, "    }\n");
+    fprintf(out, "  }\n");
+    return;
+}
+
 static void emit_bootstrap_central_dispatcher_func(cJSON *inst, FILE *out, int indent, const char *return_type) {
     (void)indent;
     const char *ty = extract_json_field_string_value(inst, "instruction_type");
-    if (!strcmp(ty, "emit_formatted_code")) { emit_formatted_code_primitive_handler(inst, out); return; }
+    if (!strcmp(ty, "alu_operation")) { emit_alu_operation_into_output(inst, out); return; }
     if (!strcmp(ty, "conditional_branch")) { emit_conditional_branch_code_primitive(inst, out, indent, return_type); return; }
+    if (!strcmp(ty, "emit_formatted_code")) { emit_formatted_code_primitive_handler(inst, out); return; }
+    if (!strcmp(ty, "for_count_loop")) { emit_for_count_loop_with_body(inst, out, indent, return_type); return; }
     if (!strcmp(ty, "function_invocation")) { emit_function_invocation_with_arguments(inst, out, indent); return; }
+    if (!strcmp(ty, "read_file_content")) { emit_read_file_into_variable(inst, out); return; }
+    if (!strcmp(ty, "scan_directory_entries")) { emit_scan_directory_with_body(inst, out, indent); return; }
+    if (!strcmp(ty, "string_tokenizer_loop")) { emit_string_tokenizer_with_body(inst, out, indent, return_type); return; }
     if (!strcmp(ty, "variable_declaration")) { emit_variable_declaration_code_line(inst, out, indent); return; }
     if (!strcmp(ty, "alu_operation")) { emit_alu_operation_into_output(inst, out); return; }
     if (!strcmp(ty, "scan_directory_entries")) { emit_scan_directory_with_body(inst, out, indent); return; }

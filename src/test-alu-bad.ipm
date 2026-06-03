@@ -1,0 +1,13 @@
+{
+  "description": "Test ALU with invalid type",
+  "package_name": "test-alu-bad-type-here-now",
+  "module_name": "test-alu-bad-type-here-now",
+  "function_definitions": {
+    "main": {
+      "return_type": "i32",
+      "execution_instructions": [
+        {"instruction_type": "alu_operation", "operator": "+", "lhs": {"kind": "var", "value": "x"}, "rhs": {"kind": "var", "value": "y"}, "target": "r", "target_type": "float"}
+      ]
+    }
+  }
+}
