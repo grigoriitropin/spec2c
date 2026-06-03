@@ -294,3 +294,6 @@ list-files-under-path-recursively
 list_files_under_path_recursively
 load_non_source_file_allowlist
 check_non_source_file_allowlist
+check_line_density_within_source
+load_non_source_file_allowlist
+check_non_source_file_allowlist
