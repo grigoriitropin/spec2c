@@ -91,7 +91,7 @@
             ${S}/compile-abstract-instructions-into-code.c \
             ${S}/generate-output-from-ipm-specification.c \
             ${S}/parse-legacy-specification-file-format/parse-old-format-specification-data.c \
-            ${S}/codegen-instruction-handler-function-set/tokenizer-loop-code-generator-func/emit-string-tokenizer-loop-code.c \
+            ${S}/codegen-instruction-handler-function-set/tokenizer-loop-code-generator-func/emit-string-tokenizer-loop-gen.c \
             ${S}/codegen-instruction-handler-function-set/emit-variable-declaration-handler-function.c \
             ${builtins.toString runtime_src} \
             -o spec2c -lcjson

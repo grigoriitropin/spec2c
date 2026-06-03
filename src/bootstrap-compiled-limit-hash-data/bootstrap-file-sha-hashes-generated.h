@@ -38,7 +38,7 @@ static const char *hash_file_names[] = {
     "ipm-file-validator-ffi-batch/ipm-file-validator-ffi-batch.c",
     "remaining-rules-ffi-batch-four.c",
     "dead-code-header-check-batch.c",
-    "tokenizer-loop-code-generator-func/emit-string-tokenizer-loop-code.c",
+    "tokenizer-loop-code-generator-func/emit-string-tokenizer-loop-gen.c",
 };
 static const char *hash_sha256_values[] = {
     "4d88b5954a0a470f8afa1a82685616a3888f440fe8b0c6cdd1f58335295fcfad",
