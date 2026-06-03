@@ -91,7 +91,7 @@
             ${S}/compile-abstract-instructions-into-code.c \
             ${S}/generate-output-from-ipm-specification.c \
             ${S}/parse-legacy-specification-file-format/parse-old-format-specification-data.c \
-            ${S}/codegen-instruction-handler-function-set/emit-report-error-and-exit.c \
+            ${S}/codegen-instruction-handler-function-set/extracted-helpers/emit-report-error-and-exit.c \
             ${S}/codegen-instruction-handler-function-set/emit-variable-declaration-handler-function.c \
             ${builtins.toString runtime_src} \
             -o spec2c -lcjson
