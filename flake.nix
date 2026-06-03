@@ -116,25 +116,23 @@
         buildPhase = ''
           runHook preBuild
 
-          # Step 1: compile IPM enforcer spec → C
-          mkdir -p $TMPDIR/build
-          spec2c enforce-naming-rules-via-ffi.ipm > $TMPDIR/build/ipm_enforce_gen.c
-          sed -i '/^{"ok"/d' $TMPDIR/build/ipm_enforce_gen.c
-          # Remove duplicate includes and non-existent headers
-          sed -i '/"enforce-naming-rules-via-ffi.h"/d' $TMPDIR/build/ipm_enforce_gen.c
-          # Add runtime header
-          sed -i '1i#include "runtime-for-generated-ipm-code.h"' $TMPDIR/build/ipm_enforce_gen.c
-          # Fix extern const-correctness
-          sed -i 's/extern char \* check_name_following_soul_rules(char \*/extern const char * check_name_following_soul_rules(const char */' $TMPDIR/build/ipm_enforce_gen.c
-          sed -i 's/, char \* name, char \* fp/, const char *name, const char *fp/' $TMPDIR/build/ipm_enforce_gen.c
-          sed -i 's/char \*err =/const char *err =/' $TMPDIR/build/ipm_enforce_gen.c
-          sed -i 's/int errors = 0;/int errors = 0; (void)errors;/' $TMPDIR/build/ipm_enforce_gen.c
-          sed -i "s/int errors = 0;/int errors = 0;\n    (void)errors;/" $TMPDIR/build/ipm_enforce_gen.c
-          # Add runtime header
-          sed -i '1i#include "runtime-for-generated-ipm-code.h"' $TMPDIR/build/ipm_enforce_gen.c
+          spec2c enforce-naming-rules-via-ffi.ipm > ipm_enforce_gen.c
+          sed -i '/^{"ok"/d' ipm_enforce_gen.c
+          sed -i '/"enforce-naming-rules-via-ffi.h"/d' ipm_enforce_gen.c
+          sed -i '1i#include "runtime-for-generated-ipm-code.h"' ipm_enforce_gen.c
+          sed -i 's/extern char \* check_name_following_soul_rules(char \*/extern const char * check_name_following_soul_rules(const char */' ipm_enforce_gen.c
+          sed -i 's/, char \* name, char \* fp/, const char *name, const char *fp/' ipm_enforce_gen.c
+          sed -i 's/char \*err =/const char *err =/' ipm_enforce_gen.c
+          sed -i 's/int errors = 0;/int errors = 0; (void)errors;/' ipm_enforce_gen.c
 
-          # Step 2: compile generated C with runtime
           cc ${builtins.toString cflags} \
+            -Isrc \
+            -I${S} \
+            -I${S}/shared-type-declarations-across-modules \
+            -Isrc/support-code-for-compiled-output \
+            -I${S}/enforce-structural-rules-for-code \
+            -I${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns \
+            ipm_enforce_gen.c \
             -Isrc \
             -I${S} \
             -I${S}/shared-type-declarations-across-modules \
