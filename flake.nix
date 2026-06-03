@@ -181,6 +181,7 @@
           for i in 0 1 2 3 4 5 6 7 8; do sed -i "s/char \*bp$i =/int bp$i =/" ipm_enforce_gen.c; done
           sed -i '/const char \*err/!s/char \* *err =/int err =/' ipm_enforce_gen.c
           sed -i 's/if (err != NULL)/if (err)/' ipm_enforce_gen.c
+          sed -i 's/validate_soul_naming_rule_check(_name)/validate_soul_naming_rule_check((char *)_name)/' ipm_enforce_gen.c
           sed -i 's/char \*err0 =/const char *err0 =/' ipm_enforce_gen.c
           sed -i 's/char \*err2 =/int err2 =/' ipm_enforce_gen.c
           sed -i 's/if (err2 != NULL)/if (err2)/' ipm_enforce_gen.c
