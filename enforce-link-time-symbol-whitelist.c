@@ -32,9 +32,10 @@ static const char *allowed_symbols[] = {
     "_ITM_registerTMCloneTable",
 
     // libc functions used by spec2c/ipm-enforce/checker (operation-critical only):
+    "malloc", "free", "realloc", "calloc",
     "memcpy", "memmove", "memset", "memchr", "memcmp",
     "__memcpy_chk", "__memset_chk",
-    "strcmp", "strlen", "strcat", "strcpy", "strncpy", "strncat",
+    "strcmp", "strncmp", "strlen", "strcat", "strcpy", "strncpy", "strncat",
     "strchr", "strrchr", "strstr", "strspn", "strcspn", "strpbrk", "strtok", "strdup", "strndup",
     "snprintf", "sprintf", "printf", "fprintf", "vsnprintf", "vsprintf", "vprintf", "vfprintf",
     "__snprintf_chk", "__sprintf_chk", "__printf_chk", "__fprintf_chk",
