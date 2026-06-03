@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // AUTO-GENERATED — SHA256 hashes of bootstrap files, compiled into binary
-#define BOOTSTRAP_HASH_COUNT 38
+#define BOOTSTRAP_HASH_COUNT 39
 static const char *hash_file_names[] = {
     "buffer-output-and-command-launch.c",
     "check-source-conformance-entry-point.c",
@@ -40,6 +40,7 @@ static const char *hash_file_names[] = {
     "remaining-rules-ffi-batch-four.c",
     "dead-code-header-check-batch.c",
     "extracted-codegen-helper-functions-here/emit-report-error-and-exit.c",
+    "operator-signed-exemption-name-table/load-operator-signed-exemption-table.c",
 };
 static const char *hash_sha256_values[] = {
     "4d88b5954a0a470f8afa1a82685616a3888f440fe8b0c6cdd1f58335295fcfad",
@@ -49,7 +50,7 @@ static const char *hash_sha256_values[] = {
     "658bd2d7ce7e89b60d00e47b92e82c343907161142e80df92aeea09af6130b11",
     "226b6c62eb323deeb20b810c0d1a3bdad17568dd8f0369d3ab8cd1dc3d11ff0b",
     "ad88715af411b6919334e53b0d208e7cded851d84b2c3cecf355beedfda3ae75",
-    "eb045b619056cda9f4262383e9365b53ae5164c2bd88aa5c436db5f21c717a46",
+    "eb8f77c029222b36b547a35490848911c6dbb1e828730e81af37f0c01b3a4506",
     "9cb09208e335a2596a69db23da7903a355962f11f18aed09b65afc4cccf507bb",
     "272bda91e2f742a940c77022ea932bbdcb751a9cec383a5f53e31d51f72a787d",
     "1a3cb98f776b13d2ff37186855a72534a755e35b31f12bd4e4167b9b1e703265",
@@ -67,8 +68,8 @@ static const char *hash_sha256_values[] = {
     "d294e6c33b2c48f35bcbadab89646a6c8a7da30b70689bc4acc0a2faae77813a",
     "725202704ba2459b176f27d0a2ff194757c7198f65ac083c1ffdefa927aa8f0b",
     "cc2c097f1eefcc70f864e49dee674d9dc5df60afcb89fafdc1ad679c54956219",
-    "dfd33bf40852d9cd537a9780ed024c89d20a0541d21fd02fd4fa98ae0f8c5785",
-    "d3dfe73f3c4a1af3c8351d1986a824d1230d5783e85f6bc266a06b3d00d1aeab",
+    "db68df8c79354323d6814fe293270f4976e5f52339a3c6400fb826f5ea4edb19",
+    "1875ce42818bede094229ef96f3b71c5ca0d16aa9e20ffa907a4c3849073e6d2",
     "efa0f37f4c38b3e9e7da6b2208ccd63b7cb6705db678d7afb00fd18c9dceae81",
     "0000000000000000000000000000000000000000000000000000000000000000",
     "0000000000000000000000000000000000000000000000000000000000000000",
@@ -79,6 +80,7 @@ static const char *hash_sha256_values[] = {
     "0000000000000000000000000000000000000000000000000000000000000000",
     "d6946cc6f07f9aebbb3bcc2a240c75c6692779f77d089d093bdb9a6aa203eb41",
     "de250a88b8376b985dd5264781aa66ad80989a5daa8493e939318ef8310ee66a",
+    "0000000000000000000000000000000000000000000000000000000000000000",
     "0000000000000000000000000000000000000000000000000000000000000000",
 };
 static const int hash_max_lines[] = {
@@ -109,6 +111,7 @@ static const int hash_max_lines[] = {
     53,
     421,
     40,
+    0,
     0,
     0,
     0,

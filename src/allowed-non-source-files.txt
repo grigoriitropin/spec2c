@@ -10,3 +10,5 @@ flake.lock
 skeleton.json
 source-manifest.json
 LICENSE
+operator-signed-exemption-name-table.json
+

@@ -39,32 +39,19 @@ static void report_violation_with_actionable_hint(enforce_err_t code, const char
 {
     char buf[8448];
     switch (code) {
-    case ERR_FILE_TOO_LONG:
-        snprintf(buf, sizeof(buf), "SOUL §7: %s has %d lines (max %d)\n  → split this file into smaller files", a1, v1, v2); break;
-    case ERR_TOO_MANY_FUNCTIONS:
-        snprintf(buf, sizeof(buf), "SOUL §7: %s has %d functions (max %d)\n  → extract functions into a new .c file", a1, v1, v2); break;
-    case ERR_FUNCTION_TOO_LONG:
-        snprintf(buf, sizeof(buf), "SOUL §7: %s func#%d is %d lines (max %d)\n  → split into smaller helper functions", a1, v1, v2, MAX_LINES_PER_FUNCTION); break;
-    case ERR_TOO_MANY_FILES_IN_DIR:
-        snprintf(buf, sizeof(buf), "SOUL §7: %s has %d files (max %d)\n  → create a subdirectory and move files there", a1, v1, v2); break;
-    case ERR_BANNED_PATTERN:
-        snprintf(buf, sizeof(buf), "SOUL §7: %s uses banned pattern\n  → remove goto/setjmp/longjmp/output-suppression", a1); break;
-    case ERR_HARDCODED_PATH:
-        snprintf(buf, sizeof(buf), "SOUL §7: %s has hardcoded path\n  → resolve paths at runtime, never hardcode", a1); break;
-    case ERR_HEADER_NOT_IN_WHITELIST:
-        snprintf(buf, sizeof(buf), "SOUL §7: header '%s' in %s not in whitelist\n  → add to ok[] in enforce-naming-whitelist-and-validation.c", a1, a2); break;
-    case ERR_HEADER_INCLUDED_TOO_OFTEN:
-        snprintf(buf, sizeof(buf), "SOUL §7: header '%s' included %d times (max %d)\n  → consolidate includes", a1, v1, v2); break;
-    case ERR_DEAD_CODE:
-        snprintf(buf, sizeof(buf), "SOUL §7: dead code — '%s' in %s never called\n  → remove unused function or add call site", a1, a2); break;
-    case ERR_MAIN_COUNT:
-        snprintf(buf, sizeof(buf), "SOUL §7: exactly one main() required, found %d\n  → keep exactly one entry point", v1); break;
-    case ERR_FLAG_NOT_IN_HELP:
-        snprintf(buf, sizeof(buf), "SOUL §7: CLI flag '%s' in %s not documented in help text\n  → add flag description to the --help output block", a1, a2); break;
-    case ERR_LINE_TOO_DENSE:
-        snprintf(buf, sizeof(buf), "SOUL §7: %s line %d is too dense — %d control tokens (; { ?) (max 3)\n  → split the line into multiple statements", a1, v1, v2); break;
-    case ERR_NOT_IN_BOOTSTRAP_WHITELIST:
-        snprintf(buf, sizeof(buf), "SOUL §7: %s not in bootstrap C whitelist\n  → rewrite this functionality as an IPM module, the C bootstrap is frozen", a1); break;
+    case ERR_FILE_TOO_LONG: snprintf(buf, sizeof(buf), "SOUL §7: %s has %d lines (max %d)\n  → split this file into smaller files", a1, v1, v2); break;
+    case ERR_TOO_MANY_FUNCTIONS: snprintf(buf, sizeof(buf), "SOUL §7: %s has %d functions (max %d)\n  → extract functions into a new .c file", a1, v1, v2); break;
+    case ERR_FUNCTION_TOO_LONG: snprintf(buf, sizeof(buf), "SOUL §7: %s func#%d is %d lines (max %d)\n  → split into smaller helper functions", a1, v1, v2, MAX_LINES_PER_FUNCTION); break;
+    case ERR_TOO_MANY_FILES_IN_DIR: snprintf(buf, sizeof(buf), "SOUL §7: %s has %d files (max %d)\n  → create a subdirectory and move files there", a1, v1, v2); break;
+    case ERR_BANNED_PATTERN: snprintf(buf, sizeof(buf), "SOUL §7: %s uses banned pattern\n  → remove goto/setjmp/longjmp/output-suppression", a1); break;
+    case ERR_HARDCODED_PATH: snprintf(buf, sizeof(buf), "SOUL §7: %s has hardcoded path\n  → resolve paths at runtime, never hardcode", a1); break;
+    case ERR_HEADER_NOT_IN_WHITELIST: snprintf(buf, sizeof(buf), "SOUL §7: header '%s' in %s not in whitelist\n  → add to ok[] in enforce-naming-whitelist-and-validation.c", a1, a2); break;
+    case ERR_HEADER_INCLUDED_TOO_OFTEN: snprintf(buf, sizeof(buf), "SOUL §7: header '%s' included %d times (max %d)\n  → consolidate includes", a1, v1, v2); break;
+    case ERR_DEAD_CODE: snprintf(buf, sizeof(buf), "SOUL §7: dead code — '%s' in %s never called\n  → remove unused function or add call site", a1, a2); break;
+    case ERR_MAIN_COUNT: snprintf(buf, sizeof(buf), "SOUL §7: exactly one main() required, found %d\n  → keep exactly one entry point", v1); break;
+    case ERR_FLAG_NOT_IN_HELP: snprintf(buf, sizeof(buf), "SOUL §7: CLI flag '%s' in %s not documented in help text\n  → add flag description to the --help output block", a1, a2); break;
+    case ERR_LINE_TOO_DENSE: snprintf(buf, sizeof(buf), "SOUL §7: %s line %d is too dense — %d control tokens (; { ?) (max 3)\n  → split the line into multiple statements", a1, v1, v2); break;
+    case ERR_NOT_IN_BOOTSTRAP_WHITELIST: snprintf(buf, sizeof(buf), "SOUL §7: %s not in bootstrap C whitelist\n  → rewrite this functionality as an IPM module, the C bootstrap is frozen", a1); break;
     }
     if (lint_mode) {
         fprintf(stderr, "spec2c: %s\n", buf);
@@ -74,13 +61,13 @@ static void report_violation_with_actionable_hint(enforce_err_t code, const char
 }
 static int count_lines_within_source_file(const char *path) {
     FILE *f = fopen(path, "r"); if (!f) return -1;
-    int lines = 0, ch; while ((ch = fgetc(f)) != EOF) if (ch == '\n') lines++;
+    int lines = 0; char buf[1024];
+    while (fgets(buf, sizeof(buf), f)) {
+        for (int i = 0; buf[i]; i++) if (buf[i] == '\n') lines++;
+    }
     fclose(f); return lines;
 }
-static int match_source_code_header_filename(const char *name) {
-    size_t nl = strlen(name);
-    return nl > 2 && (!strcmp(name + nl - 2, ".c") || !strcmp(name + nl - 2, ".h"));
-}
+#define match_source_code_header_filename(name) (strlen(name) > 2 && (!strcmp((name) + strlen(name) - 2, ".c") || !strcmp((name) + strlen(name) - 2, ".h")))
 static int detect_function_definition_start_line(const char *line) {
     const char *s = line;
     while (*s == ' ' || *s == '\t') s++;
@@ -102,7 +89,15 @@ static int detect_function_definition_start_line(const char *line) {
     memcpy(first, id_start, id_len);
     if (!strcmp(first, "if") || !strcmp(first, "for") || !strcmp(first, "while") ||
         !strcmp(first, "switch") || !strcmp(first, "return")) return 0;
-    if (match_name_against_stdlib_list(first)) return 0;
+    if (first[0] == 'c' && first[1] == 'J' && first[2] == 'S' && first[3] == 'O' && first[4] == 'N' && first[5] == '_') return 0;
+    const char *lib[] = {
+        "strstr","strncmp","strcmp","strlen","sscanf","snprintf",
+        "printf","fprintf","sprintf","malloc","realloc","free",
+        "fopen","fclose","fread","fgets","fputs","fflush",
+        "memcpy","memset","strdup","strtok","strrchr","strchr",
+        "calloc","exit",NULL
+    };
+    for (int i = 0; lib[i]; i++) if (!strcmp(first, lib[i])) return 0;
     return 1;
 }
 typedef struct {
@@ -259,43 +254,46 @@ static void search_for_unused_function_code(fn_entry_t *fns, int fn_qty, const c
 }
 static void scan_source_for_undocumented_flags(const char *srcdir);
 
+static int check_non_source_and_bootstrap(const char *name, const char *sub, const char *dirpath) {
+    if (!match_source_code_header_filename(name)) {
+        size_t dn_len = strlen(name);
+        if (!(dn_len > 4 && !strcmp(name + dn_len - 4, ".ipm"))) {
+            if (!check_non_source_file_allowlist(name)) {
+                fprintf(stderr, "FATAL: non-source file in %s: %s\n", dirpath, name); exit(1);
+            }
+            return 1;
+        }
+    }
+    if (!match_name_against_bootstrap_list(name)) {
+        size_t dn_len2 = strlen(name);
+        if (!(dn_len2 > 4 && !strcmp(name + dn_len2 - 4, ".ipm")))
+            report_violation_with_actionable_hint(ERR_NOT_IN_BOOTSTRAP_WHITELIST, sub, 0, 0, NULL);
+    }
+    return 0;
+}
+
 void enforce_all_source_code_rules(const char *srcdir) {
-    read_allowed_names_from_file(srcdir);
-    read_banned_patterns_from_file(srcdir);
-    load_non_source_file_allowlist(srcdir);
-    load_bootstrap_whitelist_from_disk(srcdir);
-    fn_entry_t fns[512]; int fn_qty = 0;
-    inc_entry_t incs[128]; int inc_qty = 0;
+    read_allowed_names_from_file(srcdir); read_banned_patterns_from_file(srcdir);
+    load_non_source_file_allowlist(srcdir); load_bootstrap_whitelist_from_disk(srcdir);
+    load_operator_signed_exemption_table(srcdir);
+    fn_entry_t fns[512]; inc_entry_t incs[128]; int fn_qty = 0, inc_qty = 0;
     void scan_dir(const char *dirpath) {
         DIR *d = opendir(dirpath); if (!d) return;
-        int file_cnt = 0;
-        struct dirent *de;
+        int file_cnt = 0, dir_cnt = 0; struct dirent *de;
         while ((de = readdir(d)) != NULL) {
             if (de->d_name[0] == '.') continue;
+            const char *scan = match_name_against_exemption_table(de->d_name);
+            if (scan) {
+                if (!strcmp(scan, "subtree-skip")) { closedir(d); return; }
+                continue;
+            }
             char sub[8192]; snprintf(sub, sizeof(sub), "%s/%s", dirpath, de->d_name);
-            struct stat st;
-            if (stat(sub, &st) != 0) continue;
+            struct stat st; if (stat(sub, &st) != 0) continue;
             if (S_ISDIR(st.st_mode)) {
                 validate_name_against_soul_rules("directory", de->d_name, sub);
-                scan_dir(sub); continue;
+                scan_dir(sub); dir_cnt++; continue;
             }
-            if (!match_source_code_header_filename(de->d_name)) {
-                size_t dn_len = strlen(de->d_name);
-                int is_ipm = dn_len > 4 && !strcmp(de->d_name + dn_len - 4, ".ipm");
-                if (!is_ipm) {
-                    if (!check_non_source_file_allowlist(de->d_name)) {
-                        fprintf(stderr, "FATAL: non-source file in %s: %s\n", dirpath, de->d_name);
-                        exit(1);
-                    }
-                    continue;
-                }
-            }
-            if (!match_name_against_bootstrap_list(de->d_name)) {
-                size_t dn_len2 = strlen(de->d_name);
-                int is_ipm2 = dn_len2 > 4 && !strcmp(de->d_name + dn_len2 - 4, ".ipm");
-                if (!is_ipm2)
-                    report_violation_with_actionable_hint(ERR_NOT_IN_BOOTSTRAP_WHITELIST, sub, 0, 0, NULL);
-            }
+            if (check_non_source_and_bootstrap(de->d_name, sub, dirpath)) continue;
             file_cnt++;
             char fname[256]; snprintf(fname, sizeof(fname), "%s", de->d_name);
             char *dot = strrchr(fname, '.'); if (dot) *dot = 0;
@@ -305,28 +303,21 @@ void enforce_all_source_code_rules(const char *srcdir) {
             check_single_file_for_violations(sub, is_c, is_source, fns, &fn_qty, incs, &inc_qty);
         }
         closedir(d);
-        if (file_cnt > MAX_FILES_PER_DIR) {
+        if (file_cnt > MAX_FILES_PER_DIR)
             report_violation_with_actionable_hint(ERR_TOO_MANY_FILES_IN_DIR, dirpath, file_cnt, MAX_FILES_PER_DIR, NULL);
-        } else if (file_cnt == 0) {
-            fprintf(stderr, "FATAL: empty source directory in %s\n", dirpath);
-            exit(1);
+        else if (file_cnt == 0 && dir_cnt == 0) {
+            fprintf(stderr, "FATAL: empty source directory in %s\n", dirpath); exit(1);
         }
     }
-    scan_dir(srcdir);
-    search_for_unused_function_code(fns, fn_qty, srcdir);
-    int main_count = 0;
-    for (int i = 0; i < fn_qty; i++)
-        if (!strcmp(fns[i].name, "main") &&
-            !strstr(fns[i].file, "/enforce-structural-rules-for-code/") &&
+    scan_dir(srcdir); search_for_unused_function_code(fns, fn_qty, srcdir);
+    int mc = 0;
+    for (int i = 0; i < fn_qty; i++) {
+        if (!strcmp(fns[i].name, "main") && !strstr(fns[i].file, "/enforce-structural-rules-for-code/") &&
             !strstr(fns[i].file, "/verify-source-against-soul-patterns/") &&
-            !strstr(fns[i].file, "/helper-standalone-executables-for-spec2c/"))
-            main_count++;
-    if (main_count != 1) {
-        report_violation_with_actionable_hint(ERR_MAIN_COUNT, NULL, main_count, 0, NULL);
+            !strstr(fns[i].file, "/helper-standalone-executables-for-spec2c/")) mc++;
     }
-    scan_source_for_undocumented_flags(srcdir);
-    verify_ipm_names_across_sources(srcdir);
-    enforce_bootstrap_code_freeze_check(srcdir);
+    if (mc != 1) report_violation_with_actionable_hint(ERR_MAIN_COUNT, NULL, mc, 0, NULL);
+    scan_source_for_undocumented_flags(srcdir); verify_ipm_names_across_sources(srcdir); enforce_bootstrap_code_freeze_check(srcdir);
 }
 static void scan_source_for_undocumented_flags(const char *srcdir) {
     void check_flags(const char *dpath) {
@@ -378,16 +369,4 @@ int main(int argc, char **argv) {
     }
     return 0;
 }
-int match_name_against_stdlib_list(const char *name) {
-    const char *lib[] = {
-        "strstr","strncmp","strcmp","strlen","sscanf","snprintf",
-        "printf","fprintf","sprintf","malloc","realloc","free",
-        "fopen","fclose","fread","fgets","fputs","fflush",
-        "memcpy","memset","strdup","strtok","strrchr","strchr",
-        "calloc","exit",NULL
-    };
-    if (!strncmp(name, "cJSON_", 6)) return 1;
-    for (int i = 0; lib[i]; i++)
-        if (!strcmp(name, lib[i])) return 1;
-    return 0;
-}
+

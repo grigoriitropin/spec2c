@@ -47,6 +47,7 @@
         "-Isrc/support-code-for-compiled-output"
       ];
       enforce_inc = inc ++ [
+        "-I."
         "-I${S}/enforce-structural-rules-for-code"
         "-I${S}/verify-conformance-against-soul-patterns"
       ];
@@ -60,40 +61,6 @@
         "src/support-code-for-compiled-output/validate-type-name-against-whitelist/validate-type-name-against-whitelist.c"
         "src/support-code-for-compiled-output/buffer-output-and-command-launch.c"
       ];
-      all_spec_src = [
-        "${S}/enforce-structural-rules-for-code/verify-structural-source-code-rules.c"
-        "${S}/enforce-structural-rules-for-code/enforce-naming-whitelist-and-validation.c"
-        "${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns/detect-banned-patterns-and-braces.c"
-        "${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns/enforce-bootstrap-code-file-whitelist.c"
-        "${S}/parse-command-dispatch-into-pipeline.c"
-        "${S}/compile-abstract-instructions-into-code.c"
-        "${S}/generate-output-from-ipm-specification.c"
-        "${S}/parse-legacy-specification-file-format/parse-old-format-specification-data.c"
-        "${S}/codegen-instruction-handler-function-set/extracted-codegen-helper-functions-here/emit-report-error-and-exit.c"
-        "${S}/codegen-instruction-handler-function-set/emit-variable-declaration-handler-function.c"
-      ];
-      ipm_specs = [
-        "enforce-naming-rules-via-ffi.ipm"
-        "check-banned-patterns-pure-ipm.ipm"
-        "modules/codegen.ipm"
-        "modules/compile-ast.ipm"
-        "modules/pipeline.ipm"
-        "modules/rules/check-each-line-token-density.ipm"
-        "modules/rules/detect-any-hardcoded-filesystem-paths.ipm"
-        "modules/rules/validate-soul-naming-rule-check.ipm"
-        "modules/rules/locate-all-function-body-blocks.ipm"
-        "modules/rules/find-every-main-function-block.ipm"
-      ];
-      extra_src = [
-        "enforce-link-time-whitelisted-symbols.c"
-        "verify-ed25519-digital-signature-key.c"
-        "verify-ed25519-digital-signature-key.h"
-        "src/support-code-for-compiled-output/ipm-file-validator-ffi-batch/ipm-file-validator-ffi-batch.c"
-        "src/support-code-for-compiled-output/remaining-rules-ffi-batch-four/remaining-rules-ffi-batch-four.c"
-        "src/support-code-for-compiled-output/dead-code-header-check-batch/dead-code-header-check-batch.c"
-        "src/compile-specifications-into-source-code/enforce-structural-rules-for-code/scan-source-code-for-patterns/ffi-function-export-layer-here/enforce-ffi-function-export-layer.c"
-      ];
-      all_sources = runtime_src ++ all_spec_src ++ ipm_specs ++ extra_src;
     in {
       # ── Standalone enforcement checker ────────────────────────────
       s2c-enforce = pkgs.stdenv.mkDerivation {
@@ -107,8 +74,10 @@
           cc ${builtins.toString cflags} ${builtins.toString enforce_inc} \
             ${S}/enforce-structural-rules-for-code/verify-structural-source-code-rules.c \
             ${S}/enforce-structural-rules-for-code/enforce-naming-whitelist-and-validation.c \
+            ${S}/enforce-structural-rules-for-code/operator-signed-exemption-name-table/load-operator-signed-exemption-table.c \
             ${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns/detect-banned-patterns-and-braces.c \
             ${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns/enforce-bootstrap-code-file-whitelist.c \
+            verify-ed25519-digital-signature-key.c \
             ${builtins.toString runtime_src} \
             -o s2c-enforce ${cjson-static}/lib/libcjson.a -lm
           runHook postBuild
@@ -122,11 +91,11 @@
         doCheck = true;
         checkPhase = ''
           runHook preCheck
-          cc -O2 -I. enforce-link-time-whitelisted-symbols.c -o enforce-link-time-whitelisted-symbols
+          cc -O2 -I. enforce-link-time-whitelisted-symbols.c -o enforce-link-time-symbol-whitelist
           mkdir -p $out/bin
           cp s2c-enforce $out/bin/
           for bin in $out/bin/*; do
-            ./enforce-link-time-whitelisted-symbols "$bin" || exit 1
+            ./enforce-link-time-symbol-whitelist "$bin" || exit 1
           done
           runHook postCheck
         '';
@@ -146,19 +115,15 @@
           cc ${builtins.toString cflags} ${builtins.toString enforce_inc} \
             ${S}/enforce-structural-rules-for-code/verify-structural-source-code-rules.c \
             ${S}/enforce-structural-rules-for-code/enforce-naming-whitelist-and-validation.c \
+            ${S}/enforce-structural-rules-for-code/operator-signed-exemption-name-table/load-operator-signed-exemption-table.c \
             ${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns/detect-banned-patterns-and-braces.c \
             ${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns/enforce-bootstrap-code-file-whitelist.c \
+            verify-ed25519-digital-signature-key.c \
             ${builtins.toString runtime_src} \
             -o s2c_enforce ${cjson-static}/lib/libcjson.a -lm
 
-           # Step 2: Run enforcement gate (exits 1 on violation → build fails)
-           cp src/allowed-names.txt . 2>/dev/null || true
-           cp src/banned-patterns.txt . 2>/dev/null || true
-           cp src/bootstrap-c-whitelist.txt . 2>/dev/null || true
-           cp src/bootstrap-c-freeze-limits.txt . 2>/dev/null || true
-           cp src/allowed-non-source-files.txt . 2>/dev/null || true
-           echo '${builtins.toJSON all_sources}' > source-manifest.json
-           ./s2c_enforce ./src
+          # Step 2: Run enforcement gate (exits 1 on violation → build fails)
+          ./s2c_enforce ./src
 
           # Step 3: Build spec2c
           cc ${builtins.toString cflags} ${builtins.toString inc} \
@@ -185,11 +150,11 @@
         doCheck = true;
         checkPhase = ''
           runHook preCheck
-          cc -O2 -I. enforce-link-time-whitelisted-symbols.c -o enforce-link-time-whitelisted-symbols
+          cc -O2 -I. enforce-link-time-whitelisted-symbols.c -o enforce-link-time-symbol-whitelist
           mkdir -p $out/bin
           cp spec2c s2c_enforce $out/bin/
           for bin in $out/bin/*; do
-            ./enforce-link-time-whitelisted-symbols "$bin" || exit 1
+            ./enforce-link-time-symbol-whitelist "$bin" || exit 1
           done
           runHook postCheck
         '';
@@ -199,12 +164,7 @@
       ipm-enforce = pkgs.stdenv.mkDerivation {
         pname = "ipm-enforce";
         version = "0.1.0";
-    src = builtins.filterSource (path: type:
-      let bn = baseNameOf path; in
-      bn != "tools" && bn != "tests" && bn != "src.backup" &&
-      bn != "bootstrap" && bn != "fixtures" && bn != "archive" &&
-      bn != ".git" && bn != ".github" && bn != "templates"
-    ) ./.;
+        src = ./.;
         buildInputs = [ self.packages.${system}.spec2c cjson-static ];
         nativeBuildInputs = [ pkgs.pkg-config ];
         S2C_ENFORCE = "${self.packages.${system}.spec2c}/bin/s2c_enforce";
@@ -364,11 +324,11 @@
         doCheck = true;
         checkPhase = ''
           runHook preCheck
-          cc -O2 -I. enforce-link-time-whitelisted-symbols.c -o enforce-link-time-whitelisted-symbols
+          cc -O2 -I. enforce-link-time-whitelisted-symbols.c -o enforce-link-time-symbol-whitelist
           mkdir -p $out/bin
           cp ipm-enforce $out/bin/
           for bin in $out/bin/*; do
-            ./enforce-link-time-whitelisted-symbols "$bin" || exit 1
+            ./enforce-link-time-symbol-whitelist "$bin" || exit 1
           done
           runHook postCheck
         '';

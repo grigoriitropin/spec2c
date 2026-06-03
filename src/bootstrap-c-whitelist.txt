@@ -37,3 +37,4 @@ ipm-file-validator-ffi-batch/ipm-file-validator-ffi-batch.c
 remaining-rules-ffi-batch-four.c
 dead-code-header-check-batch.c
 extracted-codegen-helper-functions-here/emit-report-error-and-exit.c
+operator-signed-exemption-name-table/load-operator-signed-exemption-table.c

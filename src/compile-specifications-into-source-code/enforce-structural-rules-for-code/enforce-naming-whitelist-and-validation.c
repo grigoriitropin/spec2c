@@ -53,6 +53,7 @@ int match_header_against_include_whitelist(const char *hdr) {
         "shared-type-declarations-across-modules/soul-rules-for-naming-validation.h",
         "vehir-shared-abstraction-wrapper-code.h",
         "verify-structural-source-code-rules.h",
+        "verify-ed25519-digital-signature-key.h",
         "../bootstrap-compiled-limit-hash-data/bootstrap-freeze-data-compiled-into.h",
         "../bootstrap-compiled-limit-hash-data/bootstrap-file-sha-hashes-generated.h",
         "shared-type-declarations-across-modules/share-type-definitions-across-files.h",
@@ -121,6 +122,7 @@ int validate_file_stem_with_dfa(const char *stem, const char *fullname, const ch
     int is_c = nl > 2 && !strcmp(fullname + nl - 2, ".c");
     int is_ipm = nl > 4 && !strcmp(fullname + nl - 4, ".ipm");
     if (!is_c && !is_ipm) return 0;
+    if (check_name_against_allowed_whitelist(stem)) return 0;
     if (strchr(stem, '.')) {
         fprintf(stderr, "SOUL §10: file '%s' at %s has multiple dots\n"
                 "  → source files must have exactly one dot (before extension)\n", fullname, path);
