@@ -43,7 +43,7 @@ static void emit_conditional_branch_code_primitive(cJSON *inst, FILE *out, int i
     fprintf(out, "}\n");
 }
 
-static void emit_bootstrap_dispatcher_handler(cJSON *inst, FILE *out, int indent, const char *return_type) {
+static void emit_bootstrap_central_dispatcher_func(cJSON *inst, FILE *out, int indent, const char *return_type) {
     (void)indent;
     const char *ty = extract_json_field_string_value(inst, "instruction_type");
     if (!strcmp(ty, "emit_formatted_code")) { emit_formatted_code_primitive_handler(inst, out); return; }
@@ -64,18 +64,18 @@ static void emit_bootstrap_dispatcher_handler(cJSON *inst, FILE *out, int indent
 
 typedef struct { const char *type; instr_hdlr handler; } dispatch_entry_t;
 static const dispatch_entry_t INSTR_HANDLERS[] = {
-    {"access_json_field",         emit_bootstrap_dispatcher_handler},
-    {"conditional_branch",        emit_bootstrap_dispatcher_handler},
-    {"emit_formatted_code",       emit_bootstrap_dispatcher_handler},
-    {"for_count_loop",            emit_bootstrap_dispatcher_handler},
-    {"function_invocation",       emit_bootstrap_dispatcher_handler},
-    {"iterate_over_collection",   emit_bootstrap_dispatcher_handler},
-    {"iterate_over_object_keys",  emit_bootstrap_dispatcher_handler},
-    {"read_file_content",         emit_bootstrap_dispatcher_handler},
-    {"return_statement",          emit_bootstrap_dispatcher_handler},
-    {"scan_directory_entries",    emit_bootstrap_dispatcher_handler},
-    {"string_tokenizer_loop",     emit_bootstrap_dispatcher_handler},
-    {"variable_declaration",      emit_bootstrap_dispatcher_handler},
+    {"access_json_field",         emit_bootstrap_central_dispatcher_func},
+    {"conditional_branch",        emit_bootstrap_central_dispatcher_func},
+    {"emit_formatted_code",       emit_bootstrap_central_dispatcher_func},
+    {"for_count_loop",            emit_bootstrap_central_dispatcher_func},
+    {"function_invocation",       emit_bootstrap_central_dispatcher_func},
+    {"iterate_over_collection",   emit_bootstrap_central_dispatcher_func},
+    {"iterate_over_object_keys",  emit_bootstrap_central_dispatcher_func},
+    {"read_file_content",         emit_bootstrap_central_dispatcher_func},
+    {"return_statement",          emit_bootstrap_central_dispatcher_func},
+    {"scan_directory_entries",    emit_bootstrap_central_dispatcher_func},
+    {"string_tokenizer_loop",     emit_bootstrap_central_dispatcher_func},
+    {"variable_declaration",      emit_bootstrap_central_dispatcher_func},
     {NULL, NULL}
 };
 

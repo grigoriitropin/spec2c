@@ -235,4 +235,5 @@ file-input-output-handler-code
 emit_bootstrap_primitive_handler_code
 emit_formatted_code_primitive_handler
 emit_conditional_branch_code_primitive
-emit_bootstrap_dispatcher_handler
+emit_bootstrap_central_dispatcher_func
+emit_bootstrap_central_dispatcher_func
