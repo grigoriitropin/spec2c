@@ -183,9 +183,10 @@ codegen-instruction-handler-function-set
 emit-variable-declaration-handler-function
 generate_code_via_dispatch_table
 emit_field_access_into_output
-emit_branch_into_output
+emit_branch_code_into_output
 emit_return_into_output
 emit_iterate_into_output
 emit_dbexec_into_output
 emit_invocation_into_output
 emit_field_access_into_output
+emit_branch_code_into_output
