@@ -397,7 +397,6 @@ int main(int argc, char **argv) {
     enforce_all_source_code_rules(src_dir);
     return 0;
 }
-}
 int match_name_against_stdlib_list(const char *name) {
     const char *lib[] = {
         "strstr","strncmp","strcmp","strlen","sscanf","snprintf",
