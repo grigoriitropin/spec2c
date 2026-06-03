@@ -121,6 +121,7 @@
           spec2c enforce-naming-rules-via-ffi.ipm | sed 's/{"ok":true.*//' > $TMPDIR/build/ipm_enforce_gen.c
           # Remove duplicate includes and non-existent headers
           sed -i '/"enforce-naming-rules-via-ffi.h"/d' $TMPDIR/build/ipm_enforce_gen.c
+          sed -i "s/int errors = 0;/int errors = 0;\n    (void)errors;/" $TMPDIR/build/ipm_enforce_gen.c
           # Add runtime header
           sed -i '1i#include "runtime-for-generated-ipm-code.h"' $TMPDIR/build/ipm_enforce_gen.c
 

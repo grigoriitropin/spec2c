@@ -10,7 +10,7 @@ static const char *banned_type_words[] = {
     "program","process","worker",NULL
 };
 
-char *check_name_following_soul_rules(char *what, char *name, char *fp) {
+char *check_name_following_soul_rules(const char *what, const char *name, const char *fp) {
     (void)fp;
     if (!name || !name[0]) return NULL;
     if (!strcmp(name, "main")) return NULL;
