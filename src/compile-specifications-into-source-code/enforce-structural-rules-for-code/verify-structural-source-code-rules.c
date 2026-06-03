@@ -115,6 +115,25 @@ typedef struct {
     int count;
 } inc_entry_t;
 static void check_include_headers_for_file(const char *sub, inc_entry_t *incs, int *inc_qty);
+static void check_line_density_in_source(const char *line, const char *sub, int file_line) {
+    int in_str = 0, in_char = 0, in_comment = 0, tokens = 0;
+    for (const char *p = line; *p; p++) {
+        if (in_comment) {
+            if (*p == '*' && *(p+1) == '/') { in_comment = 0; p++; }
+            continue;
+        }
+        if (!in_str && !in_char && *p == '/' && *(p+1) == '*') { in_comment = 1; p++; continue; }
+        if (!in_str && !in_char && *p == '/' && *(p+1) == '/') break;
+        if (*p == '\\' && *(p+1) != '\0') { p++; continue; }
+        if (!in_char && *p == '"') in_str = !in_str;
+        else if (!in_str && *p == '\'') in_char = !in_char;
+        if (!in_str && !in_char && !in_comment)
+            if (*p == ';' || *p == '{' || *p == '?') tokens++;
+    }
+    if (tokens > 3)
+        report_violation_with_actionable_hint(ERR_LINE_TOO_DENSE, sub, file_line, tokens, NULL);
+}
+
 static void check_single_file_for_violations(const char *sub, int is_c, int is_source,
     fn_entry_t *fns, int *fn_qty, inc_entry_t *incs, int *inc_qty)
 {
@@ -131,30 +150,7 @@ static void check_single_file_for_violations(const char *sub, int is_c, int is_s
         brace_state_t bstate; clear_brace_tracking_for_function(&bstate);
         while (fgets(line, sizeof(line), f)) {
             file_line++;
-            {   int in_str = 0, in_char = 0, in_comment = 0, tokens = 0;
-                for (const char *p = line; *p; p++) {
-                    if (in_comment) {
-                        if (*p == '*' && *(p+1) == '/') {
-                            in_comment = 0;
-                            p++;
-                        }
-                        continue;
-                    }
-                    if (!in_str && !in_char && *p == '/' && *(p+1) == '*') {
-                        in_comment = 1;
-                        p++;
-                        continue;
-                    }
-                    if (!in_str && !in_char && *p == '/' && *(p+1) == '/') break;
-                    if (*p == '\\' && *(p+1) != '\0') { p++; continue; }
-                    if (!in_char && *p == '"') in_str = !in_str;
-                    else if (!in_str && *p == '\'') in_char = !in_char;
-                    if (!in_str && !in_char && !in_comment)
-                        if (*p == ';' || *p == '{' || *p == '?') tokens++;
-                }
-                if (tokens > 3)
-                    report_violation_with_actionable_hint(ERR_LINE_TOO_DENSE, sub, file_line, tokens, NULL);
-            }
+            check_line_density_in_source(line, sub, file_line);
             if (!in_func) {
                 if (detect_function_definition_start_line(line)) {
                     func_count++;
