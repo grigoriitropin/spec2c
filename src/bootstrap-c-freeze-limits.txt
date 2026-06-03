@@ -7,7 +7,7 @@ dump-context-from-ipm-graph.c 109 3
 emit-variable-declaration-handler-function.c 97 5
 enforce-bootstrap-code-file-whitelist.c 103 4
 enforce-naming-whitelist-and-validation.c 223 10
-file-string-and-json-parsing.c 215 10
+file-string-and-json-parsing.c 221 10
 generate-output-from-ipm-specification.c 179 6
 hash-table-and-substitution-code.c 116 9
 implement-filesystem-read-write-code.c 83 8
