@@ -110,7 +110,7 @@ const char* resolve_spec_type_into_lang(const char *type_name);
 
 /* Regex */
 int match_pattern_against_text_string(Slice text, const char *pattern);
-int compare_slice_against_bytes(const uint8_t *data, uint32_t len, const char *pattern);
+int compare_slice_data_against_bytes(const uint8_t *data, uint32_t len, const char *pattern);
 
 /* CLI argument access (set by auto-generated main) */
 extern int g_argc;

@@ -81,7 +81,7 @@ void terminate_with_json_error_output(const char *function_name, const char *ins
 }
 
 
-int compare_slice_against_bytes(const uint8_t *data, uint32_t len, const char *pattern) {
+int compare_slice_data_against_bytes(const uint8_t *data, uint32_t len, const char *pattern) {
     uint32_t plen = 0;
     while (pattern[plen]) plen++;
     if (len != plen) return 1;

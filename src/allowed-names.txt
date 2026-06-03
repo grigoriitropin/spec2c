@@ -48,7 +48,7 @@ codegen-instruction-handler-function-set
 collect_function_names_from_file
 common-support-code-for-spec2c
 compare_hash_table_key_entries
-compare_slice_against_bytes
+compare_slice_data_against_bytes
 compile-abstract-instructions-into-code
 compile-function-definitions-into-code
 compile-specifications-into-source-code
