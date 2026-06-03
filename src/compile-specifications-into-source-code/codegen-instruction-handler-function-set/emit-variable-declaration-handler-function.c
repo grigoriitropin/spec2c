@@ -15,6 +15,9 @@ extern void emit_count_loop_handler_code(cJSON *, FILE *, int, const char *);
 extern void emit_branch_condition_handler_code(cJSON *, FILE *, int, const char *);
 extern void emit_variable_decl_handler_code(cJSON *, FILE *, int, const char *);
 
+extern void emit_read_file_content_handler(cJSON *, FILE *, int, const char *);
+extern void emit_scan_directory_entries_handler(cJSON *, FILE *, int, const char *);
+
 /* ── C bootstrap: emit_formatted_code ───────────────────────────────── */
 static void emit_code_format_primitive_handler(cJSON *inst, FILE *out, int indent, const char *return_type) {
     (void)indent; (void)return_type;
@@ -55,7 +58,9 @@ static const instr_dispatch_t INSTR_HANDLERS[] = {
     {"function_invocation",            emit_function_invocation_handler_code},
     {"iterate_over_collection",        emit_iterate_collection_handler_code},
     {"iterate_over_object_keys",       emit_object_keys_iterate_handler},
+    {"read_file_content",              emit_read_file_content_handler},
     {"return_statement",               emit_return_statement_handler_code},
+    {"scan_directory_entries",         emit_scan_directory_entries_handler},
     {"string_tokenizer_loop",          emit_tokenizer_loop_handler_code},
     {"variable_declaration",           emit_variable_decl_handler_code},
     {NULL, NULL}

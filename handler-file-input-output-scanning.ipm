@@ -1,0 +1,87 @@
+{
+  "description": "File I/O and directory scanning instruction handlers for IPM enforcer",
+  "package_name": "handler-file-input-output-scanning",
+  "module_name": "handler-file-input-output-scanning",
+  "imports": ["runtime-for-generated-ipm-code"],
+  "function_definitions": {
+
+    "emit_read_file_content_handler": {
+      "return_type": "void",
+      "parameter_definitions": [
+        {"parameter_name": "inst", "parameter_type": "json_object"},
+        {"parameter_name": "out", "parameter_type": "file_handle"},
+        {"parameter_name": "indent", "parameter_type": "int"},
+        {"parameter_name": "return_type", "parameter_type": "string"}
+      ],
+      "execution_instructions": [
+        {"instruction_type": "access_json_field", "variable_name": "fp", "variable_type": "string", "source_object": "inst", "field_name": "file_path"},
+        {"instruction_type": "access_json_field", "variable_name": "rv", "variable_type": "string", "source_object": "inst", "field_name": "result_variable"},
+        {"instruction_type": "conditional_branch", "condition_operation": "is_not_null", "condition_target": "fp",
+          "branch_on_success": [
+            {"instruction_type": "emit_formatted_code",
+             "code_format": "char *%s = read_entire_file_into_string(%s);\n",
+             "code_arguments": ["rv","fp"]
+            }
+          ]
+        },
+        {"instruction_type": "return_statement", "return_payload": {"value": "0"}}
+      ]
+    },
+
+    "emit_scan_directory_entries_handler": {
+      "return_type": "void",
+      "parameter_definitions": [
+        {"parameter_name": "inst", "parameter_type": "json_object"},
+        {"parameter_name": "out", "parameter_type": "file_handle"},
+        {"parameter_name": "indent", "parameter_type": "int"},
+        {"parameter_name": "return_type", "parameter_type": "string"}
+      ],
+      "execution_instructions": [
+        {"instruction_type": "access_json_field", "variable_name": "dp", "variable_type": "string", "source_object": "inst", "field_name": "directory_path"},
+        {"instruction_type": "access_json_field", "variable_name": "ev", "variable_type": "string", "source_object": "inst", "field_name": "entry_variable"},
+        {"instruction_type": "access_json_field", "variable_name": "nv", "variable_type": "string", "source_object": "inst", "field_name": "name_variable"},
+        {"instruction_type": "conditional_branch", "condition_operation": "is_not_null", "condition_target": "dp",
+          "branch_on_success": [
+            {"instruction_type": "emit_formatted_code",
+             "code_format": "cJSON *_entries = list_files_inside_directory_path(%s);\n",
+             "code_arguments": ["dp"]
+            },
+            {"instruction_type": "emit_formatted_code",
+             "code_format": "if (_entries) {\n", "code_arguments": []
+            },
+            {"instruction_type": "emit_formatted_code",
+             "code_format": "  for (int _i = 0; _i < cJSON_GetArraySize(_entries); _i++) {\n",
+             "code_arguments": []
+            },
+            {"instruction_type": "emit_formatted_code",
+             "code_format": "    cJSON *%s = cJSON_GetArrayItem(_entries, _i);\n",
+             "code_arguments": ["ev"]
+            },
+            {"instruction_type": "emit_formatted_code",
+             "code_format": "    const char *%s = cJSON_GetObjectItemCaseSensitive(%s, \"name\")->valuestring;\n",
+             "code_arguments": ["nv","ev"]
+            },
+            {"instruction_type": "emit_formatted_code",
+             "code_format": "    cJSON *_body = cJSON_GetObjectItemCaseSensitive(inst, \"body_instructions\");\n",
+             "code_arguments": []
+            },
+            {"instruction_type": "emit_formatted_code",
+             "code_format": "    if (_body) generate_code_from_ast_instructions(_body, out, indent + 1, return_type);\n",
+             "code_arguments": []
+            },
+            {"instruction_type": "emit_formatted_code",
+             "code_format": "  }\n", "code_arguments": []
+            },
+            {"instruction_type": "emit_formatted_code",
+             "code_format": "  cJSON_Delete(_entries);\n", "code_arguments": []
+            },
+            {"instruction_type": "emit_formatted_code",
+             "code_format": "}\n", "code_arguments": []
+            }
+          ]
+        },
+        {"instruction_type": "return_statement", "return_payload": {"value": "0"}}
+      ]
+    }
+  }
+}
