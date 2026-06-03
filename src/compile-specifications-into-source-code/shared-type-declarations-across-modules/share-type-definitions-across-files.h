@@ -56,3 +56,10 @@ int emit_report_error_then_exit(cJSON *inst, FILE *out);
 void emit_iteration_loop_with_count(cJSON *inst, FILE *out, int indent, const char *rt);
 void tokenize_string_into_slice_loop(cJSON *inst, FILE *out, int indent, const char *rt);
 extern const char *current_slice_length_variable;
+extern cJSON *current_function_definition_ast;
+
+const char *search_variable_type_recursive_ast(cJSON *node, const char *var_name);
+const char *lookup_variable_type_current_function(const char *var_name);
+void emit_iteration_over_bytes_body(cJSON *inst, FILE *out, int indent, const char *return_type);
+
+

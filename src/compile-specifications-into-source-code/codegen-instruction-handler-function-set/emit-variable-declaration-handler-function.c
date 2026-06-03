@@ -258,16 +258,7 @@ static void emit_bootstrap_central_dispatcher_func(cJSON *inst, FILE *out, int i
     if (!strcmp(ty, "for_count_loop")) { emit_iteration_loop_with_count(inst, out, indent, return_type); return; }
     if (!strcmp(ty, "function_invocation")) { emit_function_invocation_with_arguments(inst, out, indent); return; }
     if (!strcmp(ty, "iterate_over_bytes")) {
-        const char *col = extract_json_field_string_value(inst, "collection");
-        const char *iv  = extract_json_field_string_value(inst, "item_variable");
-        const char *xv  = extract_json_field_string_value(inst, "index_variable");
-        cJSON *body = cJSON_GetObjectItemCaseSensitive(inst, "body");
-        if (!col[0]) return;
-        fprintf(out, "  Slice _sl = TO_SLICE(%s);\n", col);
-        fprintf(out, "  for (uint32_t %s = 0; %s < _sl.len; %s++) {\n", xv, xv, xv);
-        fprintf(out, "    uint8_t %s = _sl.data[%s];\n", iv, xv);
-        if (body) generate_code_from_ast_instructions(body, out, indent + 2, return_type);
-        fprintf(out, "  }\n");
+        emit_iteration_over_bytes_body(inst, out, indent, return_type);
         return;
     }
     if (!strcmp(ty, "read_file_content")) {

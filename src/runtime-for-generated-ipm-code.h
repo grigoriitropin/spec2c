@@ -28,10 +28,6 @@ static inline Slice convert_text_string_into_slice(const char *s) {
     return sl;
 }
 
-#define TO_SLICE(x) _Generic((x), \
-    Slice: (x), \
-    default: convert_text_string_into_slice((const char*)(*(const void* const*)&(x))) \
-)
 
 static inline int check_slice_data_pointer_null(const Slice *ps) {
     return ps && ps->data != NULL;

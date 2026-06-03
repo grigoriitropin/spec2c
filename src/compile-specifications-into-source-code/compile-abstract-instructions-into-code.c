@@ -3,6 +3,8 @@
 
 #include "shared-type-declarations-across-modules/share-type-definitions-across-files.h"
 
+cJSON *current_function_definition_ast = NULL;
+
 void append_key_value_into_substitution(subst_t *subs, int *n, const char *k, const char *v) {
     if (*n >= SUBST_MAX) report_fatal_error_and_exit("too many substitutions");
     subs[*n].key = k;
@@ -64,7 +66,9 @@ static void emit_function_body_into_output(cJSON *fn, FILE *out, int is_library,
     if (modname && modname[0]) fprintf(out, "// @ipm:%s:%s\n", modname, name);
     if (!is_library && name && !strcmp(name, "main")) {
         fprintf(out, "int main(int argc, char **argv) {\n");
+        current_function_definition_ast = fn;
         generate_code_from_ast_instructions(body, out, 1, ret);
+        current_function_definition_ast = NULL;
         fprintf(out, "}\n\n");
         return;
     }
@@ -81,7 +85,9 @@ static void emit_function_body_into_output(cJSON *fn, FILE *out, int is_library,
     }
     fprintf(out, ") {\n");
     fprintf(out, "    const char *_name = \"%s\";\n", name);
+    current_function_definition_ast = fn;
     generate_code_from_ast_instructions(body, out, 1, ret);
+    current_function_definition_ast = NULL;
     fprintf(out, "}\n\n");
 }
 

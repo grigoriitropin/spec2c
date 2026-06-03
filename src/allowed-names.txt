@@ -108,6 +108,7 @@ emit_iterate_code_into_output
 emit_iterate_collection_handler_code
 emit_iteration_block_into_output
 emit_iteration_loop_with_count
+emit_iteration_over_bytes_body
 emit_json_field_access_handler
 emit_new_standard_loop_code
 emit_object_keys_iterate_handler
@@ -187,6 +188,7 @@ list_files_inside_directory_path
 load_bootstrap_whitelist_from_disk
 load_ipm_import_whitelist_file
 load_vehir_configuration_from_file
+lookup_variable_type_current_function
 manage-timing-for-ipm-operations
 match_and_increment_header_count
 match_header_against_include_whitelist
@@ -239,6 +241,7 @@ scan_json_for_banned_words
 scan_source_for_undocumented_flags
 search_file_using_name_recursive
 search_for_unused_function_code
+search_variable_type_recursive_ast
 set_json_number_field_value
 set_json_valu_string_field
 share-check-types-and-declarations
