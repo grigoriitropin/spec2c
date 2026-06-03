@@ -260,6 +260,13 @@
           sed -i 's/extern void check_project_main_count_ffi(char \*/extern void check_project_main_count_ffi(const char */' ipm_enforce_gen.c
           sed -i 's/extern void system_exit(char \*/extern void system_exit(const char */' ipm_enforce_gen.c
           sed -i 's/int errors = 0;/int errors = 0; (void)errors;/' ipm_enforce_gen.c
+          sed -i '/const char \*_name = "scan_directory_recursively_with_rules";/d' ipm_enforce_gen.c
+          sed -i 's/int scan_directory_recursively_with_rules(char \* dirpath)/int scan_directory_recursively_with_rules(const char *dirpath)/' ipm_enforce_gen.c
+          sed -i 's/char \* ex_scan =/const char *ex_scan =/' ipm_enforce_gen.c
+          sed -i 's/const char \*is_dir = cJSON_IsTrue/int is_dir = cJSON_IsTrue/' ipm_enforce_gen.c
+          sed -i 's/const char \*has_evil = strstr/int has_evil = strstr/' ipm_enforce_gen.c
+          sed -i 's/if (ex_scan)/if (ex_scan != NULL)/' ipm_enforce_gen.c
+          sed -i '/int main/i\int scan_directory_recursively_with_rules(const char *dirpath);' ipm_enforce_gen.c
 
           $CC ${builtins.toString cflags} \
             -I. \
