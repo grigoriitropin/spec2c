@@ -1,5 +1,5 @@
 {
-  "description": "IPM enforcer — validates names via FFI with CLI argument and proper exit codes",
+  "description": "IPM enforcer — validates source files against structural and naming rules",
   "package_name": "enforce-naming-rules-via-ffi",
   "module_name": "enforce-naming-rules-via-ffi",
   "extern_imports": [
@@ -11,6 +11,26 @@
         {"name": "name", "type": "str"},
         {"name": "fp", "type": "str"}
       ]
+    },
+    {
+      "name": "count_lines_inside_file_ffi",
+      "return_type": "i32",
+      "arguments": [{"name": "path", "type": "str"}]
+    },
+    {
+      "name": "check_banned_pattern_inside_file",
+      "return_type": "str",
+      "arguments": [{"name": "path", "type": "str"}]
+    },
+    {
+      "name": "check_hardcoded_path_inside_file",
+      "return_type": "str",
+      "arguments": [{"name": "path", "type": "str"}]
+    },
+    {
+      "name": "check_line_density_inside_file",
+      "return_type": "str",
+      "arguments": [{"name": "path", "type": "str"}]
     }
   ],
   "function_definitions": {
@@ -27,6 +47,9 @@
           "branch_on_success": [
             {"instruction_type": "scan_directory_entries", "directory_path": "srcdir", "entry_variable": "entry", "name_variable": "fname",
               "body_instructions": [
+
+                {"instruction_type": "variable_declaration", "variable_name": "path", "variable_type": "str", "assignment_operation": "literal", "source_target": "_name"},
+
                 {"instruction_type": "function_invocation", "invocation_name": "check_name_following_soul_rules",
                  "invocation_arguments": [
                    {"kind": "str", "value": "file"},
@@ -42,6 +65,55 @@
                        {"kind": "str", "value": "naming violation"},
                        {"kind": "str", "value": "rename to exactly 5 words describing WHAT it does"}
                      ]}
+                  ]
+                },
+
+                {"instruction_type": "function_invocation", "invocation_name": "count_lines_inside_file_ffi",
+                 "invocation_arguments": [{"kind": "var", "value": "path"}],
+                 "result_assignment_variable": "lines", "result_type": "i32"},
+                {"instruction_type": "conditional_branch", "condition_operation": "is_not_null", "condition_target": "lines",
+                  "branch_on_success": [
+                    {"instruction_type": "function_invocation", "invocation_name": "check_banned_pattern_inside_file",
+                     "invocation_arguments": [{"kind": "var", "value": "path"}],
+                     "result_assignment_variable": "err2", "result_type": "str"},
+                    {"instruction_type": "conditional_branch", "condition_operation": "is_not_null", "condition_target": "err2",
+                      "branch_on_success": [
+                        {"instruction_type": "function_invocation", "invocation_name": "report_error_and_exit",
+                         "invocation_arguments": [
+                           {"kind": "var", "value": "_name"},
+                           {"kind": "str", "value": "uses banned pattern"},
+                           {"kind": "str", "value": "remove goto, setjmp, longjmp, or output-suppression"}
+                         ]}
+                      ]
+                    },
+
+                    {"instruction_type": "function_invocation", "invocation_name": "check_hardcoded_path_inside_file",
+                     "invocation_arguments": [{"kind": "var", "value": "path"}],
+                     "result_assignment_variable": "err3", "result_type": "str"},
+                    {"instruction_type": "conditional_branch", "condition_operation": "is_not_null", "condition_target": "err3",
+                      "branch_on_success": [
+                        {"instruction_type": "function_invocation", "invocation_name": "report_error_and_exit",
+                         "invocation_arguments": [
+                           {"kind": "var", "value": "_name"},
+                           {"kind": "str", "value": "has hardcoded path"},
+                           {"kind": "str", "value": "resolve paths at runtime, never hardcode"}
+                         ]}
+                      ]
+                    },
+
+                    {"instruction_type": "function_invocation", "invocation_name": "check_line_density_inside_file",
+                     "invocation_arguments": [{"kind": "var", "value": "path"}],
+                     "result_assignment_variable": "err4", "result_type": "str"},
+                    {"instruction_type": "conditional_branch", "condition_operation": "is_not_null", "condition_target": "err4",
+                      "branch_on_success": [
+                        {"instruction_type": "function_invocation", "invocation_name": "report_error_and_exit",
+                         "invocation_arguments": [
+                           {"kind": "var", "value": "_name"},
+                           {"kind": "str", "value": "line too dense"},
+                           {"kind": "str", "value": "split the line into multiple statements"}
+                         ]}
+                      ]
+                    }
                   ]
                 }
               ]

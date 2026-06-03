@@ -282,6 +282,3 @@ verify_file_line_density_count
 verify_file_line_density_count
 ffi-function-export-layer-here
 enforce-ffi-function-export-layer
-check_banned_pattern_inside_file
-check_hardcoded_path_inside_file
-check_line_density_inside_file
