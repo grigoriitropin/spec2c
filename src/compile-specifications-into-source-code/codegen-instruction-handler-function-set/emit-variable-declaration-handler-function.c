@@ -41,6 +41,22 @@ static void emit_code_format_primitive_handler(cJSON *inst, FILE *out, int inden
             }
         }
         fprintf(out, ");\n");
+    } else if (!strcmp(ty, "conditional_branch")) {
+        const char *op = extract_json_field_string_value(inst, "condition_operation");
+        const char *tgt = extract_json_field_string_value(inst, "condition_target");
+        const char *cv = extract_json_field_string_value(inst, "condition_value");
+        if (!strcmp(op, "key_exists"))
+            fprintf(out, "if (cJSON_HasObjectItem(%s, \"%s\")) {\n", tgt, cv ? cv : "");
+        else if (!strcmp(op, "is_not_null"))
+            fprintf(out, "if (%s != NULL) {\n", tgt);
+        else
+            fprintf(out, "if (strcmp(%s, \"%s\") == 0) {\n", tgt, cv ? cv : "");
+        cJSON *bon = cJSON_GetObjectItemCaseSensitive(inst, "branch_on_success");
+        if (bon) generate_code_from_ast_instructions(bon, out, indent + 1, return_type);
+        fprintf(out, "} else {\n");
+        cJSON *bof = cJSON_GetObjectItemCaseSensitive(inst, "branch_on_failure");
+        if (bof) generate_code_from_ast_instructions(bof, out, indent + 1, return_type);
+        fprintf(out, "}\n");
     }
 }
 
@@ -52,7 +68,7 @@ typedef struct {
 
 static const instr_dispatch_t INSTR_HANDLERS[] = {
     {"access_json_field",              emit_json_field_access_handler},
-    {"conditional_branch",             emit_branch_condition_handler_code},
+    {"conditional_branch",             emit_code_format_primitive_handler},
     {"emit_formatted_code",            emit_code_format_primitive_handler},
     {"for_count_loop",                 emit_count_loop_handler_code},
     {"function_invocation",            emit_function_invocation_handler_code},

@@ -172,6 +172,4 @@ void emit_variable_decl_handler_code(cJSON * inst, FILE * out, int indent, char 
 }
 
 
-/* Auto-generated entry point */
-    return emit_json_field_access_handler();
-}
+

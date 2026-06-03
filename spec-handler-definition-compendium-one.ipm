@@ -1,334 +1,655 @@
 {
-  "description": "Spec2c handler library — complete IPM replacement for all C handlers",
+  "description": "Spec2c handler library \u2014 complete IPM replacement for all C handlers",
   "package_name": "spec-handler-definition-compendium-one",
   "module_name": "spec-handler-definition-compendium-one",
-  "imports": ["runtime-for-generated-ipm-code"],
+  "imports": [
+    "runtime-for-generated-ipm-code"
+  ],
   "function_definitions": {
-
     "emit_json_field_access_handler": {
       "return_type": "void",
       "parameter_definitions": [
-        {"parameter_name": "inst", "parameter_type": "json_object"},
-        {"parameter_name": "out", "parameter_type": "file_handle"},
-        {"parameter_name": "indent", "parameter_type": "int"},
-        {"parameter_name": "return_type", "parameter_type": "string"}
+        {
+          "parameter_name": "inst",
+          "parameter_type": "json_object"
+        },
+        {
+          "parameter_name": "out",
+          "parameter_type": "file_handle"
+        },
+        {
+          "parameter_name": "indent",
+          "parameter_type": "int"
+        },
+        {
+          "parameter_name": "return_type",
+          "parameter_type": "string"
+        }
       ],
       "execution_instructions": [
-        {"instruction_type": "access_json_field", "variable_name": "vn", "variable_type": "string", "source_object": "inst", "field_name": "variable_name"},
-        {"instruction_type": "access_json_field", "variable_name": "vt", "variable_type": "string", "source_object": "inst", "field_name": "variable_type"},
-        {"instruction_type": "access_json_field", "variable_name": "so", "variable_type": "string", "source_object": "inst", "field_name": "source_object"},
-        {"instruction_type": "access_json_field", "variable_name": "fn", "variable_type": "string", "source_object": "inst", "field_name": "field_name"},
-        {"instruction_type": "conditional_branch", "condition_operation": "is_not_null", "condition_target": "vn",
+        {
+          "instruction_type": "access_json_field",
+          "variable_name": "vn",
+          "variable_type": "string",
+          "source_object": "inst",
+          "field_name": "variable_name"
+        },
+        {
+          "instruction_type": "access_json_field",
+          "variable_name": "vt",
+          "variable_type": "string",
+          "source_object": "inst",
+          "field_name": "variable_type"
+        },
+        {
+          "instruction_type": "access_json_field",
+          "variable_name": "so",
+          "variable_type": "string",
+          "source_object": "inst",
+          "field_name": "source_object"
+        },
+        {
+          "instruction_type": "access_json_field",
+          "variable_name": "fn",
+          "variable_type": "string",
+          "source_object": "inst",
+          "field_name": "field_name"
+        },
+        {
+          "instruction_type": "conditional_branch",
+          "condition_operation": "is_not_null",
+          "condition_target": "vn",
           "branch_on_success": [
-            {"instruction_type": "conditional_branch", "condition_operation": "string_equals", "condition_target": "vt", "condition_value": "string",
+            {
+              "instruction_type": "conditional_branch",
+              "condition_operation": "string_equals",
+              "condition_target": "vt",
+              "condition_value": "string",
               "branch_on_success": [
-                {"instruction_type": "emit_formatted_code",
-                 "code_format": "const char *%s = cJSON_GetObjectItemCaseSensitive(%s,\"%s\") ? cJSON_GetObjectItemCaseSensitive(%s,\"%s\")->valuestring : \"\";\n",
-                 "code_arguments": ["vn","so","fn","so","fn"]
+                {
+                  "instruction_type": "emit_formatted_code",
+                  "code_format": "const char *%s = cJSON_GetObjectItemCaseSensitive(%s,\"%s\") ? cJSON_GetObjectItemCaseSensitive(%s,\"%s\")->valuestring : \"\";\n",
+                  "code_arguments": [
+                    "vn",
+                    "so",
+                    "fn",
+                    "so",
+                    "fn"
+                  ]
                 }
               ],
               "branch_on_failure": [
-                {"instruction_type": "emit_formatted_code",
-                 "code_format": "cJSON *%s = cJSON_GetObjectItemCaseSensitive(%s, \"%s\");\n",
-                 "code_arguments": ["vn","so","fn"]
+                {
+                  "instruction_type": "emit_formatted_code",
+                  "code_format": "cJSON *%s = cJSON_GetObjectItemCaseSensitive(%s, \"%s\");\n",
+                  "code_arguments": [
+                    "vn",
+                    "so",
+                    "fn"
+                  ]
                 }
               ]
             }
           ]
         },
-        {"instruction_type": "return_statement", "return_payload": {"value": "0"}}
-      ]
-    },
-
-    "emit_return_statement_handler_code": {
-      "return_type": "void",
-      "parameter_definitions": [
-        {"parameter_name": "inst", "parameter_type": "json_object"},
-        {"parameter_name": "out", "parameter_type": "file_handle"},
-        {"parameter_name": "indent", "parameter_type": "int"},
-        {"parameter_name": "return_type", "parameter_type": "string"}
-      ],
-      "execution_instructions": [
-        {"instruction_type": "emit_formatted_code",
-         "code_format": "return 0;\n", "code_arguments": []
+        {
+          "instruction_type": "return_statement",
+          "return_payload": {
+            "value": "0"
+          }
         }
       ]
     },
-
+    "emit_return_statement_handler_code": {
+      "return_type": "void",
+      "parameter_definitions": [
+        {
+          "parameter_name": "inst",
+          "parameter_type": "json_object"
+        },
+        {
+          "parameter_name": "out",
+          "parameter_type": "file_handle"
+        },
+        {
+          "parameter_name": "indent",
+          "parameter_type": "int"
+        },
+        {
+          "parameter_name": "return_type",
+          "parameter_type": "string"
+        }
+      ],
+      "execution_instructions": [
+        {
+          "instruction_type": "emit_formatted_code",
+          "code_format": "return 0;\n",
+          "code_arguments": []
+        }
+      ]
+    },
     "emit_function_invocation_handler_code": {
       "return_type": "void",
       "parameter_definitions": [
-        {"parameter_name": "inst", "parameter_type": "json_object"},
-        {"parameter_name": "out", "parameter_type": "file_handle"},
-        {"parameter_name": "indent", "parameter_type": "int"},
-        {"parameter_name": "return_type", "parameter_type": "string"}
+        {
+          "parameter_name": "inst",
+          "parameter_type": "json_object"
+        },
+        {
+          "parameter_name": "out",
+          "parameter_type": "file_handle"
+        },
+        {
+          "parameter_name": "indent",
+          "parameter_type": "int"
+        },
+        {
+          "parameter_name": "return_type",
+          "parameter_type": "string"
+        }
       ],
       "execution_instructions": [
-        {"instruction_type": "access_json_field", "variable_name": "fn", "variable_type": "string", "source_object": "inst", "field_name": "invocation_name"},
-        {"instruction_type": "access_json_field", "variable_name": "rv", "variable_type": "string", "source_object": "inst", "field_name": "result_assignment_variable"},
-        {"instruction_type": "conditional_branch", "condition_operation": "is_not_null", "condition_target": "rv",
+        {
+          "instruction_type": "access_json_field",
+          "variable_name": "fn",
+          "variable_type": "string",
+          "source_object": "inst",
+          "field_name": "invocation_name"
+        },
+        {
+          "instruction_type": "access_json_field",
+          "variable_name": "rv",
+          "variable_type": "string",
+          "source_object": "inst",
+          "field_name": "result_assignment_variable"
+        },
+        {
+          "instruction_type": "conditional_branch",
+          "condition_operation": "is_not_null",
+          "condition_target": "rv",
           "branch_on_success": [
-            {"instruction_type": "emit_formatted_code",
-             "code_format": "int %s = %s();\n", "code_arguments": ["rv","fn"]
+            {
+              "instruction_type": "emit_formatted_code",
+              "code_format": "int %s = %s();\n",
+              "code_arguments": [
+                "rv",
+                "fn"
+              ]
             }
           ],
           "branch_on_failure": [
-            {"instruction_type": "emit_formatted_code",
-             "code_format": "%s();\n", "code_arguments": ["fn"]
+            {
+              "instruction_type": "emit_formatted_code",
+              "code_format": "%s();\n",
+              "code_arguments": [
+                "fn"
+              ]
             }
           ]
         },
-        {"instruction_type": "return_statement", "return_payload": {"value": "0"}}
+        {
+          "instruction_type": "return_statement",
+          "return_payload": {
+            "value": "0"
+          }
+        }
       ]
     },
-
     "emit_iterate_collection_handler_code": {
       "return_type": "void",
       "parameter_definitions": [
-        {"parameter_name": "inst", "parameter_type": "json_object"},
-        {"parameter_name": "out", "parameter_type": "file_handle"},
-        {"parameter_name": "indent", "parameter_type": "int"},
-        {"parameter_name": "return_type", "parameter_type": "string"}
+        {
+          "parameter_name": "inst",
+          "parameter_type": "json_object"
+        },
+        {
+          "parameter_name": "out",
+          "parameter_type": "file_handle"
+        },
+        {
+          "parameter_name": "indent",
+          "parameter_type": "int"
+        },
+        {
+          "parameter_name": "return_type",
+          "parameter_type": "string"
+        }
       ],
       "execution_instructions": [
-        {"instruction_type": "access_json_field", "variable_name": "col", "variable_type": "string", "source_object": "inst", "field_name": "collection_variable"},
-        {"instruction_type": "access_json_field", "variable_name": "itm", "variable_type": "string", "source_object": "inst", "field_name": "item_variable"},
-        {"instruction_type": "conditional_branch", "condition_operation": "is_not_null", "condition_target": "col",
+        {
+          "instruction_type": "access_json_field",
+          "variable_name": "col",
+          "variable_type": "string",
+          "source_object": "inst",
+          "field_name": "collection_variable"
+        },
+        {
+          "instruction_type": "access_json_field",
+          "variable_name": "itm",
+          "variable_type": "string",
+          "source_object": "inst",
+          "field_name": "item_variable"
+        },
+        {
+          "instruction_type": "conditional_branch",
+          "condition_operation": "is_not_null",
+          "condition_target": "col",
           "branch_on_success": [
-            {"instruction_type": "emit_formatted_code",
-             "code_format": "for (int _i_%s = 0; _i_%s < cJSON_GetArraySize(%s); _i_%s++) {\n",
-             "code_arguments": ["col","col","col","col"]
+            {
+              "instruction_type": "emit_formatted_code",
+              "code_format": "for (int _i_%s = 0; _i_%s < cJSON_GetArraySize(%s); _i_%s++) {\n",
+              "code_arguments": [
+                "col",
+                "col",
+                "col",
+                "col"
+              ]
             },
-            {"instruction_type": "emit_formatted_code",
-             "code_format": "  cJSON *%s = cJSON_GetArrayItem(%s, _i_%s);\n",
-             "code_arguments": ["itm","col","col"]
+            {
+              "instruction_type": "emit_formatted_code",
+              "code_format": "  cJSON *%s = cJSON_GetArrayItem(%s, _i_%s);\n",
+              "code_arguments": [
+                "itm",
+                "col",
+                "col"
+              ]
             },
-            {"instruction_type": "emit_formatted_code",
-             "code_format": "  cJSON *body_%s = cJSON_GetObjectItemCaseSensitive(inst, \"body_instructions\");\n",
-             "code_arguments": ["col"]
+            {
+              "instruction_type": "emit_formatted_code",
+              "code_format": "  cJSON *body_%s = cJSON_GetObjectItemCaseSensitive(inst, \"body_instructions\");\n",
+              "code_arguments": [
+                "col"
+              ]
             },
-            {"instruction_type": "emit_formatted_code",
-             "code_format": "  if (body_%s) generate_code_from_ast_instructions(body_%s, out, indent + 1, return_type);\n",
-             "code_arguments": ["col","col"]
+            {
+              "instruction_type": "emit_formatted_code",
+              "code_format": "  if (body_%s) generate_code_from_ast_instructions(body_%s, out, indent + 1, return_type);\n",
+              "code_arguments": [
+                "col",
+                "col"
+              ]
             },
-            {"instruction_type": "emit_formatted_code",
-             "code_format": "}\n", "code_arguments": []
+            {
+              "instruction_type": "emit_formatted_code",
+              "code_format": "}\n",
+              "code_arguments": []
             }
           ]
         },
-        {"instruction_type": "return_statement", "return_payload": {"value": "0"}}
+        {
+          "instruction_type": "return_statement",
+          "return_payload": {
+            "value": "0"
+          }
+        }
       ]
     },
-
     "emit_object_keys_iterate_handler": {
       "return_type": "void",
       "parameter_definitions": [
-        {"parameter_name": "inst", "parameter_type": "json_object"},
-        {"parameter_name": "out", "parameter_type": "file_handle"},
-        {"parameter_name": "indent", "parameter_type": "int"},
-        {"parameter_name": "return_type", "parameter_type": "string"}
+        {
+          "parameter_name": "inst",
+          "parameter_type": "json_object"
+        },
+        {
+          "parameter_name": "out",
+          "parameter_type": "file_handle"
+        },
+        {
+          "parameter_name": "indent",
+          "parameter_type": "int"
+        },
+        {
+          "parameter_name": "return_type",
+          "parameter_type": "string"
+        }
       ],
       "execution_instructions": [
-        {"instruction_type": "access_json_field", "variable_name": "col", "variable_type": "string", "source_object": "inst", "field_name": "collection_variable"},
-        {"instruction_type": "access_json_field", "variable_name": "key", "variable_type": "string", "source_object": "inst", "field_name": "key_variable"},
-        {"instruction_type": "access_json_field", "variable_name": "val", "variable_type": "string", "source_object": "inst", "field_name": "value_variable"},
-        {"instruction_type": "conditional_branch", "condition_operation": "is_not_null", "condition_target": "col",
+        {
+          "instruction_type": "access_json_field",
+          "variable_name": "col",
+          "variable_type": "string",
+          "source_object": "inst",
+          "field_name": "collection_variable"
+        },
+        {
+          "instruction_type": "access_json_field",
+          "variable_name": "key",
+          "variable_type": "string",
+          "source_object": "inst",
+          "field_name": "key_variable"
+        },
+        {
+          "instruction_type": "access_json_field",
+          "variable_name": "val",
+          "variable_type": "string",
+          "source_object": "inst",
+          "field_name": "value_variable"
+        },
+        {
+          "instruction_type": "conditional_branch",
+          "condition_operation": "is_not_null",
+          "condition_target": "col",
           "branch_on_success": [
-            {"instruction_type": "emit_formatted_code",
-             "code_format": "cJSON_ArrayForEach(%s, %s) {\n", "code_arguments": ["val","col"]
+            {
+              "instruction_type": "emit_formatted_code",
+              "code_format": "cJSON_ArrayForEach(%s, %s) {\n",
+              "code_arguments": [
+                "val",
+                "col"
+              ]
             },
-            {"instruction_type": "conditional_branch", "condition_operation": "is_not_null", "condition_target": "key",
+            {
+              "instruction_type": "conditional_branch",
+              "condition_operation": "is_not_null",
+              "condition_target": "key",
               "branch_on_success": [
-                {"instruction_type": "emit_formatted_code",
-                 "code_format": "  const char *%s = %s->string;\n", "code_arguments": ["key","val"]
+                {
+                  "instruction_type": "emit_formatted_code",
+                  "code_format": "  const char *%s = %s->string;\n",
+                  "code_arguments": [
+                    "key",
+                    "val"
+                  ]
                 }
               ]
             },
-            {"instruction_type": "emit_formatted_code",
-             "code_format": "  cJSON *body_%s = cJSON_GetObjectItemCaseSensitive(inst, \"body_instructions\");\n",
-             "code_arguments": ["col"]
+            {
+              "instruction_type": "emit_formatted_code",
+              "code_format": "  cJSON *body_%s = cJSON_GetObjectItemCaseSensitive(inst, \"body_instructions\");\n",
+              "code_arguments": [
+                "col"
+              ]
             },
-            {"instruction_type": "emit_formatted_code",
-             "code_format": "  if (body_%s) generate_code_from_ast_instructions(body_%s, out, indent + 1, return_type);\n",
-             "code_arguments": ["col","col"]
+            {
+              "instruction_type": "emit_formatted_code",
+              "code_format": "  if (body_%s) generate_code_from_ast_instructions(body_%s, out, indent + 1, return_type);\n",
+              "code_arguments": [
+                "col",
+                "col"
+              ]
             },
-            {"instruction_type": "emit_formatted_code",
-             "code_format": "}\n", "code_arguments": []
+            {
+              "instruction_type": "emit_formatted_code",
+              "code_format": "}\n",
+              "code_arguments": []
             }
           ]
         },
-        {"instruction_type": "return_statement", "return_payload": {"value": "0"}}
+        {
+          "instruction_type": "return_statement",
+          "return_payload": {
+            "value": "0"
+          }
+        }
       ]
     },
-
     "emit_tokenizer_loop_handler_code": {
       "return_type": "void",
       "parameter_definitions": [
-        {"parameter_name": "inst", "parameter_type": "json_object"},
-        {"parameter_name": "out", "parameter_type": "file_handle"},
-        {"parameter_name": "indent", "parameter_type": "int"},
-        {"parameter_name": "return_type", "parameter_type": "string"}
+        {
+          "parameter_name": "inst",
+          "parameter_type": "json_object"
+        },
+        {
+          "parameter_name": "out",
+          "parameter_type": "file_handle"
+        },
+        {
+          "parameter_name": "indent",
+          "parameter_type": "int"
+        },
+        {
+          "parameter_name": "return_type",
+          "parameter_type": "string"
+        }
       ],
       "execution_instructions": [
-        {"instruction_type": "access_json_field", "variable_name": "src", "variable_type": "string", "source_object": "inst", "field_name": "source_string"},
-        {"instruction_type": "access_json_field", "variable_name": "sep", "variable_type": "string", "source_object": "inst", "field_name": "separator"},
-        {"instruction_type": "access_json_field", "variable_name": "tok", "variable_type": "string", "source_object": "inst", "field_name": "token_variable"},
-        {"instruction_type": "conditional_branch", "condition_operation": "is_not_null", "condition_target": "src",
+        {
+          "instruction_type": "access_json_field",
+          "variable_name": "src",
+          "variable_type": "string",
+          "source_object": "inst",
+          "field_name": "source_string"
+        },
+        {
+          "instruction_type": "access_json_field",
+          "variable_name": "sep",
+          "variable_type": "string",
+          "source_object": "inst",
+          "field_name": "separator"
+        },
+        {
+          "instruction_type": "access_json_field",
+          "variable_name": "tok",
+          "variable_type": "string",
+          "source_object": "inst",
+          "field_name": "token_variable"
+        },
+        {
+          "instruction_type": "conditional_branch",
+          "condition_operation": "is_not_null",
+          "condition_target": "src",
           "branch_on_success": [
-            {"instruction_type": "emit_formatted_code",
-             "code_format": "{\n", "code_arguments": []
+            {
+              "instruction_type": "emit_formatted_code",
+              "code_format": "{\n",
+              "code_arguments": []
             },
-            {"instruction_type": "emit_formatted_code",
-             "code_format": "  char _buf[256]; snprintf(_buf, sizeof(_buf), \"%%s\", %s);\n",
-             "code_arguments": ["src"]
+            {
+              "instruction_type": "emit_formatted_code",
+              "code_format": "  char _buf[256]; snprintf(_buf, sizeof(_buf), \"%%s\", %s);\n",
+              "code_arguments": [
+                "src"
+              ]
             },
-            {"instruction_type": "emit_formatted_code",
-             "code_format": "  char *_save;\n", "code_arguments": []
+            {
+              "instruction_type": "emit_formatted_code",
+              "code_format": "  char *_save;\n",
+              "code_arguments": []
             },
-            {"instruction_type": "emit_formatted_code",
-             "code_format": "  for (char *_t = strtok_r(_buf, %s, &_save); _t; _t = strtok_r(NULL, %s, &_save)) {\n",
-             "code_arguments": ["sep","sep"]
+            {
+              "instruction_type": "emit_formatted_code",
+              "code_format": "  for (char *_t = strtok_r(_buf, %s, &_save); _t; _t = strtok_r(NULL, %s, &_save)) {\n",
+              "code_arguments": [
+                "sep",
+                "sep"
+              ]
             },
-            {"instruction_type": "emit_formatted_code",
-             "code_format": "    const char *%s = _t;\n", "code_arguments": ["tok"]
+            {
+              "instruction_type": "emit_formatted_code",
+              "code_format": "    const char *%s = _t;\n",
+              "code_arguments": [
+                "tok"
+              ]
             },
-            {"instruction_type": "emit_formatted_code",
-             "code_format": "    cJSON *body_%s = cJSON_GetObjectItemCaseSensitive(inst, \"body_instructions\");\n",
-             "code_arguments": ["src"]
+            {
+              "instruction_type": "emit_formatted_code",
+              "code_format": "    cJSON *body_%s = cJSON_GetObjectItemCaseSensitive(inst, \"body_instructions\");\n",
+              "code_arguments": [
+                "src"
+              ]
             },
-            {"instruction_type": "emit_formatted_code",
-             "code_format": "    if (body_%s) generate_code_from_ast_instructions(body_%s, out, indent + 1, return_type);\n",
-             "code_arguments": ["src","src"]
+            {
+              "instruction_type": "emit_formatted_code",
+              "code_format": "    if (body_%s) generate_code_from_ast_instructions(body_%s, out, indent + 1, return_type);\n",
+              "code_arguments": [
+                "src",
+                "src"
+              ]
             },
-            {"instruction_type": "emit_formatted_code",
-             "code_format": "  }\n", "code_arguments": []
+            {
+              "instruction_type": "emit_formatted_code",
+              "code_format": "  }\n",
+              "code_arguments": []
             },
-            {"instruction_type": "emit_formatted_code",
-             "code_format": "}\n", "code_arguments": []
+            {
+              "instruction_type": "emit_formatted_code",
+              "code_format": "}\n",
+              "code_arguments": []
             }
           ]
         },
-        {"instruction_type": "return_statement", "return_payload": {"value": "0"}}
+        {
+          "instruction_type": "return_statement",
+          "return_payload": {
+            "value": "0"
+          }
+        }
       ]
     },
-
     "emit_count_loop_handler_code": {
       "return_type": "void",
       "parameter_definitions": [
-        {"parameter_name": "inst", "parameter_type": "json_object"},
-        {"parameter_name": "out", "parameter_type": "file_handle"},
-        {"parameter_name": "indent", "parameter_type": "int"},
-        {"parameter_name": "return_type", "parameter_type": "string"}
+        {
+          "parameter_name": "inst",
+          "parameter_type": "json_object"
+        },
+        {
+          "parameter_name": "out",
+          "parameter_type": "file_handle"
+        },
+        {
+          "parameter_name": "indent",
+          "parameter_type": "int"
+        },
+        {
+          "parameter_name": "return_type",
+          "parameter_type": "string"
+        }
       ],
       "execution_instructions": [
-        {"instruction_type": "access_json_field", "variable_name": "cv", "variable_type": "string", "source_object": "inst", "field_name": "counter_variable"},
-        {"instruction_type": "access_json_field", "variable_name": "lv", "variable_type": "string", "source_object": "inst", "field_name": "limit_variable"},
-        {"instruction_type": "conditional_branch", "condition_operation": "is_not_null", "condition_target": "cv",
+        {
+          "instruction_type": "access_json_field",
+          "variable_name": "cv",
+          "variable_type": "string",
+          "source_object": "inst",
+          "field_name": "counter_variable"
+        },
+        {
+          "instruction_type": "access_json_field",
+          "variable_name": "lv",
+          "variable_type": "string",
+          "source_object": "inst",
+          "field_name": "limit_variable"
+        },
+        {
+          "instruction_type": "conditional_branch",
+          "condition_operation": "is_not_null",
+          "condition_target": "cv",
           "branch_on_success": [
-            {"instruction_type": "emit_formatted_code",
-             "code_format": "for (int %s = 0; %s < %s; %s++) {\n",
-             "code_arguments": ["cv","cv","lv","cv"]
+            {
+              "instruction_type": "emit_formatted_code",
+              "code_format": "for (int %s = 0; %s < %s; %s++) {\n",
+              "code_arguments": [
+                "cv",
+                "cv",
+                "lv",
+                "cv"
+              ]
             },
-            {"instruction_type": "emit_formatted_code",
-             "code_format": "  cJSON *body_%s = cJSON_GetObjectItemCaseSensitive(inst, \"body_instructions\");\n",
-             "code_arguments": ["cv"]
+            {
+              "instruction_type": "emit_formatted_code",
+              "code_format": "  cJSON *body_%s = cJSON_GetObjectItemCaseSensitive(inst, \"body_instructions\");\n",
+              "code_arguments": [
+                "cv"
+              ]
             },
-            {"instruction_type": "emit_formatted_code",
-             "code_format": "  if (body_%s) generate_code_from_ast_instructions(body_%s, out, indent + 1, return_type);\n",
-             "code_arguments": ["cv","cv"]
+            {
+              "instruction_type": "emit_formatted_code",
+              "code_format": "  if (body_%s) generate_code_from_ast_instructions(body_%s, out, indent + 1, return_type);\n",
+              "code_arguments": [
+                "cv",
+                "cv"
+              ]
             },
-            {"instruction_type": "emit_formatted_code",
-             "code_format": "}\n", "code_arguments": []
+            {
+              "instruction_type": "emit_formatted_code",
+              "code_format": "}\n",
+              "code_arguments": []
             }
           ]
         },
-        {"instruction_type": "return_statement", "return_payload": {"value": "0"}}
+        {
+          "instruction_type": "return_statement",
+          "return_payload": {
+            "value": "0"
+          }
+        }
       ]
     },
-
-    "emit_branch_condition_handler_code": {
+    "emit_variable_decl_handler_code": {
       "return_type": "void",
       "parameter_definitions": [
-        {"parameter_name": "inst", "parameter_type": "json_object"},
-        {"parameter_name": "out", "parameter_type": "file_handle"},
-        {"parameter_name": "indent", "parameter_type": "int"},
-        {"parameter_name": "return_type", "parameter_type": "string"}
+        {
+          "parameter_name": "inst",
+          "parameter_type": "json_object"
+        },
+        {
+          "parameter_name": "out",
+          "parameter_type": "file_handle"
+        },
+        {
+          "parameter_name": "indent",
+          "parameter_type": "int"
+        },
+        {
+          "parameter_name": "return_type",
+          "parameter_type": "string"
+        }
       ],
       "execution_instructions": [
-        {"instruction_type": "access_json_field", "variable_name": "op", "variable_type": "string", "source_object": "inst", "field_name": "condition_operation"},
-        {"instruction_type": "access_json_field", "variable_name": "tgt", "variable_type": "string", "source_object": "inst", "field_name": "condition_target"},
-        {"instruction_type": "access_json_field", "variable_name": "cv", "variable_type": "string", "source_object": "inst", "field_name": "condition_value"},
-        {"instruction_type": "conditional_branch", "condition_operation": "string_equals", "condition_target": "op", "condition_value": "key_exists",
+        {
+          "instruction_type": "access_json_field",
+          "variable_name": "vn",
+          "variable_type": "string",
+          "source_object": "inst",
+          "field_name": "variable_name"
+        },
+        {
+          "instruction_type": "access_json_field",
+          "variable_name": "vt",
+          "variable_type": "string",
+          "source_object": "inst",
+          "field_name": "variable_type"
+        },
+        {
+          "instruction_type": "access_json_field",
+          "variable_name": "op",
+          "variable_type": "string",
+          "source_object": "inst",
+          "field_name": "assignment_operation"
+        },
+        {
+          "instruction_type": "access_json_field",
+          "variable_name": "src",
+          "variable_type": "string",
+          "source_object": "inst",
+          "field_name": "source_target"
+        },
+        {
+          "instruction_type": "conditional_branch",
+          "condition_operation": "is_not_null",
+          "condition_target": "vn",
           "branch_on_success": [
-            {"instruction_type": "emit_formatted_code",
-             "code_format": "if (cJSON_HasObjectItem(%s, \"%s\")) {\n",
-             "code_arguments": ["tgt","cv"]
-            }
-          ],
-          "branch_on_failure": [
-            {"instruction_type": "conditional_branch", "condition_operation": "string_equals", "condition_target": "op", "condition_value": "is_not_null",
-              "branch_on_success": [
-                {"instruction_type": "emit_formatted_code",
-                 "code_format": "if (%s != NULL) {\n", "code_arguments": ["tgt"]
-                }
-              ],
-              "branch_on_failure": [
-                {"instruction_type": "emit_formatted_code",
-                 "code_format": "if (strcmp(%s, \"%s\") == 0) {\n",
-                 "code_arguments": ["tgt","cv"]
-                }
+            {
+              "instruction_type": "emit_formatted_code",
+              "code_format": "  %s %s = %s(%s);\n",
+              "code_arguments": [
+                "vt",
+                "vn",
+                "op",
+                "src"
               ]
             }
           ]
         },
-        {"instruction_type": "emit_formatted_code",
-         "code_format": "  cJSON *bon = cJSON_GetObjectItemCaseSensitive(inst, \"branch_on_success\");\n",
-         "code_arguments": []
-        },
-        {"instruction_type": "emit_formatted_code",
-         "code_format": "  if (bon) generate_code_from_ast_instructions(bon, out, indent + 1, return_type);\n",
-         "code_arguments": []
-        },
-        {"instruction_type": "emit_formatted_code",
-         "code_format": "} else {\n", "code_arguments": []
-        },
-        {"instruction_type": "emit_formatted_code",
-         "code_format": "  cJSON *bof = cJSON_GetObjectItemCaseSensitive(inst, \"branch_on_failure\");\n",
-         "code_arguments": []
-        },
-        {"instruction_type": "emit_formatted_code",
-         "code_format": "  if (bof) generate_code_from_ast_instructions(bof, out, indent + 1, return_type);\n",
-         "code_arguments": []
-        },
-        {"instruction_type": "emit_formatted_code",
-         "code_format": "}\n", "code_arguments": []
-        },
-        {"instruction_type": "return_statement", "return_payload": {"value": "0"}}
-      ]
-    },
-
-    "emit_variable_decl_handler_code": {
-      "return_type": "void",
-      "parameter_definitions": [
-        {"parameter_name": "inst", "parameter_type": "json_object"},
-        {"parameter_name": "out", "parameter_type": "file_handle"},
-        {"parameter_name": "indent", "parameter_type": "int"},
-        {"parameter_name": "return_type", "parameter_type": "string"}
-      ],
-      "execution_instructions": [
-        {"instruction_type": "access_json_field", "variable_name": "vn", "variable_type": "string", "source_object": "inst", "field_name": "variable_name"},
-        {"instruction_type": "access_json_field", "variable_name": "vt", "variable_type": "string", "source_object": "inst", "field_name": "variable_type"},
-        {"instruction_type": "access_json_field", "variable_name": "op", "variable_type": "string", "source_object": "inst", "field_name": "assignment_operation"},
-        {"instruction_type": "access_json_field", "variable_name": "src", "variable_type": "string", "source_object": "inst", "field_name": "source_target"},
-        {"instruction_type": "conditional_branch", "condition_operation": "is_not_null", "condition_target": "vn",
-          "branch_on_success": [
-            {"instruction_type": "emit_formatted_code",
-             "code_format": "  %s %s = %s(%s);\n",
-             "code_arguments": ["vt","vn","op","src"]
-            }
-          ]
-        },
-        {"instruction_type": "return_statement", "return_payload": {"value": "0"}}
+        {
+          "instruction_type": "return_statement",
+          "return_payload": {
+            "value": "0"
+          }
+        }
       ]
     }
   }
