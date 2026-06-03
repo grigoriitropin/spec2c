@@ -236,36 +236,36 @@ static void validate_single_ipm_file_content(const char *sp,
     {   cJSON *imps = cJSON_GetObjectItemCaseSensitive(root, "imports");
         int has_imports = imps && cJSON_IsArray(imps) && cJSON_GetArraySize(imps) > 0;
         if (funcs && cJSON_IsObject(funcs) && !has_imports) {
-            /* count main() */
             int main_cnt = 0; cJSON *fn = funcs->child;
             while (fn) { if (!strcmp(fn->string, "main")) main_cnt++; fn = fn->next; }
             if (main_cnt != 1) { char msg[8448]; snprintf(msg, sizeof(msg),
                 "SOUL §7: .ipm %s has %d main() (need exactly 1)\n  → name exactly one function 'main'", sp, main_cnt);
                 fprintf(stderr, "spec2c: %s\n", msg); exit(1); }
 
-            /* dead code */
+            /* collect invocation names via iterative tree walk */
             char called[256][128]; int n_called = 0;
-            void scan_for_invocation_name_calls(cJSON *n) {
-                if (!n) return;
-                if (cJSON_IsObject(n)) {
-                    cJSON *inv = cJSON_GetObjectItemCaseSensitive(n, "invocation_name");
+            cJSON *stack[512]; int sp_top = 0;
+            fn = funcs->child;
+            while (fn) { cJSON *b = cJSON_GetObjectItemCaseSensitive(fn, "execution_instructions");
+                if (b) stack[sp_top++] = b; fn = fn->next; }
+            while (sp_top > 0) {
+                cJSON *cur = stack[--sp_top];
+                if (!cur) continue;
+                if (cJSON_IsObject(cur)) {
+                    cJSON *inv = cJSON_GetObjectItemCaseSensitive(cur, "invocation_name");
                     if (inv && cJSON_IsString(inv) && n_called < 256) {
                         int dup = 0;
                         for (int ci = 0; ci < n_called; ci++)
                             if (!strcmp(called[ci], inv->valuestring)) { dup = 1; break; }
                         if (!dup) { snprintf(called[n_called],128,"%s",inv->valuestring); n_called++; }
                     }
-                    cJSON *c = n->child;
-                    while (c) { scan_for_invocation_name_calls(c); c = c->next; }
-                } else if (cJSON_IsArray(n)) {
-                    cJSON *c = n->child;
-                    while (c) { scan_for_invocation_name_calls(c); c = c->next; }
+                    cJSON *c = cur->child;
+                    while (c) { stack[sp_top++] = c; c = c->next; }
+                } else if (cJSON_IsArray(cur)) {
+                    cJSON *c = cur->child;
+                    while (c) { stack[sp_top++] = c; c = c->next; }
                 }
             }
-            fn = funcs->child;
-            while (fn) { cJSON *b = cJSON_GetObjectItemCaseSensitive(fn, "execution_instructions");
-                if (b) { scan_for_invocation_name_calls(b); }
-                fn = fn->next; }
             fn = funcs->child;
             while (fn) {
                 if (strcmp(fn->string, "main")) {
