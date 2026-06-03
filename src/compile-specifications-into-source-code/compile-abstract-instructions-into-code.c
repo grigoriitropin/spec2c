@@ -71,6 +71,30 @@ void compile_every_function_into_code(const ipm_spec_t *spec, FILE *out, int is_
         fprintf(out, "#include \"%s.h\"\n\n", modname);
     } else {
         fprintf(out, "#include <string.h>\n#include <stdio.h>\n#include <stdlib.h>\n#include <cjson/cJSON.h>\n#include \"ipm_builtins.h\"\n\n");
+
+        /* FFI: extern_imports → generate extern declarations */
+        cJSON *exts = cJSON_GetObjectItemCaseSensitive(spec->meta, "extern_imports");
+        if (exts && cJSON_IsArray(exts)) {
+            for (int ei = 0; ei < cJSON_GetArraySize(exts); ei++) {
+                cJSON *ext = cJSON_GetArrayItem(exts, ei);
+                const char *ename = extract_json_field_string_value(ext, "name");
+                const char *eret = extract_json_field_string_value(ext, "return_type");
+                if (!ename[0]) continue;
+                fprintf(out, "extern %s %s(", eret[0] ? resolve_spec_type_into_lang(eret) : "void", ename);
+                cJSON *eargs = cJSON_GetObjectItemCaseSensitive(ext, "arguments");
+                if (eargs && cJSON_IsArray(eargs)) {
+                    for (int aj = 0; aj < cJSON_GetArraySize(eargs); aj++) {
+                        cJSON *arg = cJSON_GetArrayItem(eargs, aj);
+                        const char *at = extract_json_field_string_value(arg, "type");
+                        const char *an = extract_json_field_string_value(arg, "name");
+                        if (aj > 0) fprintf(out, ", ");
+                        fprintf(out, "%s %s", resolve_spec_type_into_lang(at), an);
+                    }
+                }
+                fprintf(out, ");\n");
+            }
+        }
+
         fn = funcs->child;
         while (fn) {
             const char *name = fn->string;

@@ -3,6 +3,7 @@
 #include "runtime-for-generated-ipm-code.h"
 #include <unistd.h>
 #include <regex.h>
+#include <stdint.h>
 #include <dirent.h>
 #include <sys/stat.h>
 
@@ -86,6 +87,8 @@ const char *resolve_spec_type_into_lang(const char *t) {
     if (!strcmp(t, "subst_table")) return "subst_table *";
     if (!strcmp(t, "string_buffer")) return "string_buffer *";
     if (!strcmp(t, "file_handle")) return "FILE *";
+    if (!strcmp(t, "u8_ptr")) return "const uint8_t *";
+    if (!strcmp(t, "u32")) return "uint32_t";
     return "void *";
 }
 
