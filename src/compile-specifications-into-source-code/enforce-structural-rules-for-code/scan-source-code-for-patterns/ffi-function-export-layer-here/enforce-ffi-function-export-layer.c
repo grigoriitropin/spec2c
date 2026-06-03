@@ -68,7 +68,11 @@ const char *check_line_density_inside_file(const char *path) {
             }
             continue;
         }
-            if (!is && !ic && *p == '/' && *(p+1) == '*') { icm = 1; p++; continue; }
+            if (!is && !ic && *p == '/' && *(p+1) == '*') {
+                icm = 1;
+                p++;
+                continue;
+            }
             if (!is && !ic && *p == '/' && *(p+1) == '/') break;
             if (*p == '\\' && *(p+1) != '\0') { p++; continue; }
             if (!ic && *p == '"') is = !is;
