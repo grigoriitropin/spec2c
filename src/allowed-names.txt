@@ -300,3 +300,7 @@ validate_ipm_naming_compliance_check
 banned_word_json_tree_scanner
 validate_ipm_structure_limits_check
 validate_ipm_root_node_fields
+remaining-rules-ffi-batch-four
+check_include_headers_ffi
+check_main_function_count_ffi
+check_cli_flags_in_help_ffi

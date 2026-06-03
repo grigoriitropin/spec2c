@@ -34,3 +34,4 @@ validate-type-name-against-whitelist.c
 ffi-function-export-layer-here/enforce-ffi-function-export-layer.c
 structural-rule-checker-batch-two/structural-rule-checker-batch-two.c
 ipm-file-validator-ffi-batch/ipm-file-validator-ffi-batch.c
+remaining-rules-ffi-batch-four.c
