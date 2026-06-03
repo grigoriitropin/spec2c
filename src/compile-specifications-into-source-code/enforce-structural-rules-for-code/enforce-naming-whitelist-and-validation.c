@@ -78,7 +78,7 @@ static int check_name_against_allowed_whitelist(const char *name) {
     return 0;
 }
 
-static int validate_file_stem_with_dfa(const char *stem, const char *fullname, const char *path) {
+int validate_file_stem_with_dfa(const char *stem, const char *fullname, const char *path) {
     size_t nl = strlen(fullname);
     int is_c = nl > 2 && !strcmp(fullname + nl - 2, ".c");
     int is_ipm = nl > 4 && !strcmp(fullname + nl - 4, ".ipm");
