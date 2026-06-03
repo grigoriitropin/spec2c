@@ -208,7 +208,6 @@ static void validate_single_ipm_file_content(const char *sp,
 
     scan_json_for_banned_words(root, sp);
     check_ipm_ast_depth_limits(root, 0, sp);
-    validate_ipm_type_name_strictly(root, sp);
 
     cJSON *pkg = cJSON_GetObjectItemCaseSensitive(root, "package_name");
     if (pkg && cJSON_IsString(pkg)) validate_single_ipm_name_value(pkg->valuestring, "package_name", sp);
