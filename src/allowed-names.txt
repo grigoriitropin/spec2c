@@ -272,13 +272,12 @@ emit_builtin_call_when_matched
 emit_builtin_call_when_matched
 emit_report_error_then_exit
 emit_report_error_then_exit
-enforce-ffi-function-export-layer
 count_lines_inside_file_ffi
 check_bootstrap_whitelist_for_ffi
 check_file_content_for_violations
 verify_file_line_density_count
-enforce-ffi-function-export-layer
 count_lines_inside_file_ffi
 check_bootstrap_whitelist_for_ffi
 verify_file_line_density_count
 verify_file_line_density_count
+ffi-function-export-layer-here
