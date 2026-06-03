@@ -194,6 +194,10 @@ static void emit_new_standard_loop_code(cJSON *inst, FILE *out, int indent, cons
             }
         }
         fprintf(out, ");\n");
+    } else if (!strcmp(ty, "generate_body_code")) {
+        const char *bf = extract_json_field_string_value(inst, "body_field");
+        cJSON *body = cJSON_GetObjectItemCaseSensitive(inst, bf);
+        if (body) generate_code_from_ast_instructions(body, out, indent + 1, return_type);
     }
 }
 
@@ -233,6 +237,7 @@ static const instr_dispatch_t INSTR_HANDLERS[] = {
     {"emit_formatted_code",            emit_new_standard_loop_code},
     {"for_count_loop",                 emit_new_standard_loop_code},
     {"function_invocation",            emit_invocation_code_into_output},
+    {"generate_body_code",             emit_new_standard_loop_code},
     {"iterate_over_collection",        emit_iterate_code_into_output},
     {"iterate_over_object_keys",       emit_iterate_code_into_output},
     {"return_statement",               emit_return_code_into_output},
