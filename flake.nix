@@ -119,6 +119,7 @@
           runHook preBuild
           spec2c check-banned-patterns-pure-ipm.ipm > dfa_gen.c
           sed -i "s/int main(/int execute_dfa_banned_patterns(/" dfa_gen.c
+          sed -i "/check-banned-patterns-pure-ipm.h/d" dfa_gen.c
           sed -i "/^{.ok/d" dfa_gen.c
 
           spec2c enforce-naming-rules-via-ffi.ipm > ipm_enforce_gen.c
