@@ -3,6 +3,8 @@
 #include "runtime-for-generated-ipm-code.h"
 #include <unistd.h>
 #include <regex.h>
+#include <dirent.h>
+#include <sys/stat.h>
 
 string read_entire_file_into_string(const char *path) {
     FILE *f = (!path || !path[0]) ? stdin : fopen(path, "rb");
@@ -85,4 +87,27 @@ const char *resolve_spec_type_into_lang(const char *t) {
     if (!strcmp(t, "string_buffer")) return "string_buffer *";
     if (!strcmp(t, "file_handle")) return "FILE *";
     return "void *";
+}
+
+cJSON *list_files_in_directory(const char *path) {
+    cJSON *arr = cJSON_CreateArray();
+    if (!arr) return NULL;
+    DIR *d = opendir(path);
+    if (!d) { cJSON_Delete(arr); return NULL; }
+    struct dirent *de;
+    while ((de = readdir(d)) != NULL) {
+        if (de->d_name[0] == '.') continue;
+        char full[4096];
+        snprintf(full, sizeof(full), "%s/%s", path, de->d_name);
+        struct stat st;
+        if (stat(full, &st) != 0) continue;
+        cJSON *entry = cJSON_CreateObject();
+        if (!entry) continue;
+        cJSON_AddStringToObject(entry, "name", de->d_name);
+        cJSON_AddStringToObject(entry, "path", full);
+        cJSON_AddBoolToObject(entry, "is_dir", S_ISDIR(st.st_mode));
+        cJSON_AddItemToArray(arr, entry);
+    }
+    closedir(d);
+    return arr;
 }

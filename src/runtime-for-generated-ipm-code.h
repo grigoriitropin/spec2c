@@ -26,6 +26,7 @@ typedef struct {
 /* I/O */
 string read_entire_file_into_string(const char *path);
 void   write_text_string_into_file(const char *path, const char *content);
+cJSON* list_files_in_directory(const char *path);
 
 /* JSON */
 json_object* convert_text_into_json_object(string content);
