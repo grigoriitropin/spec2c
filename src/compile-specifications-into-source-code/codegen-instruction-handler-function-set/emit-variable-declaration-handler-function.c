@@ -114,7 +114,7 @@ void emit_iteration_instruction_code_block(cJSON *inst, FILE *out, int indent, c
     }
 }
 
-static void emit_variable_declaration_into_output(cJSON *inst, FILE *out, int indent, const char *return_type) {
+void emit_variable_declaration_into_output(cJSON *inst, FILE *out, int indent, const char *return_type) {
     (void)return_type;
     const char *vn = extract_json_field_string_value(inst, "variable_name");
     const char *vt = extract_json_field_string_value(inst, "variable_type");
