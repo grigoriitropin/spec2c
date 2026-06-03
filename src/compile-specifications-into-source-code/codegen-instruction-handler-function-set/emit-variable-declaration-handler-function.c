@@ -281,7 +281,7 @@ static void emit_bootstrap_central_dispatcher_func(cJSON *inst, FILE *out, int i
     if (!strcmp(ty, "variable_declaration")) { emit_variable_declaration_code_line(inst, out, indent); return; }
     if (!strcmp(ty, "alu_operation")) { emit_alu_operation_into_output(inst, out); return; }
     if (!strcmp(ty, "scan_directory_entries")) { emit_scan_directory_with_body(inst, out, indent); return; }
-    if (!strcmp(ty, "iterate_over_string_tokens")) { emit_string_token_iteration_const(inst, out, indent, return_type); return; }
+    if (!strcmp(ty, "iterate_over_string_tokens")) { tokenize_string_into_slice_loop(inst, out, indent, return_type); return; }
 }
 
 typedef struct {

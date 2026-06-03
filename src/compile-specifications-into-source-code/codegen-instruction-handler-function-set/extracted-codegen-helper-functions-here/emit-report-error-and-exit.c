@@ -26,7 +26,7 @@ void emit_iteration_loop_with_count(cJSON *inst, FILE *out, int indent, const ch
     fprintf(out, "  }\n");
 }
 
-void emit_string_token_iteration_const(cJSON *inst, FILE *out, int indent, const char *rt) {
+void tokenize_string_into_slice_loop(cJSON *inst, FILE *out, int indent, const char *rt) {
     const char *src = extract_json_field_string_value(inst, "source_string");
     const char *sep = extract_json_field_string_value(inst, "separator");
     const char *tok = extract_json_field_string_value(inst, "token_variable");

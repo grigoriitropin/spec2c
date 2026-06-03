@@ -286,3 +286,4 @@ enforce-fixture-banned-keyword-here
 enforce-fixture-hardcoded-path-here
 enforce-fixture-line-count-over
 enforce-fixture-line-too-dense
+tokenize_string_into_slice_loop
