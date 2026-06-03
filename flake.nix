@@ -144,10 +144,10 @@
           # Hardcoded path detector
           spec2c modules/rules/detect-any-hardcoded-filesystem-paths.ipm --library -o path_obj/path.c
           sed -i '/^{"ok"/d' path_obj/path.c
-          sed -i 's/void detect_any_hardcoded_filesystem_paths/int detect_any_hardcoded_filesystem_paths/' path_obj/check_each_line_token_density.h 2>/dev/null || true
-          sed -i 's/void detect_any_hardcoded_filesystem_paths/int detect_any_hardcoded_filesystem_paths/' path_obj/detect_any_hardcoded_filesystem_paths.h 2>/dev/null || true
-          sed -i 's/(char \* path)/(const char *path)/g' path_obj/path.c 2>/dev/null || true
-          sed -i 's/const char \*_name = "[^"]*";//' path_obj/path.c 2>/dev/null || true
+          sed -i 's/void detect_any_hardcoded_filesystem_paths/int detect_any_hardcoded_filesystem_paths/' path_obj/detect_any_hardcoded_filesystem_paths.h
+          sed -i 's/(char \* path)/(const char *path)/g' path_obj/path.c
+          sed -i 's/(char \* path)/(const char *path)/g' path_obj/detect_any_hardcoded_filesystem_paths.h
+          sed -i 's/const char \*_name = "[^"]*";//' path_obj/path.c
           $CC ${builtins.toString cflags} \
             -Isrc -I${S} -I${S}/shared-type-declarations-across-modules \
             -Isrc/support-code-for-compiled-output \
