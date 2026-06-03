@@ -9,7 +9,7 @@
 
 /* ── Structural ─────────────────────────────────────────────────────── */
 
-int count_lines_in_file_ffi(const char *path) {
+int count_lines_inside_file_ffi(const char *path) {
     char *content = read_entire_file_into_string(path);
     if (!content) return -1;
     int lines = 0;
@@ -20,7 +20,7 @@ int count_lines_in_file_ffi(const char *path) {
 }
 
 /* ── Bootstrap whitelist ────────────────────────────────────────────── */
-int check_bootstrap_whitelist_ffi(const char *basename) {
+int check_bootstrap_whitelist_for_ffi(const char *basename) {
     extern int match_name_against_bootstrap_list(const char *basename);
     return match_name_against_bootstrap_list(basename);
 }
