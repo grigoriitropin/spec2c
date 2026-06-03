@@ -133,7 +133,7 @@
       ]
     },
     "create_substitution_table_for_spec": {
-      "description": "Build a substitution hash table from package specification fields — name, type, config_keys, db_queries",
+      "description": "Build a substitution hash table from input specification fields — name, type, config_keys, db_queries",
       "return_type": "subst_table",
       "parameter_definitions": [
         {
