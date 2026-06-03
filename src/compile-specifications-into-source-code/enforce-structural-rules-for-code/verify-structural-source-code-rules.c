@@ -115,7 +115,7 @@ typedef struct {
     int count;
 } inc_entry_t;
 static void check_include_headers_for_file(const char *sub, inc_entry_t *incs, int *inc_qty);
-static void check_single_file_for_violations(const char *sub, int is_c,
+static void check_single_file_for_violations(const char *sub, int is_c, int is_source,
     fn_entry_t *fns, int *fn_qty, inc_entry_t *incs, int *inc_qty)
 {
     if (is_c) {
@@ -192,10 +192,10 @@ static void check_single_file_for_violations(const char *sub, int is_c,
                     in_func = 0;
                 }
             }
-            if (is_c && check_for_banned_keyword_pattern(line)) {
+            if (is_source && check_for_banned_keyword_pattern(line)) {
                 fclose(f); report_violation_with_actionable_hint(ERR_BANNED_PATTERN, sub, 0, 0, NULL);
             }
-            if (is_c && detect_hardcoded_file_path_string(line)) {
+            if (is_source && detect_hardcoded_file_path_string(line)) {
                 fclose(f); report_violation_with_actionable_hint(ERR_HARDCODED_PATH, sub, 0, 0, NULL);
             }
         }
@@ -328,7 +328,7 @@ void enforce_all_source_code_rules(const char *srcdir) {
             validate_name_against_soul_rules("file", fname, sub);
             int is_c = !strcmp(de->d_name + strlen(de->d_name) - 2, ".c");
             int is_source = is_c || (strlen(de->d_name) > 4 && !strcmp(de->d_name + strlen(de->d_name) - 4, ".ipm"));
-            check_single_file_for_violations(sub, is_source, fns, &fn_qty, incs, &inc_qty);
+            check_single_file_for_violations(sub, is_c, is_source, fns, &fn_qty, incs, &inc_qty);
         }
         closedir(d);
         if (file_cnt > MAX_FILES_PER_DIR) {
