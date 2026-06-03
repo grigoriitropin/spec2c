@@ -4,7 +4,7 @@
 
 typedef void (*instr_hdlr)(cJSON *inst, FILE *out, int indent, const char *return_type);
 
-static void emit_bootstrap_handler_primitive(cJSON *inst, FILE *out, int indent, const char *return_type) {
+static void emit_bootstrap_primitive_handler_code(cJSON *inst, FILE *out, int indent, const char *return_type) {
     (void)indent;
     const char *ty = extract_json_field_string_value(inst, "instruction_type");
 
@@ -63,18 +63,18 @@ static void emit_bootstrap_handler_primitive(cJSON *inst, FILE *out, int indent,
 typedef struct { const char *type; instr_hdlr handler; } dispatch_entry_t;
 
 static const dispatch_entry_t INSTR_HANDLERS[] = {
-    {"access_json_field",              emit_bootstrap_handler_primitive},
-    {"conditional_branch",             emit_bootstrap_handler_primitive},
-    {"emit_formatted_code",            emit_bootstrap_handler_primitive},
-    {"for_count_loop",                 emit_bootstrap_handler_primitive},
-    {"function_invocation",            emit_bootstrap_handler_primitive},
-    {"iterate_over_collection",        emit_bootstrap_handler_primitive},
-    {"iterate_over_object_keys",       emit_bootstrap_handler_primitive},
-    {"read_file_content",              emit_bootstrap_handler_primitive},
-    {"return_statement",               emit_bootstrap_handler_primitive},
-    {"scan_directory_entries",         emit_bootstrap_handler_primitive},
-    {"string_tokenizer_loop",          emit_bootstrap_handler_primitive},
-    {"variable_declaration",           emit_bootstrap_handler_primitive},
+    {"access_json_field",              emit_bootstrap_primitive_handler_code},
+    {"conditional_branch",             emit_bootstrap_primitive_handler_code},
+    {"emit_formatted_code",            emit_bootstrap_primitive_handler_code},
+    {"for_count_loop",                 emit_bootstrap_primitive_handler_code},
+    {"function_invocation",            emit_bootstrap_primitive_handler_code},
+    {"iterate_over_collection",        emit_bootstrap_primitive_handler_code},
+    {"iterate_over_object_keys",       emit_bootstrap_primitive_handler_code},
+    {"read_file_content",              emit_bootstrap_primitive_handler_code},
+    {"return_statement",               emit_bootstrap_primitive_handler_code},
+    {"scan_directory_entries",         emit_bootstrap_primitive_handler_code},
+    {"string_tokenizer_loop",          emit_bootstrap_primitive_handler_code},
+    {"variable_declaration",           emit_bootstrap_primitive_handler_code},
     {NULL, NULL}
 };
 

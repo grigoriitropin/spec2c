@@ -233,3 +233,4 @@ emit_read_file_content_handler
 emit_scan_directory_entries_handler
 handler-file-input-output-scanning
 file-input-output-handler-code
+emit_bootstrap_primitive_handler_code
