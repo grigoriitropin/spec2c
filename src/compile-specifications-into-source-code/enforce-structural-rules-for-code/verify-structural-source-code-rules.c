@@ -40,31 +40,31 @@ static void report_violation_with_actionable_hint(enforce_err_t code, const char
     char buf[8448];
     switch (code) {
     case ERR_FILE_TOO_LONG:
-        snprintf(buf, sizeof(buf), "SOUL §7: %s has %d lines (max %d)\n  → split this file into smaller files", a1, v1, v2); break;
+        snprintf(buf,sizeof(buf),"SOUL §7: %s has %d lines (max %d)\n  → split into smaller files",a1,v1,v2); break;
     case ERR_TOO_MANY_FUNCTIONS:
-        snprintf(buf, sizeof(buf), "SOUL §7: %s has %d functions (max %d)\n  → extract functions into a new .c file", a1, v1, v2); break;
+        snprintf(buf,sizeof(buf),"SOUL §7: %s has %d functions (max %d)\n  → extract functions into a new .c file",a1,v1,v2); break;
     case ERR_FUNCTION_TOO_LONG:
-        snprintf(buf, sizeof(buf), "SOUL §7: %s func#%d is %d lines (max %d)\n  → split into smaller helper functions", a1, v1, v2, MAX_LINES_PER_FUNCTION); break;
+        snprintf(buf,sizeof(buf),"SOUL §7: %s func#%d is %d lines (max %d)\n  → split into smaller helper functions",a1,v1,v2,MAX_LINES_PER_FUNCTION); break;
     case ERR_TOO_MANY_FILES_IN_DIR:
-        snprintf(buf, sizeof(buf), "SOUL §7: %s has %d files (max %d)\n  → create a subdirectory and move files there", a1, v1, v2); break;
+        snprintf(buf,sizeof(buf),"SOUL §7: %s has %d files (max %d)\n  → create a subdirectory and move files there",a1,v1,v2); break;
     case ERR_BANNED_PATTERN:
-        snprintf(buf, sizeof(buf), "SOUL §7: %s uses banned pattern\n  → remove goto/setjmp/longjmp/output-suppression", a1); break;
+        snprintf(buf,sizeof(buf),"SOUL §7: %s uses banned pattern\n  → remove goto/setjmp/longjmp/output-suppression",a1); break;
     case ERR_HARDCODED_PATH:
-        snprintf(buf, sizeof(buf), "SOUL §7: %s has hardcoded path\n  → resolve paths at runtime, never hardcode", a1); break;
+        snprintf(buf,sizeof(buf),"SOUL §7: %s has hardcoded path\n  → resolve paths at runtime, never hardcode",a1); break;
     case ERR_HEADER_NOT_IN_WHITELIST:
-        snprintf(buf, sizeof(buf), "SOUL §7: header '%s' in %s not in whitelist\n  → add to ok[] in enforce-naming-whitelist-and-validation.c", a1, a2); break;
+        snprintf(buf,sizeof(buf),"SOUL §7: header '%s' in %s not in whitelist\n  → add to ok[] in enforce-naming-whitelist-and-validation.c",a1,a2); break;
     case ERR_HEADER_INCLUDED_TOO_OFTEN:
-        snprintf(buf, sizeof(buf), "SOUL §7: header '%s' included %d times (max %d)\n  → consolidate includes", a1, v1, v2); break;
+        snprintf(buf,sizeof(buf),"SOUL §7: header '%s' included %d times (max %d)\n  → consolidate includes",a1,v1,v2); break;
     case ERR_DEAD_CODE:
-        snprintf(buf, sizeof(buf), "SOUL §7: dead code — '%s' in %s never called\n  → remove unused function or add call site", a1, a2); break;
+        snprintf(buf,sizeof(buf),"SOUL §7: dead code — '%s' in %s never called\n  → remove unused function or add call site",a1,a2); break;
     case ERR_MAIN_COUNT:
-        snprintf(buf, sizeof(buf), "SOUL §7: exactly one main() required, found %d\n  → keep exactly one entry point", v1); break;
+        snprintf(buf,sizeof(buf),"SOUL §7: exactly one main() required, found %d\n  → keep exactly one entry point",v1); break;
     case ERR_FLAG_NOT_IN_HELP:
-        snprintf(buf, sizeof(buf), "SOUL §7: CLI flag '%s' in %s not documented in help text\n  → add flag description to the --help output block", a1, a2); break;
+        snprintf(buf,sizeof(buf),"SOUL §7: CLI flag '%s' in %s not documented in help text\n  → add flag description to the --help output block",a1,a2); break;
     case ERR_LINE_TOO_DENSE:
-        snprintf(buf, sizeof(buf), "SOUL §7: %s line %d is too dense — %d control tokens (; { ?) (max 3)\n  → split the line into multiple statements", a1, v1, v2); break;
+        snprintf(buf,sizeof(buf),"SOUL §7: %s line %d is too dense — %d control tokens (; { ?) (max 3)\n  → split the line into multiple statements",a1,v1,v2); break;
     case ERR_NOT_IN_BOOTSTRAP_WHITELIST:
-        snprintf(buf, sizeof(buf), "SOUL §7: %s not in bootstrap C whitelist\n  → rewrite this functionality as an IPM module, the C bootstrap is frozen", a1); break;
+        snprintf(buf,sizeof(buf),"SOUL §7: %s not in bootstrap C whitelist\n  → rewrite this functionality as an IPM module, the C bootstrap is frozen",a1); break;
     }
     if (lint_mode) {
         fprintf(stderr, "spec2c: %s\n", buf);
@@ -264,6 +264,15 @@ void enforce_all_source_code_rules(const char *srcdir) {
     read_banned_patterns_from_file(srcdir);
     load_non_source_file_allowlist(srcdir);
     load_bootstrap_whitelist_from_disk(srcdir);
+    char *man_paths[256]={0};int man_cnt=0;
+    {FILE *mf=fopen("source-manifest.json","r");
+     if(mf){fseek(mf,0,SEEK_END);long ms=ftell(mf);fseek(mf,0,SEEK_SET);
+     char *mb=malloc(ms+1);if(mb){fread(mb,1,ms,mf);mb[ms]=0;
+     cJSON *ma=cJSON_Parse(mb);free(mb);
+     if(ma&&cJSON_IsArray(ma)){int mc=cJSON_GetArraySize(ma);
+     for(int i=0;i<mc&&man_cnt<256;i++){cJSON*it=cJSON_GetArrayItem(ma,i);
+     if(cJSON_IsString(it))man_paths[man_cnt++]=strdup(it->valuestring);}
+     cJSON_Delete(ma);}}fclose(mf);}}
     fn_entry_t fns[512]; int fn_qty = 0;
     inc_entry_t incs[128]; int inc_qty = 0;
     void scan_dir(const char *dirpath) {
@@ -290,6 +299,10 @@ void enforce_all_source_code_rules(const char *srcdir) {
                     continue;
                 }
             }
+            { const char *p=sub;while(*p=='.'||*p=='/')p++; int found=0;
+              for(int mi=0;mi<man_cnt;mi++)
+                if(man_paths[mi]&&!strcmp(p,man_paths[mi])){found=1;break;}
+              if(!found&&man_cnt>0){fprintf(stderr,"spec2c: source outside sanctioned tree: %s\n",sub);exit(1);} }
             if (!match_name_against_bootstrap_list(de->d_name)) {
                 size_t dn_len2 = strlen(de->d_name);
                 int is_ipm2 = dn_len2 > 4 && !strcmp(de->d_name + dn_len2 - 4, ".ipm");
@@ -364,30 +377,18 @@ static void scan_source_for_undocumented_flags(const char *srcdir) {
 }
 
 int main(int argc, char **argv) {
-    const char *src_dir = "./src";
+    const char *src_dir = ".";
     for (int i = 1; i < argc; i++) {
-        if (!strcmp(argv[i], "--lint"))
-            lint_mode = 1;
-        else
-            src_dir = argv[i];
+        if (!strcmp(argv[i], "--lint")) lint_mode = 1;
+        else src_dir = argv[i];
     }
     enforce_all_source_code_rules(src_dir);
-    if (lint_mode && lint_errors > 0) {
-        fprintf(stderr, "\nspec2c: %d errors found\n", lint_errors);
-        return 1;
-    }
+    if (lint_mode && lint_errors > 0) { fprintf(stderr, "\nspec2c: %d errors found\n", lint_errors); return 1; }
     return 0;
 }
 int match_name_against_stdlib_list(const char *name) {
-    const char *lib[] = {
-        "strstr","strncmp","strcmp","strlen","sscanf","snprintf",
-        "printf","fprintf","sprintf","malloc","realloc","free",
-        "fopen","fclose","fread","fgets","fputs","fflush",
-        "memcpy","memset","strdup","strtok","strrchr","strchr",
-        "calloc","exit",NULL
-    };
+    const char *lib[] = {"strstr","strncmp","strcmp","strlen","sscanf","snprintf","printf","fprintf","sprintf","malloc","realloc","free","fopen","fclose","fread","fgets","fputs","fflush","memcpy","memset","strdup","strtok","strrchr","strchr","calloc","exit",NULL};
     if (!strncmp(name, "cJSON_", 6)) return 1;
-    for (int i = 0; lib[i]; i++)
-        if (!strcmp(name, lib[i])) return 1;
+    for (int i = 0; lib[i]; i++) if (!strcmp(name, lib[i])) return 1;
     return 0;
 }
