@@ -125,6 +125,7 @@
           $CC ${builtins.toString cflags} \
             -Isrc \
             -I${S} \
+            -I${S}/shared-type-declarations-across-modules \
             -Isrc/support-code-for-compiled-output \
             -c dfa_obj/dfa.c -o dfa_obj/dfa.o
 
