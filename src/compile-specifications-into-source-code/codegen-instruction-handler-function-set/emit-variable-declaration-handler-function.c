@@ -202,9 +202,6 @@ static void emit_scan_directory_with_body(cJSON *inst, FILE *out, int indent) {
 static void emit_alu_operation_into_output(cJSON *inst, FILE *out) {
     const char *op = extract_json_field_string_value(inst, "operator");
     const char *tgt = extract_json_field_string_value(inst, "target");
-    const char *tt = extract_json_field_string_value(inst, "target_type");
-    const char *tl = resolve_spec_type_into_lang(tt);
-    /* resolve operand: literal_int → value, var → name */
     const char *lv = "", *rv = "";
     {   cJSON *lhs = cJSON_GetObjectItemCaseSensitive(inst, "lhs");
         cJSON *rhs = cJSON_GetObjectItemCaseSensitive(inst, "rhs");
@@ -212,17 +209,14 @@ static void emit_alu_operation_into_output(cJSON *inst, FILE *out) {
         if (rhs && cJSON_IsObject(rhs)) rv = extract_json_field_string_value(rhs, "value");
     }
     if (!lv[0] || !tgt[0]) return;
-
-    if (!strcmp(op, "~")) {
-        fprintf(out, "  %s %s = ~(%s);\n", tl, tgt, lv);
-    } else if (!strcmp(op, "ROTR")) {
-        fprintf(out, "  %s %s = ((%s) >> (%s)) | ((%s) << (32 - (%s)));\n",
-            tl, tgt, lv, rv, lv, rv);
-    } else {
-        /* division by zero guard */
+    if (!strcmp(op, "~"))
+        fprintf(out, "  %s = ~(%s);\n", tgt, lv);
+    else if (!strcmp(op, "ROTR"))
+        fprintf(out, "  %s = ((%s) >> (%s)) | ((%s) << (32 - (%s)));\n", tgt, lv, rv, lv, rv);
+    else {
         if (!strcmp(op, "/") || !strcmp(op, "%"))
             fprintf(out, "  if ((%s) == 0) exit(255);\n", rv);
-        fprintf(out, "  %s %s = (%s) %s (%s);\n", tl, tgt, lv, op, rv);
+        fprintf(out, "  %s = (%s) %s (%s);\n", tgt, lv, op, rv);
     }
 }
 
