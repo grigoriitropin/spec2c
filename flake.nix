@@ -184,6 +184,7 @@
           sed -i 's/(char \* path)/(const char *path)/g' main_obj/main.c
           sed -i 's/(char \* path)/(const char *path)/g' main_obj/find_every_main_function_block.h
           sed -i 's/const char \*_name = "[^"]*";//' main_obj/main.c
+          sed -i 's/(char \* text, char \* pattern)/(const char *text, const char *pattern)/' main_obj/main.c
           $CC ${builtins.toString cflags} \
             -Isrc -I${S} -I${S}/shared-type-declarations-across-modules \
             -Isrc/support-code-for-compiled-output \
