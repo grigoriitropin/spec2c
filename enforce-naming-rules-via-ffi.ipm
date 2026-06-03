@@ -60,6 +60,36 @@
           "type": "str"
         }
       ]
+    },
+    {
+      "name": "check_function_count_limit_ffi",
+      "return_type": "str",
+      "arguments": [
+        {
+          "name": "path",
+          "type": "str"
+        }
+      ]
+    },
+    {
+      "name": "check_function_length_limit_ffi",
+      "return_type": "str",
+      "arguments": [
+        {
+          "name": "path",
+          "type": "str"
+        }
+      ]
+    },
+    {
+      "name": "check_files_per_directory_ffi",
+      "return_type": "str",
+      "arguments": [
+        {
+          "name": "dirpath",
+          "type": "str"
+        }
+      ]
     }
   ],
   "function_definitions": {
@@ -295,6 +325,80 @@
                       ]
                     }
                   ]
+                },
+                {
+                  "instruction_type": "function_invocation",
+                  "invocation_name": "check_function_count_limit_ffi",
+                  "invocation_arguments": [
+                    {
+                      "kind": "var",
+                      "value": "path"
+                    }
+                  ],
+                  "result_assignment_variable": "err5",
+                  "result_type": "str"
+                },
+                {
+                  "instruction_type": "conditional_branch",
+                  "condition_operation": "is_not_null",
+                  "condition_target": "err5",
+                  "branch_on_success": [
+                    {
+                      "instruction_type": "function_invocation",
+                      "invocation_name": "report_error_and_exit",
+                      "invocation_arguments": [
+                        {
+                          "kind": "var",
+                          "value": "_name"
+                        },
+                        {
+                          "kind": "str",
+                          "value": "too many functions"
+                        },
+                        {
+                          "kind": "str",
+                          "value": "extract functions into a new .c file (max 10)"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "instruction_type": "function_invocation",
+                  "invocation_name": "check_function_length_limit_ffi",
+                  "invocation_arguments": [
+                    {
+                      "kind": "var",
+                      "value": "path"
+                    }
+                  ],
+                  "result_assignment_variable": "err6",
+                  "result_type": "str"
+                },
+                {
+                  "instruction_type": "conditional_branch",
+                  "condition_operation": "is_not_null",
+                  "condition_target": "err6",
+                  "branch_on_success": [
+                    {
+                      "instruction_type": "function_invocation",
+                      "invocation_name": "report_error_and_exit",
+                      "invocation_arguments": [
+                        {
+                          "kind": "var",
+                          "value": "_name"
+                        },
+                        {
+                          "kind": "str",
+                          "value": "function too long"
+                        },
+                        {
+                          "kind": "str",
+                          "value": "split into smaller helper functions (max 50 lines)"
+                        }
+                      ]
+                    }
+                  ]
                 }
               ]
             }
@@ -307,6 +411,43 @@
                 {
                   "kind": "str",
                   "value": "1"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "instruction_type": "function_invocation",
+          "invocation_name": "check_files_per_directory_ffi",
+          "invocation_arguments": [
+            {
+              "kind": "var",
+              "value": "srcdir"
+            }
+          ],
+          "result_assignment_variable": "err7",
+          "result_type": "str"
+        },
+        {
+          "instruction_type": "conditional_branch",
+          "condition_operation": "is_not_null",
+          "condition_target": "err7",
+          "branch_on_success": [
+            {
+              "instruction_type": "function_invocation",
+              "invocation_name": "report_error_and_exit",
+              "invocation_arguments": [
+                {
+                  "kind": "var",
+                  "value": "srcdir"
+                },
+                {
+                  "kind": "str",
+                  "value": "too many files in directory"
+                },
+                {
+                  "kind": "str",
+                  "value": "create a subdirectory and move files there (max 3)"
                 }
               ]
             }
