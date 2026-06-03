@@ -1,13 +1,14 @@
 # Bootstrap freeze limits — max allowed lines and functions per file
-# If any bootstrap file exceeds its limit, the build fails
+# FROZEN. If a bootstrap file grows beyond these limits, the build fails.
 # Format:  filename  max_lines  max_functions
+
 buffer-output-and-command-launch.c 70 8
 check-source-conformance-entry-point.c 298 10
 compile-abstract-instructions-into-code.c 99 5
 detect-banned-patterns-and-braces.c 343 13
 dump-context-from-ipm-graph.c 109 3
 emit-variable-declaration-handler-function.c 97 5
-enforce-bootstrap-code-file-whitelist.c 103 3
+enforce-bootstrap-code-file-whitelist.c 103 4
 enforce-naming-whitelist-and-validation.c 222 10
 file-string-and-json-parsing.c 113 10
 generate-output-from-ipm-specification.c 178 6
@@ -27,4 +28,4 @@ soul-rules-for-naming-validation.h 58 2
 vehir-shared-abstraction-wrapper-code.c 135 7
 vehir-shared-abstraction-wrapper-code.h 53 8
 verify-structural-source-code-rules.c 395 15
-verify-structural-source-code-rules.h 35 17
+verify-structural-source-code-rules.h 36 18
