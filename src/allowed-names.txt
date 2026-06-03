@@ -249,3 +249,4 @@ emit_extern_imports_into_output
 compute_sha256_hash_into_bytes
 compute_file_sha256_hex_digest
 compute_sha256_hash_into_bytes
+process_sha256_block_into_state

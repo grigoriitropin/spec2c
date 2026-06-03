@@ -137,40 +137,44 @@ static const uint32_t K[64] = {
     0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2
 };
 
+static void process_sha256_block_into_state(const uint8_t *block, uint32_t h[8]) {
+    uint32_t w[64];
+    for (int i = 0; i < 16; i++, block += 4)
+        w[i] = ((uint32_t)block[0]<<24)|((uint32_t)block[1]<<16)|((uint32_t)block[2]<<8)|(uint32_t)block[3];
+    for (int i = 16; i < 64; i++)
+        w[i] = sig1(w[i-2]) + w[i-7] + sig0(w[i-15]) + w[i-16];
+    uint32_t a = h[0], b = h[1], c = h[2], d = h[3];
+    uint32_t e = h[4], f = h[5], g = h[6], j = h[7];
+    for (int i = 0; i < 64; i++) {
+        uint32_t t1 = j + SIG1(e) + CH(e,f,g) + K[i] + w[i];
+        uint32_t t2 = SIG0(a) + MAJ(a,b,c);
+        j = g;
+        g = f;
+        f = e;
+        e = d + t1;
+        d = c;
+        c = b;
+        b = a;
+        a = t1 + t2;
+    }
+    h[0] += a;
+    h[1] += b;
+    h[2] += c;
+    h[3] += d;
+    h[4] += e;
+    h[5] += f;
+    h[6] += g;
+    h[7] += j;
+}
+
 void compute_sha256_hash_into_bytes(const uint8_t *data, uint32_t len, uint8_t out[32]) {
     uint32_t h[8] = {0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19};
-    uint32_t w[64];
     uint64_t bits = (uint64_t)len * 8;
-    uint32_t pos = 0;
 
     while (len >= 64) {
-        for (int i = 0; i < 16; i++, data += 4)
-            w[i] = ((uint32_t)data[0]<<24)|((uint32_t)data[1]<<16)|((uint32_t)data[2]<<8)|(uint32_t)data[3];
-        for (int i = 16; i < 64; i++)
-            w[i] = sig1(w[i-2]) + w[i-7] + sig0(w[i-15]) + w[i-16];
-        uint32_t a = h[0], b = h[1], c = h[2], d = h[3], e = h[4], f = h[5], g = h[6], j = h[7];
-        for (int i = 0; i < 64; i++) {
-            uint32_t t1 = j + SIG1(e) + CH(e,f,g) + K[i] + w[i];
-            uint32_t t2 = SIG0(a) + MAJ(a,b,c);
-            j = g;
-            g = f;
-            f = e;
-            e = d + t1;
-            d = c;
-            c = b;
-            b = a;
-            a = t1 + t2;
-        }
-        h[0] += a;
-        h[1] += b;
-        h[2] += c;
-        h[3] += d;
-        h[4] += e;
-        h[5] += f;
-        h[6] += g;
-        h[7] += j;
+        process_sha256_block_into_state(data, h);
+        data += 64;
         len -= 64;
-        pos += 64;
     }
 
     uint8_t pad[128];
@@ -180,35 +184,8 @@ void compute_sha256_hash_into_bytes(const uint8_t *data, uint32_t len, uint8_t o
     while ((pad_len % 64) != 56) pad[pad_len++] = 0;
     for (int i = 7; i >= 0; i--) pad[pad_len++] = (uint8_t)((bits >> (i*8)) & 0xff);
 
-    for (uint32_t s = 0; s < pad_len; s += 64) {
-        for (int i = 0; i < 16; i++) {
-            w[i] = ((uint32_t)pad[s+i*4]<<24)|((uint32_t)pad[s+i*4+1]<<16)|
-                   ((uint32_t)pad[s+i*4+2]<<8)|(uint32_t)pad[s+i*4+3];
-        }
-        for (int i = 16; i < 64; i++)
-            w[i] = sig1(w[i-2]) + w[i-7] + sig0(w[i-15]) + w[i-16];
-        uint32_t a = h[0], b = h[1], c = h[2], d = h[3], e = h[4], f = h[5], g = h[6], j = h[7];
-        for (int i = 0; i < 64; i++) {
-            uint32_t t1 = j + SIG1(e) + CH(e,f,g) + K[i] + w[i];
-            uint32_t t2 = SIG0(a) + MAJ(a,b,c);
-            j = g;
-            g = f;
-            f = e;
-            e = d + t1;
-            d = c;
-            c = b;
-            b = a;
-            a = t1 + t2;
-        }
-        h[0] += a;
-        h[1] += b;
-        h[2] += c;
-        h[3] += d;
-        h[4] += e;
-        h[5] += f;
-        h[6] += g;
-        h[7] += j;
-    }
+    for (uint32_t s = 0; s < pad_len; s += 64)
+        process_sha256_block_into_state(pad + s, h);
 
     for (int i = 0; i < 8; i++) {
         out[i*4]   = (uint8_t)((h[i] >> 24) & 0xff);
