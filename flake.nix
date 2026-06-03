@@ -102,6 +102,7 @@
           runHook preInstall
           mkdir -p $out/bin $out/share/spec2c
           cp spec2c $out/bin/
+          cp s2c_enforce $out/bin/
           cp skeleton.json $out/share/spec2c/
           cp -r templates $out/share/spec2c/
           runHook postInstall
