@@ -40,6 +40,24 @@ static char *read_file_content_into_memory(const char *srcdir) {
     return buf;
 }
 
+static int extract_signed_payload_bytes_from_raw(const char *raw, char *out, size_t outsz) {
+    int len = 0;
+    const char *p = raw;
+    while (*p) {
+        if (!strncmp(p, ",\"signature_hex\":", 17) || !strncmp(p, ",\"signed_bytes_sha256\":", 23)) {
+            while (*p && *p != '"') p++;
+            if (*p == '"') { p++; while (*p && *p != '"') p++; if (*p == '"') p++; }
+            while (*p && *p != '"') p++;
+            if (*p == '"') { p++; while (*p && *p != '"') p++; if (*p == '"') p++; }
+        } else {
+            if (len < (int)outsz - 1) out[len++] = *p;
+            p++;
+        }
+    }
+    out[len] = 0;
+    return len;
+}
+
 void load_operator_signed_exemption_table(const char *srcdir) {
     char *content = read_file_content_into_memory(srcdir);
     if (!content)
@@ -54,35 +72,12 @@ void load_operator_signed_exemption_table(const char *srcdir) {
           report_fatal_error_and_exit("operator-signed-exemption-name-table.json missing pubkey/sig"); }
     char pk_hex[128]; snprintf(pk_hex, sizeof(pk_hex), "%s", pub_obj->valuestring);
     char sig_hex[256]; snprintf(sig_hex, sizeof(sig_hex), "%s", sig_obj->valuestring);
-    /* Reconstruct signed bytes: raw file minus signature_hex + signed_bytes_sha256 fields */
-    char signed_bytes[4096]; int sb_len = 0;
-    const char *p = content;
-    while (*p) {
-        if (!strncmp(p, ",\"signature_hex\":", 17) || !strncmp(p, ",\"signed_bytes_sha256\":", 23)) {
-            while (*p && *p != '"') p++;
-            if (*p == '"') {
-                p++;
-                while (*p && *p != '"') p++;
-                if (*p == '"') p++;
-            }
-            while (*p && *p != '"') p++;
-            if (*p == '"') {
-                p++;
-                while (*p && *p != '"') p++;
-                if (*p == '"') p++;
-            }
-        } else {
-            if (sb_len < 4095) signed_bytes[sb_len++] = *p;
-            p++;
-        }
-    }
-    signed_bytes[sb_len] = 0;
-    /* Verify */
+    char signed_bytes[4096];
+    int sb_len = extract_signed_payload_bytes_from_raw(content, signed_bytes, sizeof(signed_bytes));
     if (verify_signature(pk_hex, sig_hex, (unsigned char *)signed_bytes, sb_len) != 0) {
         cJSON_Delete(root); free(content);
         report_fatal_error_and_exit("exemption table: Ed25519 signature invalid");
     }
-    /* Load entries */
     cJSON *entries = cJSON_GetObjectItem(root, "entries");
     if (entries) {
         int sz = cJSON_GetArraySize(entries);

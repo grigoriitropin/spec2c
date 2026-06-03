@@ -158,6 +158,7 @@ execute_command_with_argument_list
 extract_config_keys_from_json
 extract_json_field_string_value
 extract_pattern_fields_from_json
+extract_signed_payload_bytes_from_raw
 extracted-codegen-helper-functions-here
 ffi-function-export-layer-here
 file-input-output-handler-code
