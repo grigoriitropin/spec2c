@@ -299,3 +299,4 @@ check_token_banned_word_test
 validate_ipm_naming_compliance_check
 banned_word_json_tree_scanner
 validate_ipm_structure_limits_check
+validate_ipm_root_node_fields

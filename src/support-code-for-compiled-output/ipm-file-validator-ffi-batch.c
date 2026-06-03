@@ -92,6 +92,35 @@ static int validate_ipm_structure_limits_check(cJSON *node, int depth, char *err
     return 1;
 }
 
+static const char *validate_ipm_root_node_fields(cJSON *root, char *err, size_t esz) {
+    cJSON *desc = cJSON_GetObjectItemCaseSensitive(root, "description");
+    if (!desc || !cJSON_IsString(desc) || !desc->valuestring[0])
+        return "missing description";
+    cJSON *cli = cJSON_GetObjectItemCaseSensitive(root, "cli_flags");
+    if (cli && cJSON_IsArray(cli)) {
+        cJSON *help = cJSON_GetObjectItemCaseSensitive(root, "help_text");
+        if (!help || !cJSON_IsObject(help)) return "cli_flags without help_text";
+        for (int fi = 0; fi < cJSON_GetArraySize(cli); fi++) {
+            cJSON *flag = cJSON_GetArrayItem(cli, fi);
+            if (!cJSON_IsString(flag)) continue;
+            if (!cJSON_GetObjectItemCaseSensitive(help, flag->valuestring)) {
+                snprintf(err, esz, "flag '%s' not in help_text", flag->valuestring);
+                return err;
+            }
+        }
+    }
+    cJSON *funcs = cJSON_GetObjectItemCaseSensitive(root, "function_definitions");
+    cJSON *imps = cJSON_GetObjectItemCaseSensitive(root, "imports");
+    int has_imp = imps && cJSON_IsArray(imps) && cJSON_GetArraySize(imps) > 0;
+    if (funcs && cJSON_IsObject(funcs) && !has_imp) {
+        int mc = 0;
+        cJSON *fn = funcs->child;
+        while (fn) { if (!strcmp(fn->string, "main")) mc++; fn = fn->next; }
+        if (mc != 1) return "need exactly 1 main()";
+    }
+    return NULL;
+}
+
 const char *check_ipm_file_validation_ffi(const char *path) {
     static char err[512];
     char *content = read_entire_file_into_string(path);
@@ -125,39 +154,9 @@ const char *check_ipm_file_validation_ffi(const char *path) {
     if (!validate_ipm_structure_limits_check(root, 0, err, sizeof(err)))
         { cJSON_Delete(root); return err; }
 
-    /* description required */
-    cJSON *desc = cJSON_GetObjectItemCaseSensitive(root, "description");
-    if (!desc || !cJSON_IsString(desc) || !desc->valuestring[0])
-        { cJSON_Delete(root); return "missing description"; }
-
-    /* CLI flags check */
-    cJSON *cli = cJSON_GetObjectItemCaseSensitive(root, "cli_flags");
-    if (cli && cJSON_IsArray(cli)) {
-        cJSON *help = cJSON_GetObjectItemCaseSensitive(root, "help_text");
-        if (!help || !cJSON_IsObject(help))
-            { cJSON_Delete(root); return "cli_flags without help_text"; }
-        for (int fi = 0; fi < cJSON_GetArraySize(cli); fi++) {
-            cJSON *flag = cJSON_GetArrayItem(cli, fi);
-            if (!cJSON_IsString(flag)) continue;
-            if (!cJSON_GetObjectItemCaseSensitive(help, flag->valuestring))
-                { snprintf(err, sizeof(err), "flag '%s' not in help_text", flag->valuestring);
-                  cJSON_Delete(root); return err; }
-        }
-    }
-
-    /* dead code check (if no imports) */
-    cJSON *imps = cJSON_GetObjectItemCaseSensitive(root, "imports");
-    int has_imports = imps && cJSON_IsArray(imps) && cJSON_GetArraySize(imps) > 0;
-    if (funcs && cJSON_IsObject(funcs) && !has_imports) {
-        int main_cnt = 0;
-        cJSON *fn = funcs->child;
-        while (fn) {
-            if (!strcmp(fn->string, "main")) main_cnt++;
-            fn = fn->next;
-        }
-        if (main_cnt != 1)
-            { cJSON_Delete(root); return "need exactly 1 main()"; }
-    }
+    /* root-level field checks */
+    const char *field_err = validate_ipm_root_node_fields(root, err, sizeof(err));
+    if (field_err) { cJSON_Delete(root); return field_err; }
 
     cJSON_Delete(root);
     return NULL;
