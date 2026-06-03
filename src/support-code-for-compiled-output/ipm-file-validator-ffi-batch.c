@@ -92,7 +92,7 @@ static int check_ipm_structure_ffi(cJSON *node, int depth, char *err, size_t esz
     return 1;
 }
 
-const char *validate_ipm_file_ffi(const char *path) {
+const char *check_ipm_file_validation_ffi(const char *path) {
     static char err[512];
     char *content = read_entire_file_into_string(path);
     if (!content) return NULL;

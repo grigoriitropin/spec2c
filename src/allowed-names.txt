@@ -292,5 +292,6 @@ check_function_length_limit_ffi
 check_files_per_directory_ffi
 structural-rule-checker-batch-two
 ipm-file-validator-ffi-batch
-validate_ipm_file_ffi
+check_ipm_file_validation_ffi
 ipm-file-validator-ffi-batch
+check_ipm_file_validation_ffi
