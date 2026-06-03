@@ -347,6 +347,7 @@ static void scan_source_for_undocumented_flags(const char *srcdir) {
     }
     check_flags(srcdir);
 }
+
 int main(int argc, char **argv) {
     const char *src_dir = "./src";
     for (int i = 1; i < argc; i++) {

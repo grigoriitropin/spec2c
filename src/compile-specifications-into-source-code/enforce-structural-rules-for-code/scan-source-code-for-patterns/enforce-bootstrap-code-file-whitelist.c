@@ -99,47 +99,5 @@ void enforce_bootstrap_code_freeze_check(const char *srcdir) {
             exit(1);
         }
     }
-
-void display_current_source_structure_report(const char *srcdir) {
-    DIR *d = opendir(srcdir);
-    if (!d) { fprintf(stderr, "cannot open %s\n", srcdir); return; }
-    struct dirent *de;
-    while ((de = readdir(d)) != NULL) {
-        if (de->d_name[0] == '.') continue;
-        char sub[4096]; snprintf(sub, sizeof(sub), "%s/%s", srcdir, de->d_name);
-        struct stat st; if (stat(sub, &st) != 0) continue;
-        if (S_ISDIR(st.st_mode)) { display_current_source_structure_report(sub); continue; }
-        if (!match_source_code_header_filename(de->d_name)) continue;
-        int total_lines = count_lines_within_source_file(sub);
-        printf("%s: %d lines\n", sub, total_lines);
-        FILE *f = fopen(sub, "r");
-        if (f) {
-            char line[1024];
-            int in_func = 0, func_lines = 0;
-            brace_state_t bstate; clear_brace_tracking_for_function(&bstate);
-            char func_name[128] = {0};
-            while (fgets(line, sizeof(line), f)) {
-                if (!in_func) {
-                    if (detect_function_definition_start_line(line)) {
-                        pull_function_name_from_definition(line, func_name, 128);
-                        if (!func_name[0]) continue;
-                        in_func = 1; func_lines = 1;
-                        clear_brace_tracking_for_function(&bstate); count_open_close_brace_pairs(line, &bstate);
-                        if (bstate.depth <= 0) { printf("  func: %s (%dL)\n", func_name, func_lines); in_func = 0; }
-                        continue;
-                    }
-                }
-                if (in_func) {
-                    func_lines++;
-                    count_open_close_brace_pairs(line, &bstate);
-                    if (bstate.depth <= 0) { printf("  func: %s (%dL)\n", func_name, func_lines); in_func = 0; }
-                }
-            }
-            fclose(f);
-        }
-    }
-    closedir(d);
-}
-
 }
 // rebuild
