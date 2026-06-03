@@ -4,6 +4,8 @@
 #include "shared-type-declarations-across-modules/share-type-definitions-across-files.h"
 #include "shared-type-declarations-across-modules/soul-rules-for-naming-validation.h"
 
+extern int match_type_against_strict_whitelist(const char *t);
+
 const char *extract_json_field_string_value(const cJSON *obj, const char *key) {
     const cJSON *v = cJSON_GetObjectItemCaseSensitive(obj, key);
     if (!v || !cJSON_IsString(v)) return "";
