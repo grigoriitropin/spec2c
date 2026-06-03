@@ -122,7 +122,11 @@ static void check_line_density_within_source(const char *line, const char *sub, 
             if (*p == '*' && *(p+1) == '/') { in_comment = 0; p++; }
             continue;
         }
-        if (!in_str && !in_char && *p == '/' && *(p+1) == '*') { in_comment = 1; p++; continue; }
+        if (!in_str && !in_char && *p == '/' && *(p+1) == '*') {
+            in_comment = 1;
+            p++;
+            continue;
+        }
         if (!in_str && !in_char && *p == '/' && *(p+1) == '/') break;
         if (*p == '\\' && *(p+1) != '\0') { p++; continue; }
         if (!in_char && *p == '"') in_str = !in_str;
