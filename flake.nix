@@ -118,8 +118,6 @@
         buildPhase = ''
           runHook preBuild
           spec2c check-banned-patterns-pure-ipm.ipm > dfa.c
-          sed -i "s/int main(/void execute_dfa_banned_patterns(/" dfa.c
-          sed -i "s/int argc, char \*\*argv/const char *content/" dfa.c
           sed -i "/^{.ok/d" dfa.c
           sed -i "/check-banned-patterns-pure-ipm.h/d" dfa.c
           sed -i "1i#include <stdint.h>" dfa.c
