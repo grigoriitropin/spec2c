@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
-// bootstrap C whitelist + freeze limits enforcement
+// bootstrap C whitelist + freeze limits — LIMITS COMPILED INTO BINARY
 #include "verify-structural-source-code-rules.h"
+#include "bootstrap-freeze-limits-generated.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,14 +11,6 @@
 
 static char whitelist_names[64][128];
 static int whitelist_count_now;
-
-typedef struct {
-    char name[128];
-    int max_lines;
-    int max_funcs;
-} freeze_t;
-static freeze_t freeze_limits[64];
-static int freeze_count;
 
 void load_bootstrap_whitelist_from_disk(const char *srcdir) {
     char path[4096]; snprintf(path, sizeof(path), "%s/bootstrap-c-whitelist.txt", srcdir);
@@ -32,23 +25,6 @@ void load_bootstrap_whitelist_from_disk(const char *srcdir) {
             { snprintf(whitelist_names[whitelist_count_now], 128, "%s", line); whitelist_count_now++; }
     }
     fclose(f);
-
-    snprintf(path, sizeof(path), "%s/bootstrap-c-freeze-limits.txt", srcdir);
-    f = fopen(path, "r");
-    if (!f) return;
-    char name[128]; int ml, mf;
-    while (fgets(line, sizeof(line), f) && freeze_count < 64) {
-        size_t l = strlen(line);
-        while (l > 0 && (line[l-1] == '\n' || line[l-1] == '\r')) line[--l] = 0;
-        if (l == 0 || line[0] == '#') continue;
-        if (sscanf(line, "%127s %d %d", name, &ml, &mf) == 3) {
-            snprintf(freeze_limits[freeze_count].name, 128, "%s", name);
-            freeze_limits[freeze_count].max_lines = ml;
-            freeze_limits[freeze_count].max_funcs = mf;
-            freeze_count++;
-        }
-    }
-    fclose(f);
 }
 
 int match_name_against_bootstrap_list(const char *basename) {
@@ -59,7 +35,7 @@ int match_name_against_bootstrap_list(const char *basename) {
     return 0;
 }
 
-/* find a file by basename anywhere under dpath, fill found_path */
+/* find a file by basename anywhere under dpath */
 static int search_file_using_name_recursive(const char *dpath, const char *target, char *out, size_t outsz) {
     DIR *d = opendir(dpath);
     if (!d) return 0;
@@ -83,20 +59,21 @@ static int search_file_using_name_recursive(const char *dpath, const char *targe
     return 0;
 }
 
+/* freeze check: limits are COMPILED INTO THE BINARY, not read from a file */
 void enforce_bootstrap_code_freeze_check(const char *srcdir) {
-    for (int i = 0; i < freeze_count; i++) {
+    for (int i = 0; i < BOOTSTRAP_FREEZE_COUNT; i++) {
         char found[8192] = {0};
-        if (!search_file_using_name_recursive(srcdir, freeze_limits[i].name, found, sizeof(found)))
+        if (!search_file_using_name_recursive(srcdir, freeze_file_names[i], found, sizeof(found)))
             continue;
         FILE *f2 = fopen(found, "r");
         if (!f2) continue;
         int lines = 0, ch;
         while ((ch = fgetc(f2)) != EOF) if (ch == '\n') lines++;
         fclose(f2);
-        if (lines > freeze_limits[i].max_lines) {
+        if (lines > freeze_max_lines[i]) {
             fprintf(stderr, "spec2c: SOUL §7: bootstrap file %s grew from %d to %d lines — C bootstrap is frozen\n"
-                "  → rewrite the added functionality as an IPM module\n",
-                freeze_limits[i].name, freeze_limits[i].max_lines, lines);
+                "  → limits are compiled into the binary, rewrite as IPM module\n",
+                freeze_file_names[i], freeze_max_lines[i], lines);
             exit(1);
         }
     }
