@@ -87,6 +87,7 @@
             ${S}/parse-legacy-specification-file-format/parse-old-format-specification-data.c \
             ${S}/codegen-instruction-handler-function-set/emit-variable-declaration-handler-function.c \
             ${S}/codegen-instruction-handler-function-set/ipm-handler-code-generated-output.c \
+            ${S}/codegen-instruction-handler-function-set/ipm-handler-file-io-code-generated.c \
             ${builtins.toString runtime_src} \
             -o spec2c -lcjson
 

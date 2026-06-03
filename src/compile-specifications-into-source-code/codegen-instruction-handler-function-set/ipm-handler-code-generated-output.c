@@ -1,10 +1,7 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <cjson/cJSON.h>
 
 
 // @ipm:spec-handler-definition-compendium-one:emit_json_field_access_handler
+void emit_json_field_access_handler(cJSON * inst, FILE * out, int indent, char * return_type) {
 void emit_json_field_access_handler(cJSON * inst, FILE * out, int indent, char * return_type) {
   const char *vn = cJSON_GetObjectItemCaseSensitive(inst,"variable_name") ? cJSON_GetObjectItemCaseSensitive(inst,"variable_name")->valuestring : "";
   const char *vt = cJSON_GetObjectItemCaseSensitive(inst,"variable_type") ? cJSON_GetObjectItemCaseSensitive(inst,"variable_type")->valuestring : "";
@@ -22,10 +19,12 @@ void emit_json_field_access_handler(cJSON * inst, FILE * out, int indent, char *
 
 // @ipm:spec-handler-definition-compendium-one:emit_return_statement_handler_code
 void emit_return_statement_handler_code(cJSON * inst, FILE * out, int indent, char * return_type) {
+void emit_return_statement_handler_code(cJSON * inst, FILE * out, int indent, char * return_type) {
   fprintf(out, "return 0;\n");
 }
 
 // @ipm:spec-handler-definition-compendium-one:emit_function_invocation_handler_code
+void emit_function_invocation_handler_code(cJSON * inst, FILE * out, int indent, char * return_type) {
 void emit_function_invocation_handler_code(cJSON * inst, FILE * out, int indent, char * return_type) {
   const char *fn = cJSON_GetObjectItemCaseSensitive(inst,"invocation_name") ? cJSON_GetObjectItemCaseSensitive(inst,"invocation_name")->valuestring : "";
   const char *rv = cJSON_GetObjectItemCaseSensitive(inst,"result_assignment_variable") ? cJSON_GetObjectItemCaseSensitive(inst,"result_assignment_variable")->valuestring : "";
@@ -41,6 +40,7 @@ void emit_function_invocation_handler_code(cJSON * inst, FILE * out, int indent,
 
 // @ipm:spec-handler-definition-compendium-one:emit_iterate_collection_handler_code
 void emit_iterate_collection_handler_code(cJSON * inst, FILE * out, int indent, char * return_type) {
+void emit_iterate_collection_handler_code(cJSON * inst, FILE * out, int indent, char * return_type) {
   const char *col = cJSON_GetObjectItemCaseSensitive(inst,"collection_variable") ? cJSON_GetObjectItemCaseSensitive(inst,"collection_variable")->valuestring : "";
   const char *itm = cJSON_GetObjectItemCaseSensitive(inst,"item_variable") ? cJSON_GetObjectItemCaseSensitive(inst,"item_variable")->valuestring : "";
   if (col != NULL) {
@@ -54,6 +54,7 @@ void emit_iterate_collection_handler_code(cJSON * inst, FILE * out, int indent, 
 }
 
 // @ipm:spec-handler-definition-compendium-one:emit_object_keys_iterate_handler
+void emit_object_keys_iterate_handler(cJSON * inst, FILE * out, int indent, char * return_type) {
 void emit_object_keys_iterate_handler(cJSON * inst, FILE * out, int indent, char * return_type) {
   const char *col = cJSON_GetObjectItemCaseSensitive(inst,"collection_variable") ? cJSON_GetObjectItemCaseSensitive(inst,"collection_variable")->valuestring : "";
   const char *key = cJSON_GetObjectItemCaseSensitive(inst,"key_variable") ? cJSON_GetObjectItemCaseSensitive(inst,"key_variable")->valuestring : "";
@@ -70,6 +71,7 @@ void emit_object_keys_iterate_handler(cJSON * inst, FILE * out, int indent, char
 
 // @ipm:spec-handler-definition-compendium-one:emit_tokenizer_loop_handler_code
 void emit_tokenizer_loop_handler_code(cJSON * inst, FILE * out, int indent, char * return_type) {
+void emit_tokenizer_loop_handler_code(cJSON * inst, FILE * out, int indent, char * return_type) {
   const char *src = cJSON_GetObjectItemCaseSensitive(inst,"source_string") ? cJSON_GetObjectItemCaseSensitive(inst,"source_string")->valuestring : "";
   const char *sep = cJSON_GetObjectItemCaseSensitive(inst,"separator") ? cJSON_GetObjectItemCaseSensitive(inst,"separator")->valuestring : "";
   const char *tok = cJSON_GetObjectItemCaseSensitive(inst,"token_variable") ? cJSON_GetObjectItemCaseSensitive(inst,"token_variable")->valuestring : "";
@@ -85,6 +87,7 @@ void emit_tokenizer_loop_handler_code(cJSON * inst, FILE * out, int indent, char
 
 // @ipm:spec-handler-definition-compendium-one:emit_count_loop_handler_code
 void emit_count_loop_handler_code(cJSON * inst, FILE * out, int indent, char * return_type) {
+void emit_count_loop_handler_code(cJSON * inst, FILE * out, int indent, char * return_type) {
   const char *cv = cJSON_GetObjectItemCaseSensitive(inst,"counter_variable") ? cJSON_GetObjectItemCaseSensitive(inst,"counter_variable")->valuestring : "";
   const char *lv = cJSON_GetObjectItemCaseSensitive(inst,"limit_variable") ? cJSON_GetObjectItemCaseSensitive(inst,"limit_variable")->valuestring : "";
   if (cv != NULL) {
@@ -98,6 +101,7 @@ void emit_count_loop_handler_code(cJSON * inst, FILE * out, int indent, char * r
 }
 
 // @ipm:spec-handler-definition-compendium-one:emit_branch_condition_handler_code
+void emit_branch_condition_handler_code(cJSON * inst, FILE * out, int indent, char * return_type) {
 void emit_branch_condition_handler_code(cJSON * inst, FILE * out, int indent, char * return_type) {
   const char *op = cJSON_GetObjectItemCaseSensitive(inst,"condition_operation") ? cJSON_GetObjectItemCaseSensitive(inst,"condition_operation")->valuestring : "";
   const char *tgt = cJSON_GetObjectItemCaseSensitive(inst,"condition_target") ? cJSON_GetObjectItemCaseSensitive(inst,"condition_target")->valuestring : "";
@@ -120,6 +124,7 @@ void emit_branch_condition_handler_code(cJSON * inst, FILE * out, int indent, ch
 
 // @ipm:spec-handler-definition-compendium-one:emit_variable_decl_handler_code
 void emit_variable_decl_handler_code(cJSON * inst, FILE * out, int indent, char * return_type) {
+void emit_variable_decl_handler_code(cJSON * inst, FILE * out, int indent, char * return_type) {
   const char *vn = cJSON_GetObjectItemCaseSensitive(inst,"variable_name") ? cJSON_GetObjectItemCaseSensitive(inst,"variable_name")->valuestring : "";
   const char *vt = cJSON_GetObjectItemCaseSensitive(inst,"variable_type") ? cJSON_GetObjectItemCaseSensitive(inst,"variable_type")->valuestring : "";
   const char *op = cJSON_GetObjectItemCaseSensitive(inst,"assignment_operation") ? cJSON_GetObjectItemCaseSensitive(inst,"assignment_operation")->valuestring : "";
@@ -140,36 +145,3 @@ void emit_variable_decl_handler_code(cJSON * inst, FILE * out, int indent, char 
 }
 
 
-// @ipm:handler-file-input-output-scanning:emit_read_file_content_handler
-void emit_read_file_content_handler(cJSON * inst, FILE * out, int indent, char * return_type) {
-  const char *fp = cJSON_GetObjectItemCaseSensitive(inst,"file_path") ? cJSON_GetObjectItemCaseSensitive(inst,"file_path")->valuestring : "";
-  const char *rv = cJSON_GetObjectItemCaseSensitive(inst,"result_variable") ? cJSON_GetObjectItemCaseSensitive(inst,"result_variable")->valuestring : "";
-  if (fp != NULL) {
-  cJSON *bon = cJSON_GetObjectItemCaseSensitive(inst, "branch_on_success");
-  if (bon) generate_code_from_ast_instructions(bon, out, indent + 1, return_type);
-} else {
-  cJSON *bof = cJSON_GetObjectItemCaseSensitive(inst, "branch_on_failure");
-  if (bof) generate_code_from_ast_instructions(bof, out, indent + 1, return_type);
-}
-  return;
-}
-
-// @ipm:handler-file-input-output-scanning:emit_scan_directory_entries_handler
-void emit_scan_directory_entries_handler(cJSON * inst, FILE * out, int indent, char * return_type) {
-  const char *dp = cJSON_GetObjectItemCaseSensitive(inst,"directory_path") ? cJSON_GetObjectItemCaseSensitive(inst,"directory_path")->valuestring : "";
-  const char *ev = cJSON_GetObjectItemCaseSensitive(inst,"entry_variable") ? cJSON_GetObjectItemCaseSensitive(inst,"entry_variable")->valuestring : "";
-  const char *nv = cJSON_GetObjectItemCaseSensitive(inst,"name_variable") ? cJSON_GetObjectItemCaseSensitive(inst,"name_variable")->valuestring : "";
-  if (dp != NULL) {
-  cJSON *bon = cJSON_GetObjectItemCaseSensitive(inst, "branch_on_success");
-  if (bon) generate_code_from_ast_instructions(bon, out, indent + 1, return_type);
-} else {
-  cJSON *bof = cJSON_GetObjectItemCaseSensitive(inst, "branch_on_failure");
-  if (bof) generate_code_from_ast_instructions(bof, out, indent + 1, return_type);
-}
-  return;
-}
-
-
-/* Auto-generated entry point */
-    return emit_read_file_content_handler();
-}
