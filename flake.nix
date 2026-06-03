@@ -119,7 +119,7 @@
           runHook preBuild
 
           # ── Step 1: Build library modules ─────────────────
-          mkdir -p dfa_obj density_obj
+          mkdir -p dfa_obj density_obj path_obj
 
           # DFA banned patterns
           spec2c check-banned-patterns-pure-ipm.ipm --library -o dfa_obj/dfa.c
@@ -141,6 +141,18 @@
             -Isrc/support-code-for-compiled-output \
             -c density_obj/density.c -o density_obj/density.o
 
+          # Hardcoded path detector
+          spec2c modules/rules/detect-any-hardcoded-filesystem-paths.ipm --library -o path_obj/path.c
+          sed -i '/^{"ok"/d' path_obj/path.c
+          sed -i 's/void detect_any_hardcoded_filesystem_paths/int detect_any_hardcoded_filesystem_paths/' path_obj/check_each_line_token_density.h 2>/dev/null || true
+          sed -i 's/void detect_any_hardcoded_filesystem_paths/int detect_any_hardcoded_filesystem_paths/' path_obj/detect_any_hardcoded_filesystem_paths.h 2>/dev/null || true
+          sed -i 's/(char \* path)/(const char *path)/g' path_obj/path.c 2>/dev/null || true
+          sed -i 's/const char \*_name = "[^"]*";//' path_obj/path.c 2>/dev/null || true
+          $CC ${builtins.toString cflags} \
+            -Isrc -I${S} -I${S}/shared-type-declarations-across-modules \
+            -Isrc/support-code-for-compiled-output \
+            -c path_obj/path.c -o path_obj/path.o
+
           # ── Step 2: Build IPM enforcer executable ────────
           spec2c enforce-naming-rules-via-ffi.ipm > ipm_enforce_gen.c
           sed -i '/^{"ok"/d' ipm_enforce_gen.c
@@ -158,8 +170,10 @@
           sed -i '/const char \*err/!s/char \* *err =/const char *err =/' ipm_enforce_gen.c
           sed -i 's/char \*err0 =/const char *err0 =/' ipm_enforce_gen.c
           sed -i 's/char \*err2 =/const char *err2 =/' ipm_enforce_gen.c
-          sed -i 's/char \*err2 =/const char *err2 =/' ipm_enforce_gen.c
-          sed -i 's/char \*err3 =/const char *err3 =/' ipm_enforce_gen.c
+          sed -i 's/char \*err2 =/int err2 =/' ipm_enforce_gen.c
+          sed -i 's/if (err2 != NULL)/if (err2)/' ipm_enforce_gen.c
+          sed -i 's/char \*err3 =/int err3 =/' ipm_enforce_gen.c
+          sed -i 's/if (err3 != NULL)/if (err3)/' ipm_enforce_gen.c
           sed -i 's/if (err3 != NULL)/if (err3)/' ipm_enforce_gen.c
           sed -i '/const char \*err =/!s/char \*err =/const char *err =/' ipm_enforce_gen.c
           sed -i '/const char \*err =/!s/char \*err =/const char *err =/' ipm_enforce_gen.c
@@ -185,6 +199,7 @@
             src/support-code-for-compiled-output/dead-code-header-check-batch/dead-code-header-check-batch.c \
             dfa_obj/dfa.o \
             density_obj/density.o \
+            path_obj/path.o \
             ipm_enforce_gen.c \
             -o ipm-enforce -lcjson
 
