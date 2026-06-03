@@ -69,7 +69,7 @@ static char fn_names[512][128];
 static char fn_files[512][256];
 static int  fn_total;
 
-static void store_function_definition_at_path(const char *path, const char *name) {
+static void store_function_definition_into_path(const char *path, const char *name) {
     (void)name;
     char *c = read_entire_file_into_string(path); if (!c) return;
     char *line = c, *next;
@@ -97,7 +97,7 @@ static void store_function_definition_at_path(const char *path, const char *name
 }
 
 const char *check_dead_code_across_files(const char *dirpath) {
-    fn_total = 0; iterate_source_files_with_callback(dirpath, store_function_definition_at_path);
+    fn_total = 0; iterate_source_files_with_callback(dirpath, store_function_definition_into_path);
     for (int i = 0; i < fn_total; i++) {
         if (!strcmp(fn_names[i], "main")) continue;
         int called = 0;
