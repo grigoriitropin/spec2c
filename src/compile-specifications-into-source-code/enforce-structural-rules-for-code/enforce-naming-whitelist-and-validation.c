@@ -235,6 +235,10 @@ static int validate_single_whitelist_entry_name(const char *line) {
 void read_allowed_names_from_file(const char *srcdir) {
     char path[4096]; snprintf(path, sizeof(path), "%s/allowed-names.txt", srcdir);
     FILE *f = fopen(path, "r");
+    if (!f) {
+        snprintf(path, sizeof(path), "%s/src/allowed-names.txt", srcdir);
+        f = fopen(path, "r");
+    }
     if (!f) report_fatal_error_and_exit("cannot open allowed-names.txt\n"
         "  → create it with one valid 5-word name per line");
     char line[256];
@@ -277,6 +281,10 @@ int banned_patterns_count;
 void read_banned_patterns_from_file(const char *srcdir) {
     char path[4096]; snprintf(path, sizeof(path), "%s/banned-patterns.txt", srcdir);
     FILE *f = fopen(path, "r");
+    if (!f) {
+        snprintf(path, sizeof(path), "%s/src/banned-patterns.txt", srcdir);
+        f = fopen(path, "r");
+    }
     if (!f) report_fatal_error_and_exit("cannot open banned-patterns.txt\n"
         "  → create it with one banned pattern per line (goto, setjmp, etc.)");
     char line[64];
