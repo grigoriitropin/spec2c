@@ -195,3 +195,5 @@ emit_iterate_code_into_output
 emit_dbexec_code_into_output
 emit_invocation_code_into_output
 check_ipm_ast_structure_depth
+check_ipm_imports_against_whitelist
+load_ipm_import_whitelist_file
