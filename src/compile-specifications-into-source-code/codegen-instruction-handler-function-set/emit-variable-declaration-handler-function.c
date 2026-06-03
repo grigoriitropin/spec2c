@@ -151,7 +151,7 @@ void emit_variable_declaration_into_output(cJSON *inst, FILE *out, int indent, c
     }
 }
 
-static void emit_string_tokenizer_loop_into_output(cJSON *inst, FILE *out, int indent, const char *return_type) {
+static void emit_strtok_loop_into_code(cJSON *inst, FILE *out, int indent, const char *return_type) {
     (void)return_type;
     const char *src = extract_json_field_string_value(inst, "source_string");
     const char *sep = extract_json_field_string_value(inst, "separator");
@@ -168,7 +168,7 @@ static void emit_string_tokenizer_loop_into_output(cJSON *inst, FILE *out, int i
     fprintf(out, "}\n");
 }
 
-static void emit_for_count_loop_into_output(cJSON *inst, FILE *out, int indent, const char *return_type) {
+static void emit_count_loop_into_code(cJSON *inst, FILE *out, int indent, const char *return_type) {
     (void)return_type;
     const char *cv = extract_json_field_string_value(inst, "counter_variable");
     const char *lv = extract_json_field_string_value(inst, "limit_variable");
@@ -217,12 +217,12 @@ static const instr_dispatch_t INSTR_HANDLERS[] = {
     {"access_json_field",              emit_field_access_into_output},
     {"conditional_branch",             emit_branch_code_into_output},
     {"database_execute_parameterized", emit_dbexec_code_into_output},
-    {"for_count_loop",                 emit_for_count_loop_into_output},
+    {"for_count_loop",                 emit_count_loop_into_code},
     {"function_invocation",            emit_invocation_code_into_output},
     {"iterate_over_collection",        emit_iterate_code_into_output},
     {"iterate_over_object_keys",       emit_iterate_code_into_output},
     {"return_statement",               emit_return_code_into_output},
-    {"string_tokenizer_loop",          emit_string_tokenizer_loop_into_output},
+    {"string_tokenizer_loop",          emit_strtok_loop_into_code},
     {"variable_declaration",           emit_variable_declaration_into_output},
     {NULL, NULL}
 };
