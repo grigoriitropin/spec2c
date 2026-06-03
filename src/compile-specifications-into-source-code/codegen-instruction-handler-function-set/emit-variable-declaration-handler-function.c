@@ -151,6 +151,34 @@ void emit_variable_declaration_into_output(cJSON *inst, FILE *out, int indent, c
     }
 }
 
+static void emit_string_tokenizer_loop_into_output(cJSON *inst, FILE *out, int indent, const char *return_type) {
+    (void)return_type;
+    const char *src = extract_json_field_string_value(inst, "source_string");
+    const char *sep = extract_json_field_string_value(inst, "separator");
+    const char *tok = extract_json_field_string_value(inst, "token_variable");
+    cJSON *body = cJSON_GetObjectItemCaseSensitive(inst, "body_instructions");
+    if (!src[0] || !sep[0] || !tok[0] || !body) return;
+    fprintf(out, "{\n");
+    fprintf(out, "  char _buf[256]; snprintf(_buf, sizeof(_buf), \"%%s\", %s);\n", src);
+    fprintf(out, "  char *_save;\n");
+    fprintf(out, "  for (char *_t = strtok_r(_buf, \"%s\", &_save); _t; _t = strtok_r(NULL, \"%s\", &_save)) {\n", sep, sep);
+    fprintf(out, "    const char *%s = _t;\n", tok);
+    generate_code_from_ast_instructions(body, out, indent + 1, return_type);
+    fprintf(out, "  }\n");
+    fprintf(out, "}\n");
+}
+
+static void emit_for_count_loop_into_output(cJSON *inst, FILE *out, int indent, const char *return_type) {
+    (void)return_type;
+    const char *cv = extract_json_field_string_value(inst, "counter_variable");
+    const char *lv = extract_json_field_string_value(inst, "limit_variable");
+    cJSON *body = cJSON_GetObjectItemCaseSensitive(inst, "body_instructions");
+    if (!cv[0] || !lv[0] || !body) return;
+    fprintf(out, "for (int %s = 0; %s < %s; %s++) {\n", cv, cv, lv, cv);
+    generate_code_from_ast_instructions(body, out, indent + 1, return_type);
+    fprintf(out, "}\n");
+}
+
 static void emit_invocation_code_into_output(cJSON *inst, FILE *out, int indent, const char *rt) {
     (void)rt; emit_function_invocation_code_block(inst, out, indent);
 }
@@ -189,10 +217,12 @@ static const instr_dispatch_t INSTR_HANDLERS[] = {
     {"access_json_field",              emit_field_access_into_output},
     {"conditional_branch",             emit_branch_code_into_output},
     {"database_execute_parameterized", emit_dbexec_code_into_output},
+    {"for_count_loop",                 emit_for_count_loop_into_output},
     {"function_invocation",            emit_invocation_code_into_output},
     {"iterate_over_collection",        emit_iterate_code_into_output},
     {"iterate_over_object_keys",       emit_iterate_code_into_output},
     {"return_statement",               emit_return_code_into_output},
+    {"string_tokenizer_loop",          emit_string_tokenizer_loop_into_output},
     {"variable_declaration",           emit_variable_declaration_into_output},
     {NULL, NULL}
 };
