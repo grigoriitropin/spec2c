@@ -316,8 +316,12 @@ void enforce_all_source_code_rules(const char *srcdir) {
                     continue;
                 }
             }
-            if (!match_name_against_bootstrap_list(de->d_name) && !is_ipm)
-                report_violation_with_actionable_hint(ERR_NOT_IN_BOOTSTRAP_WHITELIST, sub, 0, 0, NULL);
+            if (!match_name_against_bootstrap_list(de->d_name)) {
+                size_t dn_len2 = strlen(de->d_name);
+                int is_ipm2 = dn_len2 > 4 && !strcmp(de->d_name + dn_len2 - 4, ".ipm");
+                if (!is_ipm2)
+                    report_violation_with_actionable_hint(ERR_NOT_IN_BOOTSTRAP_WHITELIST, sub, 0, 0, NULL);
+            }
             file_cnt++;
             char fname[256]; snprintf(fname, sizeof(fname), "%s", de->d_name);
             char *dot = strrchr(fname, '.'); if (dot) *dot = 0;
