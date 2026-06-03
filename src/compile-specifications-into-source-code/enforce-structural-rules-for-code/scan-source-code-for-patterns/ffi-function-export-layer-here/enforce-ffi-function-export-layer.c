@@ -1,7 +1,10 @@
 // enforce-ffi-exports.c — thin FFI wrappers for IPM enforcer
-// Each function returns non-zero/error-string on violation, 0/NULL on pass
-#include "runtime-for-generated-ipm-code.h"
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <cjson/cJSON.h>
+
+extern char *read_entire_file_into_string(const char *path);
 
 /* ── Naming ─────────────────────────────────────────────────────────── */
 
