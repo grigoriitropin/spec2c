@@ -282,3 +282,7 @@ verify_file_line_density_count
 verify_file_line_density_count
 ffi-function-export-layer-here
 enforce-ffi-function-export-layer
+enforce-fixture-banned-keyword-here
+enforce-fixture-hardcoded-path-here
+enforce-fixture-line-count-over
+enforce-fixture-line-too-dense

@@ -1,5 +1,5 @@
 // AUTO-GENERATED — SHA256 hashes of bootstrap files, compiled into binary
-#define BOOTSTRAP_HASH_COUNT 33
+#define BOOTSTRAP_HASH_COUNT 34
 static const char *hash_file_names[] = {
     "buffer-output-and-command-launch.c",
     "check-source-conformance-entry-point.c",
@@ -34,6 +34,7 @@ static const char *hash_file_names[] = {
     "check-naming-rules-for-ffi.c",
     "validate-type-name-against-whitelist.c",
     "ffi-function-export-layer-here/enforce-ffi-function-export-layer.c",
+    "check-structural-rules-ffi-batch-two.c",
 };
 static const char *hash_sha256_values[] = {
     "4d88b5954a0a470f8afa1a82685616a3888f440fe8b0c6cdd1f58335295fcfad",
@@ -69,6 +70,7 @@ static const char *hash_sha256_values[] = {
     "420149155815c5e6906b2dce5b9268beb73e28b5a6f6b9da9209f3f2984b4917",
     "7bb13dac6024df402ccc6488a95431312264a1a57b37180ab8a4e17b688b117c",
     "0000000000000000000000000000000000000000000000000000000000000000",
+    "7bda06d21b5747b8382bd965870e0655c8dae6de8c52ee4d02a9257f00a4a3d4",
 };
 static const int hash_max_lines[] = {
     70,
@@ -98,6 +100,7 @@ static const int hash_max_lines[] = {
     53,
     421,
     37,
+    0,
     0,
     0,
     0,

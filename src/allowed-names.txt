@@ -286,3 +286,7 @@ check_banned_pattern_inside_file
 check_hardcoded_path_inside_file
 check_line_density_inside_file
 check_file_line_limit_ffi
+check-structural-rules-ffi-batch-two
+check_function_count_limit_ffi
+check_function_length_limit_ffi
+check_files_per_directory_ffi
