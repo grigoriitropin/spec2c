@@ -325,3 +325,4 @@ match_and_increment_header_count
 store_function_definition_into_path
 match_and_increment_header_count
 store_function_definition_into_path
+scan_ipm_for_c_leak_patterns
