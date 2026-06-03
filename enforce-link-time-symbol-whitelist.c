@@ -34,8 +34,12 @@ static const char *allowed_symbols[] = {
     // libc functions used by spec2c/ipm-enforce/checker (operation-critical only):
     "memcpy", "memmove", "memset", "memchr", "memcmp",
     "__memcpy_chk", "__memset_chk",
+    "strcmp", "strlen", "strcat", "strcpy", "strncpy", "strncat",
     "strchr", "strrchr", "strstr", "strspn", "strcspn", "strpbrk", "strtok", "strdup", "strndup",
-    "strtol", "strtoul", "strtoll", "strtoull",
+    "snprintf", "sprintf", "printf", "fprintf", "vsnprintf", "vsprintf", "vprintf", "vfprintf",
+    "__snprintf_chk", "__sprintf_chk", "__printf_chk", "__fprintf_chk",
+    "sscanf", "__isoc23_sscanf", "strtol", "strtoul", "strtoll", "strtoull",
+    "__isoc23_strtol", "__isoc23_strtoul",
     "fopen", "fdopen", "freopen", "fclose",
     "fread", "fwrite", "fputs", "fgets", "fputc", "fgetc", "putchar", "getchar", "puts",
     "__fread_chk",
