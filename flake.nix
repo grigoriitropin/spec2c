@@ -132,8 +132,6 @@
           # Line density checker
           spec2c modules/rules/check-each-line-token-density.ipm --library -o density_obj/density.c
           sed -i '/^{"ok"/d' density_obj/density.c
-          sed -i 's/extern char \* read_entire_file_into_string(char \*/extern const char * read_entire_file_into_string(const char */' density_obj/density.c
-          sed -i 's/check_each_line_token_density(char \*/check_each_line_token_density(const char */' density_obj/density.c
           sed -i 's/void check_each_line_token_density/int check_each_line_token_density/' density_obj/check_each_line_token_density.h
           sed -i 's/const char \*_name = "[^"]*";//' density_obj/density.c
           $CC ${builtins.toString cflags} \
