@@ -119,7 +119,7 @@
           runHook preBuild
 
           # ── Step 1: Build library modules ─────────────────
-          mkdir -p dfa_obj density_obj path_obj naming_obj clex_obj
+          mkdir -p dfa_obj density_obj path_obj naming_obj clex_obj main_obj
 
           # DFA banned patterns
           spec2c check-banned-patterns-pure-ipm.ipm --library -o dfa_obj/dfa.c
@@ -177,6 +177,18 @@
             -Isrc/support-code-for-compiled-output \
             -c clex_obj/clex.c -o clex_obj/clex.o
 
+          # Main() detector
+          spec2c modules/rules/find-every-main-function-block.ipm --library -o main_obj/main.c
+          sed -i '/^{"ok"/d' main_obj/main.c
+          sed -i 's/void find_every_main_function_block/int find_every_main_function_block/' main_obj/find_every_main_function_block.h
+          sed -i 's/(char \* path)/(const char *path)/g' main_obj/main.c
+          sed -i 's/(char \* path)/(const char *path)/g' main_obj/find_every_main_function_block.h
+          sed -i 's/const char \*_name = "[^"]*";//' main_obj/main.c
+          $CC ${builtins.toString cflags} \
+            -Isrc -I${S} -I${S}/shared-type-declarations-across-modules \
+            -Isrc/support-code-for-compiled-output \
+            -c main_obj/main.c -o main_obj/main.o
+
           # ── Step 2: Build IPM enforcer executable ────────
           spec2c enforce-naming-rules-via-ffi.ipm > ipm_enforce_gen.c
           sed -i '/^{"ok"/d' ipm_enforce_gen.c
@@ -201,6 +213,8 @@
           sed -i 's/if (err3 != NULL)/if (err3)/' ipm_enforce_gen.c
           sed -i 's/char \*err5 =/int err5 =/' ipm_enforce_gen.c
           sed -i 's/if (err5 != NULL)/if (err5)/' ipm_enforce_gen.c
+          sed -i 's/char \*has_main =/int has_main =/' ipm_enforce_gen.c
+          sed -i 's/if (has_main != NULL)/if (has_main)/' ipm_enforce_gen.c
           sed -i 's/if (err3 != NULL)/if (err3)/' ipm_enforce_gen.c
           sed -i '/const char \*err =/!s/char \*err =/const char *err =/' ipm_enforce_gen.c
           sed -i '/const char \*err =/!s/char \*err =/const char *err =/' ipm_enforce_gen.c
@@ -229,6 +243,7 @@
             path_obj/path.o \
             naming_obj/naming.o \
             clex_obj/clex.o \
+            main_obj/main.o \
             ipm_enforce_gen.c \
             -o ipm-enforce -lcjson
 
