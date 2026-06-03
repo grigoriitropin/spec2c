@@ -117,12 +117,11 @@
         nativeBuildInputs = [ pkgs.pkg-config ];
         buildPhase = ''
           runHook preBuild
-
-            dfa_gen.c \
-          spec2c enforce-naming-rules-via-ffi.ipm > ipm_enforce_gen.c
-            dfa_gen.c \n          spec2c check-banned-patterns-pure-ipm.ipm > dfa_gen.c
+          spec2c check-banned-patterns-pure-ipm.ipm > dfa_gen.c
           sed -i "s/int main(/int execute_dfa_banned_patterns(/" dfa_gen.c
           sed -i "/^{.ok/d" dfa_gen.c
+
+          spec2c enforce-naming-rules-via-ffi.ipm > ipm_enforce_gen.c
           sed -i '/^{"ok"/d' ipm_enforce_gen.c
           sed -i '/"enforce-naming-rules-via-ffi.h"/d' ipm_enforce_gen.c
           sed -i '1i#include "runtime-for-generated-ipm-code.h"' ipm_enforce_gen.c
@@ -140,15 +139,6 @@
           sed -i '/const char \*err =/!s/char \*err =/const char *err =/' ipm_enforce_gen.c
           sed -i '/const char \*err =/!s/char \*err =/const char *err =/' ipm_enforce_gen.c
           sed -i 's/int errors = 0;/int errors = 0; (void)errors;/' ipm_enforce_gen.c
-          spec2c check-banned-patterns-pure-ipm.ipm > dfa_gen.c
-          sed -i "s/int main(/int execute_dfa_banned_patterns(/" dfa_gen.c
-          sed -i "/^{.ok/d" dfa_gen.c
-          sed -i "1i#include <stdio.h>\n#include <stdlib.h>\n#include <cjson/cJSON.h>" dfa_gen.c
-          spec2c check-banned-patterns-pure-ipm.ipm > dfa_gen.c
-          sed -i "s/int main(/int execute_dfa_banned_patterns(/" dfa_gen.c
-          sed -i "/^{.ok/d" dfa_gen.c
-
-
 
           $CC ${builtins.toString cflags} \
             -Isrc \
@@ -168,8 +158,7 @@
             src/compile-specifications-into-source-code/enforce-structural-rules-for-code/scan-source-code-for-patterns/ffi-function-export-layer-here/enforce-ffi-function-export-layer.c \
             src/support-code-for-compiled-output/remaining-rules-ffi-batch-four/remaining-rules-ffi-batch-four.c \
             src/support-code-for-compiled-output/dead-code-header-check-batch/dead-code-header-check-batch.c \
-            dfa_gen.c \
-            ipm_enforce_gen.c \
+            dfa_gen.c \n            ipm_enforce_gen.c \
             -o ipm-enforce -lcjson
 
           runHook postBuild
