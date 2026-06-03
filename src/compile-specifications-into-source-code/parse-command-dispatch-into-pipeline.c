@@ -136,7 +136,7 @@ static void validate_ipm_function_strict_types(cJSON *fn) {
         }
     }
 }
-static void scan_ipm_for_c_leak_patterns(cJSON *node) {
+static void detect_ipm_native_code_injection(cJSON *node) {
     if (!node) return;
     if (cJSON_IsString(node) && node->string) {
         const char *key = node->string;
@@ -150,7 +150,7 @@ static void scan_ipm_for_c_leak_patterns(cJSON *node) {
     }
     if (cJSON_IsObject(node) || cJSON_IsArray(node)) {
         cJSON *c = node->child;
-        while (c) { scan_ipm_for_c_leak_patterns(c); c = c->next; }
+        while (c) { detect_ipm_native_code_injection(c); c = c->next; }
     }
 }
 
@@ -195,7 +195,7 @@ static int enforce_ipm_specification_validation_rules(const char *spec_text, cJS
     validate_ipm_source_for_hardcoded(spec_json);
 
     /* 6. C-leak detection */
-    scan_ipm_for_c_leak_patterns(spec_json);
+    detect_ipm_native_code_injection(spec_json);
 
     return 1;
 }
