@@ -30,6 +30,7 @@ static const char *resolve_function_return_type_code(const char *ret) {
     if (!strcmp(ret, "double")) return "double";
     if (!strcmp(ret, "boolean")) return "int";
     if (!strcmp(ret, "string") || !strcmp(ret, "char")) return "char *";
+    if (!strcmp(ret, "file_handle")) return "FILE *";
     if (!strcmp(ret, "json_object")) return "cJSON *";
     if (!strcmp(ret, "json_array")) return "cJSON *";
     if (!strcmp(ret, "db_handle")) return "struct vehir_db *";
