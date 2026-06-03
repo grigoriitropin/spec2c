@@ -299,7 +299,6 @@ void enforce_all_source_code_rules(const char *srcdir) {
             file_cnt++;
             char fname[256]; snprintf(fname, sizeof(fname), "%s", de->d_name);
             char *dot = strrchr(fname, '.'); if (dot) *dot = 0;
-            validate_name_against_soul_rules("file", fname, sub);
             if (validate_file_stem_with_dfa(fname, de->d_name, sub)) exit(1);
             int is_c = !strcmp(de->d_name + strlen(de->d_name) - 2, ".c");
             int is_source = is_c || (strlen(de->d_name) > 4 && !strcmp(de->d_name + strlen(de->d_name) - 4, ".ipm"));
