@@ -10,7 +10,7 @@ static const char *banned_type_words[] = {
     "program","process","worker",NULL
 };
 
-char *check_name_following_soul_rules(const char *what, const char *name, const char *fp) {
+const char *check_name_following_soul_rules(const char *what, const char *name, const char *fp) {
     (void)fp;
     if (!name || !name[0]) return NULL;
     if (!strcmp(name, "main")) return NULL;
@@ -26,22 +26,22 @@ char *check_name_following_soul_rules(const char *what, const char *name, const 
     while (tok) {
         words++;
         if ((int)strlen(tok) < 3) {
-            char *err = malloc(256);
+            char *err = (char *)malloc(256);
             snprintf(err, 256, "word '%s' too short (min 3)", tok);
-            return err;
+            return (const char *)err;
         }
         for (int i = 0; banned_type_words[i]; i++)
             if (!strcmp(tok, banned_type_words[i])) {
-                char *err = malloc(256);
+                char *err = (char *)malloc(256);
                 snprintf(err, 256, "banned word '%s'", tok);
-                return err;
+                return (const char *)err;
             }
         tok = strtok(NULL, sep_str);
     }
     if (words != 5) {
-        char *err = malloc(256);
+        char *err = (char *)malloc(256);
         snprintf(err, 256, "has %d words (need 5)", words);
-        return err;
+        return (const char *)err;
     }
     return NULL;
 }
