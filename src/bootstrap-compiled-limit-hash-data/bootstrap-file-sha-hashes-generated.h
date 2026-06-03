@@ -37,7 +37,7 @@ static const char *hash_file_names[] = {
     "structural-rule-checker-batch-two/structural-rule-checker-batch-two.c",
     "ipm-file-validator-ffi-batch/ipm-file-validator-ffi-batch.c",
     "remaining-rules-ffi-batch-four.c",
-    "cross-file-rules-ffi-batch-five.c",
+    "cross-file-checker-batch-five.c",
 };
 static const char *hash_sha256_values[] = {
     "4d88b5954a0a470f8afa1a82685616a3888f440fe8b0c6cdd1f58335295fcfad",
@@ -76,7 +76,7 @@ static const char *hash_sha256_values[] = {
     "0000000000000000000000000000000000000000000000000000000000000000",
     "0000000000000000000000000000000000000000000000000000000000000000",
     "d6946cc6f07f9aebbb3bcc2a240c75c6692779f77d089d093bdb9a6aa203eb41",
-    "ee89f1e5b7510f7afc26360368abe9365e5a81277ee536fad549eece30db9847",
+    "0000000000000000000000000000000000000000000000000000000000000000",
 };
 static const int hash_max_lines[] = {
     70,

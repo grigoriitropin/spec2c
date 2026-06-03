@@ -307,6 +307,7 @@ check_cli_flags_documented_ffi
 check_header_whitelist_for_file
 check_main_count_across_files
 check_cli_flags_documented_ffi
-cross-file-rules-ffi-batch-five
+cross-file-checker-batch-five
 check_dead_code_across_files
 check_header_include_frequency
+cross-file-checker-batch-five
