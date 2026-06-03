@@ -30,23 +30,23 @@ static inline Slice convert_text_string_into_slice(const char *s) {
 
 #define TO_SLICE(x) _Generic((x), \
     Slice: (x), \
-    default: convert_text_string_into_slice((const char*)(x)) \
+    default: convert_text_string_into_slice((const char*)(*(const void* const*)&(x))) \
 )
 
-static inline int is_slice_ptr_not_null(const Slice *ps) {
+static inline int check_slice_data_pointer_null(const Slice *ps) {
     return ps && ps->data != NULL;
 }
-static inline int is_any_ptr_not_null(const void *const *pp) {
-    return pp && *pp != NULL;
-}
-static inline int is_any_int_not_null(const int *pi) {
+static inline int check_integer_value_not_zero(const int *pi) {
     return pi && *pi != 0;
+}
+static inline int check_generic_pointer_not_null(const void *const *pp) {
+    return pp && *pp != NULL;
 }
 
 #define IS_NOT_NULL(x) _Generic(&(x), \
-    Slice*: is_slice_ptr_not_null(&(x)), \
-    int*: is_any_int_not_null(&(x)), \
-    default: is_any_ptr_not_null((const void *const *)&(x)) \
+    Slice*: check_slice_data_pointer_null((const Slice*)&(x)), \
+    int*: check_integer_value_not_zero((const int*)&(x)), \
+    default: check_generic_pointer_not_null((const void *const *)&(x)) \
 )
 
 
