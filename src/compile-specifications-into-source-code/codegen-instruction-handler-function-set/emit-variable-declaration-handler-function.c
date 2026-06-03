@@ -77,7 +77,7 @@ static void emit_variable_declaration_code_line(cJSON *inst, FILE *out, int inde
         extract_json_field_string_value(inst, "source_target"));
 }
 
-static int emit_builtin_report_error_and_exit(cJSON *inst, FILE *out) {
+static int emit_report_error_then_exit(cJSON *inst, FILE *out) {
     cJSON *args = cJSON_GetObjectItemCaseSensitive(inst, "invocation_arguments");
     const char *v[3] = {"", "violation", "fix the issue"};
     if (args && cJSON_IsArray(args)) {
@@ -97,7 +97,7 @@ static int emit_builtin_call_when_matched(cJSON *inst, FILE *out) {
     const char *rv = extract_json_field_string_value(inst, "result_assignment_variable");
     cJSON *args = cJSON_GetObjectItemCaseSensitive(inst, "invocation_arguments");
     if (!strcmp(fn, "report_error_and_exit"))
-        return emit_builtin_report_error_and_exit(inst, out);
+        return emit_report_error_then_exit(inst, out);
     if (!strcmp(fn, "system_exit")) {
         int code = 0;
         if (args && cJSON_IsArray(args) && cJSON_GetArraySize(args) > 0) {
