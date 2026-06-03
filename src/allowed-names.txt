@@ -209,6 +209,7 @@ query_ipm_graph_json_format
 read_allowed_names_from_file
 read_banned_patterns_from_file
 read_entire_file_into_memory
+read_entire_file_into_slice
 read_entire_file_into_string
 read_entire_text_into_memory
 read_file_bytes_into_buffer
@@ -216,6 +217,7 @@ read_pattern_definitions_from_json
 remaining-rules-ffi-batch-four
 rename_file_from_old_path
 report_fatal_error_and_exit
+report_invalid_format_and_exit
 report_soul_violation_and_exit
 report_violation_with_actionable_hint
 require_config_value_else_die

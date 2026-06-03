@@ -14,6 +14,43 @@ typedef char* string;
 typedef cJSON json_object;
 
 typedef struct {
+    const uint8_t *data;
+    uint32_t len;
+} Slice;
+
+static inline Slice make_slice_from_str(const char *s) {
+    Slice sl;
+    sl.data = (const uint8_t *)s;
+    sl.len = 0;
+    if (s) {
+        while (s[sl.len]) sl.len++;
+    }
+    return sl;
+}
+
+#define TO_SLICE(x) _Generic((x), \
+    Slice: (x), \
+    default: make_slice_from_str((const char*)(x)) \
+)
+
+static inline int is_slice_ptr_not_null(const Slice *ps) {
+    return ps && ps->data != NULL;
+}
+static inline int is_any_ptr_not_null(const void *const *pp) {
+    return pp && *pp != NULL;
+}
+static inline int is_any_int_not_null(const int *pi) {
+    return pi && *pi != 0;
+}
+
+#define IS_NOT_NULL(x) _Generic(&(x), \
+    Slice*: is_slice_ptr_not_null(&(x)), \
+    int*: is_any_int_not_null(&(x)), \
+    default: is_any_ptr_not_null((const void *const *)&(x)) \
+)
+
+
+typedef struct {
     char *key;
     char *value;
 } subst_entry;
@@ -26,6 +63,7 @@ typedef struct {
 
 /* I/O */
 string read_entire_file_into_string(const char *path);
+Slice  read_entire_file_into_slice(const char *path);
 void   write_text_string_into_file(const char *path, const char *content);
 cJSON* list_files_inside_directory_path(const char *path);
 cJSON* list_all_files_recursively_inside_path(const char *path);
@@ -34,7 +72,10 @@ void   compute_sha256_hash_into_bytes(const uint8_t *data, uint32_t len, uint8_t
 char*  compute_file_sha256_hex_digest(const char *path);
 
 /* JSON */
-json_object* convert_text_into_json_object(string content);
+static inline json_object* convert_text_into_json_object(string content) {
+    if (!content) return NULL;
+    return cJSON_Parse(content);
+}
 
 /* Hash table (sorted array — deterministic iteration) */
 subst_table* allocate_and_init_hash_table(void);
@@ -60,15 +101,23 @@ void free_allocated_string_buffer_memory(string_buffer *buf);
 
 /* Error handling — structured JSON output */
 void terminate_with_json_error_output(const char *function_name, const char *instruction_index_str, const char *error_msg, const char *fix_hint);
-void builtin_fatal_error_and_exit(const char *msg);
-void print_error_into_stderr_output(const char *msg);
-void terminate_with_status_return_code(int code);
+static inline void builtin_fatal_error_and_exit(const char *msg) {
+    fprintf(stderr, "{\"ok\":false,\"error\":\"%s\"}\n", msg ? msg : "unknown error");
+    exit(1);
+}
+static inline void print_error_into_stderr_output(const char *msg) {
+    fprintf(stderr, "error: %s\n", msg ? msg : "unknown");
+}
+static inline void terminate_with_status_return_code(int code) {
+    exit(code);
+}
+void report_invalid_format_and_exit(void);
 
 /* Type mapping */
 const char* resolve_spec_type_into_lang(const char *type_name);
 
 /* Regex */
-int match_pattern_against_text_string(const char *text, const char *pattern);
+int match_pattern_against_text_string(Slice text, const char *pattern);
 
 /* CLI argument access (set by auto-generated main) */
 extern int g_argc;

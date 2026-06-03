@@ -16,7 +16,7 @@ manage-timing-for-ipm-operations.h 31 3
 parse-command-dispatch-into-pipeline.c 417 14
 parse-old-format-specification-data.c 141 4
 runtime-for-generated-ipm-code.c 7 0
-runtime-for-generated-ipm-code.h 85 26
+runtime-for-generated-ipm-code.h 134 26
 scan-patterns-against-source-code.c 229 7
 share-check-types-and-declarations.h 95 18
 share-type-definitions-across-files.h 58 19

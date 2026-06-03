@@ -54,9 +54,9 @@ static void emit_conditional_branch_code_primitive(cJSON *inst, FILE *out, int i
     if (!strcmp(op, "key_exists"))
         fprintf(out, "if (cJSON_HasObjectItem(%s, \"%s\")) {\n", tgt, cv ? cv : "");
     else if (!strcmp(op, "is_not_null"))
-        fprintf(out, "if (%s != NULL) {\n", tgt);
+        fprintf(out, "if (IS_NOT_NULL(%s)) {\n", tgt);
     else if (current_slice_length_variable && current_slice_length_variable[0])
-        fprintf(out, "if ((int)%s == (int)strlen(\"%s\") && strncmp(%s, \"%s\", %s) == 0) {\n",
+        fprintf(out, "if ((int)%s == (int)(sizeof(\"%s\") - 1) && strncmp(%s, \"%s\", %s) == 0) {\n",
             current_slice_length_variable, cv ? cv : "", tgt, cv ? cv : "", current_slice_length_variable);
     else
         fprintf(out, "if (strcmp(%s, \"%s\") == 0) {\n", tgt, cv ? cv : "");
@@ -263,10 +263,9 @@ static void emit_bootstrap_central_dispatcher_func(cJSON *inst, FILE *out, int i
         const char *xv  = extract_json_field_string_value(inst, "index_variable");
         cJSON *body = cJSON_GetObjectItemCaseSensitive(inst, "body");
         if (!col[0]) return;
-        fprintf(out, "  const char *_bp = (%s);\n", col);
-        fprintf(out, "  uint32_t _bl = strlen(_bp);\n");
-        fprintf(out, "  for (uint32_t %s = 0; %s < _bl; %s++) {\n", xv, xv, xv);
-        fprintf(out, "    uint8_t %s = (uint8_t)_bp[%s];\n", iv, xv);
+        fprintf(out, "  Slice _sl = TO_SLICE(%s);\n", col);
+        fprintf(out, "  for (uint32_t %s = 0; %s < _sl.len; %s++) {\n", xv, xv, xv);
+        fprintf(out, "    uint8_t %s = _sl.data[%s];\n", iv, xv);
         if (body) generate_code_from_ast_instructions(body, out, indent + 2, return_type);
         fprintf(out, "  }\n");
         return;
@@ -275,7 +274,7 @@ static void emit_bootstrap_central_dispatcher_func(cJSON *inst, FILE *out, int i
         const char *fp = extract_json_field_string_value(inst, "file_path");
         const char *rv = extract_json_field_string_value(inst, "result_variable");
         if (fp[0] && rv[0])
-            fprintf(out, "  char *%s = read_entire_file_into_string(%s);\n", rv, fp);
+            fprintf(out, "  Slice %s = read_entire_file_into_slice(%s);\n", rv, fp);
         return;
     }
     if (!strcmp(ty, "scan_directory_entries")) { emit_scan_directory_with_body(inst, out, indent); return; }
