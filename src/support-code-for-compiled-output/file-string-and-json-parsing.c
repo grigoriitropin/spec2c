@@ -83,5 +83,6 @@ const char *resolve_spec_type_into_lang(const char *t) {
     if (!strcmp(t, "db_handle")) return "struct vehir_db *";
     if (!strcmp(t, "subst_table")) return "subst_table *";
     if (!strcmp(t, "string_buffer")) return "string_buffer *";
+    if (!strcmp(t, "file_handle")) return "FILE *";
     return "void *";
 }
