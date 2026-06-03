@@ -1,3 +1,7 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <cjson/cJSON.h>
 
 
 // @ipm:spec-handler-definition-compendium-one:emit_json_field_access_handler
@@ -141,4 +145,3 @@ void emit_variable_decl_handler_code(cJSON * inst, FILE * out, int indent, char 
 
     return emit_json_field_access_handler();
 }
-{"ok":true,"output":"(stdout)"}
