@@ -293,6 +293,7 @@ void enforce_all_source_code_rules(const char *srcdir) {
     }
     scan_source_for_undocumented_flags(srcdir);
     verify_ipm_names_across_sources(srcdir);
+    enforce_bootstrap_freeze_limits(srcdir);
 }
 static void scan_source_for_undocumented_flags(const char *srcdir) {
     void check_flags(const char *dpath) {
