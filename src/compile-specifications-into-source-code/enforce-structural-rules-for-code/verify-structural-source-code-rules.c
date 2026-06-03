@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // enforce.c — structural enforcement for spec2c compiler source
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <dirent.h>
