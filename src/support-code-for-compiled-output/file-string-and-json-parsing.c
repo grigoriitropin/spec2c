@@ -156,9 +156,19 @@ void compute_sha256_hash_into_bytes(const uint8_t *data, uint32_t len, uint8_t o
             g = f;
             f = e;
             e = d + t1;
-            d = c; c = b; b = a; a = t1 + t2;
+            d = c;
+            c = b;
+            b = a;
+            a = t1 + t2;
         }
-        h[0] += a; h[1] += b; h[2] += c; h[3] += d; h[4] += e; h[5] += f; h[6] += g; h[7] += j;
+        h[0] += a;
+        h[1] += b;
+        h[2] += c;
+        h[3] += d;
+        h[4] += e;
+        h[5] += f;
+        h[6] += g;
+        h[7] += j;
         len -= 64;
         pos += 64;
     }
@@ -185,9 +195,19 @@ void compute_sha256_hash_into_bytes(const uint8_t *data, uint32_t len, uint8_t o
             g = f;
             f = e;
             e = d + t1;
-            d = c; c = b; b = a; a = t1 + t2;
+            d = c;
+            c = b;
+            b = a;
+            a = t1 + t2;
         }
-        h[0] += a; h[1] += b; h[2] += c; h[3] += d; h[4] += e; h[5] += f; h[6] += g; h[7] += j;
+        h[0] += a;
+        h[1] += b;
+        h[2] += c;
+        h[3] += d;
+        h[4] += e;
+        h[5] += f;
+        h[6] += g;
+        h[7] += j;
     }
 
     for (int i = 0; i < 8; i++) {
