@@ -49,7 +49,7 @@ static int collect_function_names_from_file(const char *path, fn_entry *fns, int
 }
 
 /* ── check if function name is called anywhere in text ──────────────── */
-static int check_function_call_exists_in_file(const char *path, const char *func_name) {
+static int find_function_calls_within_files(const char *path, const char *func_name) {
     char *c = read_entire_file_into_string(path);
     if (!c) return 0;
     char call[256]; snprintf(call, sizeof(call), "%s(", func_name);
@@ -96,7 +96,7 @@ const char *check_dead_code_across_files(const char *dirpath) {
                 if (S_ISDIR(st.st_mode)) { search_calls(sub); continue; }
                 size_t nl = strlen(de->d_name);
                 if (nl < 3 || (strcmp(de->d_name+nl-2,".c") && strcmp(de->d_name+nl-2,".h"))) continue;
-                if (check_function_call_exists_in_file(sub, fns[i].name)) called = 1;
+                if (find_function_calls_within_files(sub, fns[i].name)) called = 1;
             }
             closedir(d);
         }

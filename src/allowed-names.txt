@@ -313,4 +313,5 @@ check_header_include_frequency_count
 cross-file-checker-batch-five
 check_header_include_frequency_count
 collect_function_names_from_file
-check_function_call_exists_in_file
+find_function_calls_within_files
+find_function_calls_within_files
