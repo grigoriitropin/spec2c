@@ -88,6 +88,7 @@ int match_header_against_include_whitelist(const char *hdr) {
         "vehir-shared-abstraction-wrapper-code.h",
         "verify-structural-source-code-rules.h",
         "../verify-structural-source-code-rules.h",
+        "../../verify-structural-source-code-rules.h",
         "verify-ed25519-digital-signature-key.h",
         "../bootstrap-compiled-limit-hash-data/bootstrap-freeze-data-compiled-into.h",
         "../bootstrap-compiled-limit-hash-data/bootstrap-file-sha-hashes-generated.h",
