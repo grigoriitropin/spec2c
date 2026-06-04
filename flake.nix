@@ -203,7 +203,7 @@
             -c dfa_obj/dfa.c -o dfa_obj/dfa.o
 
           # Line density checker
-          spec2c modules/rules/check-each-line-token-density.ipm --library -o density_obj/density.c
+          spec2c modules/rules/naming-and-density-checkers/check-each-line-token-density.ipm --library -o density_obj/density.c
           sed -i '/^{"ok"/d' density_obj/density.c
           sed -i 's/void check_each_line_token_density/int check_each_line_token_density/' density_obj/check_each_line_token_density.h
           sed -i 's/(char \* path)/(const char *path)/g' density_obj/density.c
@@ -215,7 +215,7 @@
             -c density_obj/density.c -o density_obj/density.o
 
           # Hardcoded path detector
-          spec2c modules/rules/detect-any-hardcoded-filesystem-paths.ipm --library -o path_obj/path.c
+          spec2c modules/rules/function-and-pattern-scanners/detect-any-hardcoded-filesystem-paths.ipm --library -o path_obj/path.c
           sed -i '/^{"ok"/d' path_obj/path.c
           sed -i 's/void detect_any_hardcoded_filesystem_paths/int detect_any_hardcoded_filesystem_paths/' path_obj/detect_any_hardcoded_filesystem_paths.h
           sed -i 's/(char \* path)/(const char *path)/g' path_obj/path.c
@@ -227,7 +227,7 @@
             -c path_obj/path.c -o path_obj/path.o
 
           # Naming rules validator
-          spec2c modules/rules/validate-file-stem-naming-dfa.ipm --library -o naming_obj/naming.c
+          spec2c modules/rules/naming-and-density-checkers/validate-file-stem-naming-dfa.ipm --library -o naming_obj/naming.c
           sed -i '/^{"ok"/d' naming_obj/naming.c
           sed -i 's/void validate_file_stem_naming_dfa/int validate_file_stem_naming_dfa/' naming_obj/validate_file_stem_naming_dfa.h
           sed -i 's/(char \* name_arg)/(const char *name_arg)/g' naming_obj/naming.c
@@ -242,7 +242,7 @@
             -c naming_obj/naming.c -o naming_obj/naming.o
 
           # C lexer (function count + length)
-          spec2c modules/rules/locate-all-function-body-blocks.ipm --library -o clex_obj/clex.c
+          spec2c modules/rules/function-and-pattern-scanners/locate-all-function-body-blocks.ipm --library -o clex_obj/clex.c
           sed -i '/^{"ok"/d' clex_obj/clex.c
           sed -i 's/void locate_all_function_body_blocks/int locate_all_function_body_blocks/' clex_obj/locate_all_function_body_blocks.h
           sed -i 's/(char \* path)/(const char *path)/g' clex_obj/clex.c
@@ -254,7 +254,7 @@
             -c clex_obj/clex.c -o clex_obj/clex.o
 
           # Main() detector
-          spec2c modules/rules/find-every-main-function-block.ipm --library -o main_obj/main.c
+          spec2c modules/rules/function-and-pattern-scanners/find-every-main-function-block.ipm --library -o main_obj/main.c
           sed -i '/^{"ok"/d' main_obj/main.c
           sed -i 's/void find_every_main_function_block/int find_every_main_function_block/' main_obj/find_every_main_function_block.h
           sed -i 's/(char \* path)/(const char *path)/g' main_obj/main.c
