@@ -101,7 +101,7 @@ static int read_sidecar_signature_file_bytes(const char *srcdir, const char *bas
     return 1;
 }
 
-static int search_file_by_full_path(const char *srcdir, const char *manifest_path, char *out, size_t outsz) {
+static int search_file_using_full_path(const char *srcdir, const char *manifest_path, char *out, size_t outsz) {
     void walk(const char *dpath, const char *prefix) {
         DIR *d = opendir(dpath);
         if (!d) return;
@@ -133,7 +133,7 @@ static int search_file_by_full_path(const char *srcdir, const char *manifest_pat
 
 static void verify_manifest_entry_file_hash(const char *srcdir, const char *fname, const char *expected) {
     char found[8192] = {0};
-    if (!search_file_by_full_path(srcdir, fname, found, sizeof(found))) {
+    if (!search_file_using_full_path(srcdir, fname, found, sizeof(found))) {
         fprintf(stderr, "spec2c: integrity manifest: file not found: %s\n", fname);
         exit(1);
     }

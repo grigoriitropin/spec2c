@@ -281,6 +281,7 @@ scan-source-code-for-patterns
 scan_instructions_for_invocation_names
 scan_json_for_banned_words
 scan_source_for_undocumented_flags
+search_file_using_full_path
 search_file_using_name_recursive
 search_for_unused_function_code
 search_variable_type_recursive_ast
