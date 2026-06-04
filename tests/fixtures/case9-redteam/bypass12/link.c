@@ -1,1 +1,0 @@
-/tmp/spec2c-bypass/bad.c
