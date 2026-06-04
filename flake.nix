@@ -71,7 +71,7 @@
         buildInputs = [ cjson-static ];
         buildPhase = ''
           cc -O2 -Wall -Werror -std=c2x -Isrc/support-code-for-compiled-output \
-            src/generate-integrity-manifest-from-source.c \
+            generate-integrity-manifest-from-source.c \
             src/support-code-for-compiled-output/compute-file-sha-hash-digest/compute-sha256-hash-for-files.c \
             -o generate-integrity-manifest-from-source \
             ${cjson-static}/lib/libcjson.a -lm
@@ -97,7 +97,7 @@
             ${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns/detect-banned-patterns-and-braces.c \
             ${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns/enforce-bootstrap-code-file-whitelist.c \
             ${builtins.toString runtime_src} \
-            src/verify-ed25519-digital-signature-key.c \
+            verify-ed25519-digital-signature-key.c \
             -o s2c-enforce ${cjson-static}/lib/libcjson.a -lm
           runHook postBuild
         '';
@@ -110,7 +110,7 @@
         doCheck = true;
         checkPhase = ''
           runHook preCheck
-          cc -O2 -I. src/enforce-link-time-whitelisted-symbols.c -o enforce-link-time-symbol-whitelist
+          cc -O2 -I. enforce-link-time-whitelisted-symbols.c -o enforce-link-time-symbol-whitelist
           mkdir -p $out/bin
           cp s2c-enforce $out/bin/
           for bin in $out/bin/*; do
@@ -138,7 +138,7 @@
             ${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns/detect-banned-patterns-and-braces.c \
             ${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns/enforce-bootstrap-code-file-whitelist.c \
             ${builtins.toString runtime_src} \
-            src/verify-ed25519-digital-signature-key.c \
+            verify-ed25519-digital-signature-key.c \
             -o s2c_enforce ${cjson-static}/lib/libcjson.a -lm
 
           # Step 2: Run enforcement gate (exits 1 on violation → build fails)
@@ -153,7 +153,7 @@
             ${S}/codegen-instruction-handler-function-set/extracted-codegen-helper-functions-here/emit-report-error-and-exit.c \
             ${S}/codegen-instruction-handler-function-set/emit-variable-declaration-handler-function.c \
             ${builtins.toString runtime_src} \
-            src/verify-ed25519-digital-signature-key.c \
+            verify-ed25519-digital-signature-key.c \
             -o spec2c ${cjson-static}/lib/libcjson.a -lm
 
           runHook postBuild
@@ -170,7 +170,7 @@
         doCheck = true;
         checkPhase = ''
           runHook preCheck
-          cc -O2 -I. src/enforce-link-time-whitelisted-symbols.c -o enforce-link-time-symbol-whitelist
+          cc -O2 -I. enforce-link-time-whitelisted-symbols.c -o enforce-link-time-symbol-whitelist
           mkdir -p $out/bin
           cp spec2c s2c_enforce $out/bin/
           for bin in $out/bin/*; do
@@ -308,7 +308,7 @@
             src/compile-specifications-into-source-code/enforce-structural-rules-for-code/operator-signed-exemption-name-table/load-operator-signed-exemption-table.c \
             src/compile-specifications-into-source-code/enforce-structural-rules-for-code/scan-source-code-for-patterns/enforce-bootstrap-code-file-whitelist.c \
             src/runtime-weak-stub-symbol-overrides/runtime-weak-stubs-part-two.c \
-            src/verify-ed25519-digital-signature-key.c \
+            verify-ed25519-digital-signature-key.c \
             src/compile-specifications-into-source-code/enforce-structural-rules-for-code/scan-source-code-for-patterns/check-naming-rules-for-ffi.c \
             src/compile-specifications-into-source-code/enforce-structural-rules-for-code/scan-source-code-for-patterns/ffi-function-export-layer-here/enforce-ffi-function-export-layer.c \
             src/support-code-for-compiled-output/remaining-rules-ffi-batch-four/remaining-rules-ffi-batch-four.c \
@@ -345,7 +345,7 @@
         doCheck = true;
         checkPhase = ''
           runHook preCheck
-          cc -O2 -I. src/enforce-link-time-whitelisted-symbols.c -o enforce-link-time-symbol-whitelist
+          cc -O2 -I. enforce-link-time-whitelisted-symbols.c -o enforce-link-time-symbol-whitelist
           mkdir -p $out/bin
           cp ipm-enforce $out/bin/
           for bin in $out/bin/*; do
