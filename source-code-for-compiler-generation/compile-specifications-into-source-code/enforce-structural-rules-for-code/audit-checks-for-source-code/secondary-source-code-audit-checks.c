@@ -6,7 +6,8 @@
 #include <dirent.h>
 #include <sys/stat.h>
 
-void check_include_headers_for_file(const char *sub, inc_entry_t *incs, int *inc_qty) {
+void check_include_headers_for_file(const char *sub) {
+    inc_entry_t incs[128]; int inc_qty = 0;
     FILE *f2 = fopen(sub, "r");
     if (!f2) report_fatal_error_and_exit("cannot open file for include audit");
     char line[512];
@@ -22,16 +23,16 @@ void check_include_headers_for_file(const char *sub, inc_entry_t *incs, int *inc
         }
         if (!is_angle) {
             int found = 0;
-            for (int i = 0; i < *inc_qty; i++)
+            for (int i = 0; i < inc_qty; i++)
                 if (!strcmp(incs[i].name, hdr)) {
                     if (++incs[i].count > MAX_INCLUDES) {
                         fclose(f2); report_violation_with_actionable_hint(ERR_HEADER_INCLUDED_TOO_OFTEN, hdr, incs[i].count, MAX_INCLUDES, NULL);
                     }
                     found = 1; break;
                 }
-            if (!found && *inc_qty < 128) {
-                snprintf(incs[*inc_qty].name, 64, "%s", hdr);
-                incs[*inc_qty].count = 1; (*inc_qty)++;
+            if (!found && inc_qty < 128) {
+                snprintf(incs[inc_qty].name, 64, "%s", hdr);
+                incs[inc_qty].count = 1; inc_qty++;
             }
         }
     }

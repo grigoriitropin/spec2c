@@ -218,7 +218,7 @@ void check_single_file_for_violations(const char *sub, int is_c, int is_source,
             waitpid(pid, NULL, 0);
         }
     }
-    check_include_headers_for_file(sub, incs, inc_qty);
+    check_include_headers_for_file(sub);
 }
 static int check_non_source_and_bootstrap(const char *name, const char *sub, const char *dirpath) {
     if (!match_source_code_header_filename(name)) {

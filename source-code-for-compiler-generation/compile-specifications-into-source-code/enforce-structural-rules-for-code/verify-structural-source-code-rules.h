@@ -6,7 +6,7 @@
 
 #include <stddef.h>
 #include <string.h>
-#define MAX_INCLUDES 5
+#define MAX_INCLUDES 128
 #define match_source_code_header_filename(name) (strlen(name) > 2 && (!strcmp((name) + strlen(name) - 2, ".c") || !strcmp((name) + strlen(name) - 2, ".h")))
 typedef enum {
     ERR_FILE_TOO_LONG,
@@ -55,7 +55,7 @@ void search_for_unused_function_code(fn_entry_t *fns, int fn_qty, const char *sr
 void scan_source_for_undocumented_flags(const char *srcdir);
 void skip_root_files_when_scanning(const char *srcdir);
 int  check_main_count_exemption_rule(const char *path);
-void check_include_headers_for_file(const char *sub, inc_entry_t *incs, int *inc_qty);
+void check_include_headers_for_file(const char *sub);
 void report_fatal_error_and_exit(const char *msg);
 void report_violation_with_actionable_hint(enforce_err_t code, const char *a1, int v1, int v2, const char *a2);
 
