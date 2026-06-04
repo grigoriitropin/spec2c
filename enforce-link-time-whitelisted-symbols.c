@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <elf.h>
 
 #include "verify-ed25519-digital-signature-key.h"
@@ -110,119 +111,7 @@ static const char *base_whitelist[] = {
     "lstat", "execlp",
 };
 
-/* ── SHA256 Implementation (public domain) ──────────────────────────────── */
-#define S256_ROTR(x,n) (((x)>>(n))|((x)<<(32-(n))))
-#define S256_SHR(x,n)  ((x)>>(n))
-#define S256_CH(x,y,z) (((x)&(y))^(~(x)&(z)))
-#define S256_MAJ(x,y,z) (((x)&(y))^((x)&(z))^((y)&(z)))
-#define S256_SIG0(x) (S256_ROTR(x,2)^S256_ROTR(x,13)^S256_ROTR(x,22))
-#define S256_SIG1(x) (S256_ROTR(x,6)^S256_ROTR(x,11)^S256_ROTR(x,25))
-#define S256_sig0(x) (S256_ROTR(x,7)^S256_ROTR(x,18)^S256_SHR(x,3))
-#define S256_sig1(x) (S256_ROTR(x,17)^S256_ROTR(x,19)^S256_SHR(x,10))
-
-static const uint32_t K[64] = {
-    0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
-    0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
-    0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
-    0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,
-    0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,
-    0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
-    0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,
-    0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2
-};
-
-static void solve_sha256_message_block_hash(const uint8_t *block, uint32_t h[8]) {
-    uint32_t w[64];
-    for (int i = 0; i < 16; i++, block += 4)
-        w[i] = ((uint32_t)block[0]<<24)|((uint32_t)block[1]<<16)|((uint32_t)block[2]<<8)|(uint32_t)block[3];
-    for (int i = 16; i < 64; i++)
-        w[i] = S256_sig1(w[i-2]) + w[i-7] + S256_sig0(w[i-15]) + w[i-16];
-    uint32_t a = h[0], b = h[1], c = h[2], d = h[3];
-    uint32_t e = h[4], f = h[5], g = h[6], j = h[7];
-    for (int i = 0; i < 64; i++) {
-        uint32_t t1 = j + S256_SIG1(e) + S256_CH(e,f,g) + K[i] + w[i];
-        uint32_t t2 = S256_SIG0(a) + S256_MAJ(a,b,c);
-        j = g; g = f; f = e; e = d + t1;
-        d = c; c = b; b = a; a = t1 + t2;
-    }
-    h[0] += a; h[1] += b; h[2] += c; h[3] += d;
-    h[4] += e; h[5] += f; h[6] += g; h[7] += j;
-}
-
-static void compute_sha256_hash_into_bytes(const uint8_t *data, uint32_t len, uint8_t out[32]) {
-    uint32_t h[8] = {0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19};
-    uint64_t bits = (uint64_t)len * 8;
-
-    while (len >= 64) {
-        solve_sha256_message_block_hash(data, h);
-        data += 64;
-        len -= 64;
-    }
-
-    uint8_t pad[128];
-    uint32_t pad_len = 0;
-    for (uint32_t i = 0; i < len; i++) pad[pad_len++] = data[i];
-    pad[pad_len++] = 0x80;
-    while ((pad_len % 64) != 56) pad[pad_len++] = 0;
-    for (int i = 7; i >= 0; i--) pad[pad_len++] = (uint8_t)((bits >> (i*8)) & 0xff);
-
-    for (uint32_t s = 0; s < pad_len; s += 64)
-        solve_sha256_message_block_hash(pad + s, h);
-
-    for (int i = 0; i < 8; i++) {
-        out[i*4]   = (uint8_t)((h[i] >> 24) & 0xff);
-        out[i*4+1] = (uint8_t)((h[i] >> 16) & 0xff);
-        out[i*4+2] = (uint8_t)((h[i] >> 8) & 0xff);
-        out[i*4+3] = (uint8_t)(h[i] & 0xff);
-    }
-}
-
-static int compute_file_sha256_hex_digest(const char *path, char *out_hex) {
-    FILE *f = fopen(path, "rb");
-    if (!f) return 0;
-    fseek(f, 0, SEEK_END);
-    long sz = ftell(f);
-    fseek(f, 0, SEEK_SET);
-    if (sz < 0) { fclose(f); return 0; }
-    uint8_t *buf = malloc((size_t)sz + 1);
-    if (!buf) { fclose(f); return 0; }
-    size_t n = 0;
-    if (sz > 0) n = fread(buf, 1, (size_t)sz, f);
-    fclose(f);
-    uint8_t hash[32];
-    compute_sha256_hash_into_bytes(buf, (uint32_t)n, hash);
-    free(buf);
-    for (int i = 0; i < 32; i++)
-        sprintf(out_hex + i*2, "%02x", hash[i]);
-    out_hex[64] = 0;
-    return 1;
-}
-
 /* ── Exemption Check Logic ────────────────────────────────────────────────── */
-static const char *frozen_bootstrap_sources[] = {
-    /* s2c_enforce / s2c-enforce sources: */
-    "source-code-for-compiler-generation/compile-specifications-into-source-code/enforce-structural-rules-for-code/verify-structural-source-code-rules.c",
-    "source-code-for-compiler-generation/compile-specifications-into-source-code/enforce-structural-rules-for-code/enforce-naming-whitelist-and-validation.c",
-    "source-code-for-compiler-generation/compile-specifications-into-source-code/enforce-structural-rules-for-code/scan-source-code-for-patterns/detect-banned-patterns-and-braces.c",
-    "source-code-for-compiler-generation/compile-specifications-into-source-code/enforce-structural-rules-for-code/scan-source-code-for-patterns/enforce-bootstrap-code-file-whitelist.c",
-    "source-code-for-compiler-generation/runtime-for-generated-ipm-code.c",
-    "source-code-for-compiler-generation/compile-specifications-into-source-code/enforce-structural-rules-for-code/scan-source-code-for-patterns/check-naming-rules-for-ffi.c",
-    "source-code-for-compiler-generation/support-code-for-compiled-output/file-string-and-json-parsing.c",
-    "source-code-for-compiler-generation/support-code-for-compiled-output/hash-table-and-substitution-code.c",
-    "source-code-for-compiler-generation/support-code-for-compiled-output/compute-file-sha-hash-digest/compute-sha256-hash-for-files.c",
-    "source-code-for-compiler-generation/support-code-for-compiled-output/structural-rule-checker-batch-two/structural-rule-checker-batch-two.c",
-    "source-code-for-compiler-generation/support-code-for-compiled-output/validate-type-name-against-whitelist/validate-type-name-against-whitelist.c",
-    "source-code-for-compiler-generation/support-code-for-compiled-output/buffer-output-and-command-launch.c",
-    /* spec2c specific sources: */
-    "source-code-for-compiler-generation/compile-specifications-into-source-code/codegen-instruction-handler-function-set/emit-variable-declaration-handler-function.c",
-    "source-code-for-compiler-generation/compile-specifications-into-source-code/codegen-instruction-handler-function-set/extracted-codegen-helper-functions-here/emit-report-error-and-exit.c",
-    "source-code-for-compiler-generation/compile-specifications-into-source-code/compile-abstract-instructions-into-code.c",
-    "source-code-for-compiler-generation/compile-specifications-into-source-code/generate-output-from-ipm-specification.c",
-    "source-code-for-compiler-generation/compile-specifications-into-source-code/parse-command-dispatch-into-pipeline.c",
-    "source-code-for-compiler-generation/compile-specifications-into-source-code/parse-legacy-specification-file-format/parse-old-format-specification-data.c",
-    "source-code-for-compiler-generation/compile-specifications-into-source-code/shared-type-declarations-across-modules/share-type-definitions-across-files.h",
-};
-
 static const char *frozen_exempt_binaries[] = {
     "s2c_enforce",
     "s2c-enforce",
@@ -255,9 +144,26 @@ static int check_frozen_exempt_binaries(const char *bin_name) {
  *   3. Hex-encode sig.bin (128 hex chars) and update ---SIGNATURE--- below.
  */
 static int verify_signature_mechanism(void) {
-    const char *src_file = "enforce-link-time-whitelisted-symbols.c";
-    FILE *f = fopen(src_file, "r");
-    if (!f) f = fopen("/home/vehir/spec2c/enforce-link-time-whitelisted-symbols.c", "r");
+    const char *src_name = "enforce-link-time-whitelisted-symbols.c";
+    char src_path[4096];
+    char exe_path[4096];
+    FILE *f = NULL;
+    /* Resolve our own source from the executable's own location (SOUL §7:
+       zero hardcode — derive at runtime, never a machine-specific path). */
+    ssize_t exe_len = readlink("/proc/self/exe", exe_path, sizeof(exe_path) - 1);
+    if (exe_len > 0) {
+        exe_path[exe_len] = '\0';
+        char *last_slash = strrchr(exe_path, '/');
+        if (last_slash) {
+            size_t dir_len = (size_t)(last_slash - exe_path) + 1;
+            if (dir_len + strlen(src_name) < sizeof(src_path)) {
+                memcpy(src_path, exe_path, dir_len);
+                memcpy(src_path + dir_len, src_name, strlen(src_name) + 1);
+                f = fopen(src_path, "r");
+            }
+        }
+    }
+    if (!f) f = fopen(src_name, "r"); /* fallback: cwd-relative (build contract) */
     if (!f) return 0;
 
     fseek(f, 0, SEEK_END);

@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "../verify-structural-source-code-rules.h"
 #include <stdio.h>
-#include <string.h>
 
 int count_stem_tokens_lowercase_bytewise(const char *stem, const char *fullname, const char *path) {
-    int tokens = 0, tok_len = 0;
+    int tokens = 0, tok_len = 0, has_letter = 0;
     const char *p = stem;
     while (*p) {
         if (*p == '-') {
@@ -31,7 +30,13 @@ int count_stem_tokens_lowercase_bytewise(const char *stem, const char *fullname,
                     "  → use only lowercase a-z, digits 0-9 and single '-'\n", fullname, path, *p, (unsigned char)*p);
             return -1;
         }
+        if (*p >= 'a' && *p <= 'z') has_letter = 1;
         tok_len++; p++;
+    }
+    if (!has_letter) {
+        fprintf(stderr, "SOUL §10: file '%s' at %s — name has no letters\n"
+                "  → a name must contain at least one a-z letter, not be all digits\n", fullname, path);
+        return -1;
     }
     if (tok_len < 3) {
         fprintf(stderr, "SOUL §10: file '%s' at %s — last token has %d chars (min 3)\n"
