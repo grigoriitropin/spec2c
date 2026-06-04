@@ -43,3 +43,5 @@ bypass_2fa
 base64
 rot13
 xor_key
+##
+_Pragma
