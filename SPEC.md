@@ -1,19 +1,30 @@
-# .ipm Language Specification
+# The IPM language — specification
 
-Declarative, JSON-based language for describing C code generators.
-8 instruction types. Flat dispatch. All logic in `string_substitute` + `append_to_buffer`.
+IPM is the input language of [`spec2c`](README.md): a declarative, JSON-based
+abstract syntax tree (AST) that describes a C code generator. It has no surface
+syntax and no parser of its own — an `.ipm` file *is* JSON — and it is never
+interpreted: the AST is compiled to C source, which is then compiled to a binary.
 
-## Design Principles
+## The contract
 
-- **LLM-first**: Verbose, unambiguous, exhaustive enums. JSON-structured errors.
-- **No parser**: `.ipm` is valid JSON. cJSON handles parsing.
-- **Compile-to-C, don't interpret**: AST → C source → GCC binary. Zero runtime interpreter.
-- **Core language frozen**: 8 types. Expand only through hardening sessions.
+- **Closed, default-deny schema.** The set of instruction kinds is frozen. The loader
+  validates every node against the schema and **rejects** any unknown instruction type
+  or unknown key — "valid JSON" is not enough, the closed schema is the load-bearing
+  half. Adding a new instruction kind is an operator-signed event (see §9 of
+  [`SOUL.md`](SOUL.md)), not a casual edit.
+- **Compile, don't interpret.** AST → C source → binary. There is zero runtime
+  interpreter to attack or to drift.
+- **LLM-first.** Verbose, unambiguous, exhaustive enums; errors are structured JSON
+  with the function name, instruction index, and a fix hint, so a model (or a human)
+  always learns *why* a build failed.
+- **Small frozen core.** The eight instruction kinds below are the current frozen set.
+  The language grows only by proof-of-necessity and under an operator signature, never
+  by accretion.
 
-## Instruction Types
+## Instruction kinds
 
-### access_json_field
-Read a named field from a cJSON object into a typed variable.
+### `access_json_field`
+Read a named field from a JSON object into a typed variable.
 ```json
 {
   "instruction_type": "access_json_field",
@@ -24,8 +35,8 @@ Read a named field from a cJSON object into a typed variable.
 }
 ```
 
-### function_invocation
-Call a builtin or AST-defined function with named arguments.
+### `function_invocation`
+Call a built-in or AST-defined function with named arguments.
 ```json
 {
   "instruction_type": "function_invocation",
@@ -40,106 +51,98 @@ Call a builtin or AST-defined function with named arguments.
 }
 ```
 
-### conditional_branch
-Branch on condition. Three operations: `key_exists`, `is_not_null`, `string_equals`.
+### `conditional_branch`
+Branch on a condition. Operations: `key_exists`, `is_not_null`, `string_equals`.
 ```json
 {
   "instruction_type": "conditional_branch",
   "condition_operation": "string_equals",
   "condition_target": "inst_type",
   "condition_value": "variable_declaration",
-  "branch_on_success": [...],
-  "branch_on_failure": [...]
+  "branch_on_success": [],
+  "branch_on_failure": []
 }
 ```
 
-### return_statement
-Return from function with optional value.
+### `return_statement`
+Return from a function with an optional value.
 ```json
 {
   "instruction_type": "return_statement",
-  "return_payload": {
-    "execution_status": "success",
-    "value": "generation_status"
-  }
+  "return_payload": { "execution_status": "success", "value": "generation_status" }
 }
 ```
 
-### iterate_over_collection
+### `iterate_over_collection`
 For-loop over a JSON array.
 ```json
 {
   "instruction_type": "iterate_over_collection",
   "collection_variable": "params",
   "item_variable": "par",
-  "body_instructions": [...]
+  "body_instructions": []
 }
 ```
 
-### iterate_over_object_keys
-Foreach over JSON object keys and values.
+### `iterate_over_object_keys`
+Foreach over the keys and values of a JSON object.
 ```json
 {
   "instruction_type": "iterate_over_object_keys",
   "collection_variable": "templates",
   "key_variable": "template_name",
   "value_variable": "template_entry",
-  "body_instructions": [...]
+  "body_instructions": []
 }
 ```
 
-### variable_declaration
-Declare a typed variable with function-call initialization.
+### `variable_declaration`
+Declare a typed variable with a function-call initialization.
 ```json
 {
   "instruction_type": "variable_declaration",
-  "variable_name": "x",
+  "variable_name": "count",
   "variable_type": "int",
   "assignment_operation": "atoi",
-  "source_target": "some_var"
+  "source_target": "count_text"
 }
 ```
 
-### database_execute_parameterized
-Stub. Reserved for future DB integration. Generates comment only.
+### `database_execute_parameterized`
+Reserved stub for future database integration; currently generates a comment only.
 
-## Built-in Functions
+## Type system
 
-Available to all AST functions (defined in `src/ipm_builtins.c`):
+The current frozen surface types map to C as follows:
 
-| Function | Purpose |
-|----------|---------|
-| `read_file_to_string` | Read file to heap string |
-| `write_string_to_file` | Write string to file |
-| `parse_json_string` | Parse JSON string to cJSON object |
-| `create_hash_table` | Create substitution table |
-| `hash_table_insert` | Insert key-value pair |
-| `hash_table_lookup` | Lookup value by key |
-| `string_substitute` | Replace `{{KEY}}` patterns in template |
-| `create_string_buffer` | Create append-only string buffer |
-| `append_to_buffer` | Append string to buffer |
-| `write_buffer_to_file` | Flush buffer to file |
-| `free_string_buffer` | Free buffer |
-| `vartype_to_c` | Map IPM type to C type |
-| `json_die` | Structured JSON error + exit |
-| `compile_body` | Compile array of instructions (AST function) |
-| `file_read_bytes` | Read entire file to heap string (binary-safe) |
-| `file_write_bytes` | Overwrite file with string content |
-| `file_rename` | Atomically rename file (returns 0 on success) |
-| `file_unlink` | Delete a file (returns 0 on success) |
-
-## Type System
-
-| IPM Type | C Type |
+| IPM type | C type |
 |----------|--------|
 | `void` | `void` |
 | `string` | `char *` |
 | `int` | `int` |
 | `json_object` | `cJSON *` |
 | `json_array` | `cJSON *` |
-| `subst_table` | `subst_table *` |
-| `string_buffer` | `string_buffer *` |
+| `subst_table` | substitution-table handle |
+| `string_buffer` | append-only buffer handle |
 
-## License
+**Roadmap note (research-honest).** This is the *current* type surface. The roadmap
+(Phase 1, "Strict Type Guard") replaces the loose `int` with strict, fixed-width
+`u8/u32/u64` plus a bitwise/modular ALU, as a prerequisite for sovereign memory
+(arenas and bounds-checked slices) in Phase 2. A minimal `u32` + fixed-size array
+extension is the next planned, operator-signed node-kind addition (needed for pure-IPM
+hashing such as SHA-256/CRC-32). The tables above will change when those land; they
+describe what exists today, not the destination.
 
-Apache-2.0. Authored by Vehir (autonomous agent).
+## Built-in functions
+
+A small set of runtime primitives (file I/O, JSON parsing, a substitution hash table,
+and an append-only string buffer) is available to AST functions. These primitives are
+part of the **frozen runtime** under the project's support-code modules; they contain
+no compiler logic — all code-generation logic lives in the IPM AST. They are
+themselves subject to the same default-deny capability and freeze rules as everything
+else.
+
+## License & authorship
+
+Apache-2.0. Authored by Vehir (autonomous agent) under [`SOUL.md`](SOUL.md);
+delegated-operator legal layer, see §11.

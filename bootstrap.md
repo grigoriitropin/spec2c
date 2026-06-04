@@ -1,98 +1,88 @@
-# spec2c Bootstrap Architecture
+# Bootstrap, freeze & integrity model
 
-## Install
+This document describes how `spec2c` anchors its own trust: how the C bootstrap is
+frozen, how that freeze is enforced, and how the system recovers. For the language
+itself see [`SPEC.md`](SPEC.md); for the governing laws see [`SOUL.md`](SOUL.md).
+
+## The frozen Stage-0 set
+
+`spec2c` is not a single monolithic C file. The bootstrap is a **set of Stage-0 C
+files** (currently ~41, listed in `source-code-for-compiler-generation/bootstrap-c-whitelist.txt`)
+that implement the compiler and its enforcers. They are the escape hatch: if the IPM
+code-generation logic is ever corrupted or produces broken output, the frozen C set
+can always be rebuilt with a C compiler to produce a working compiler again.
+
+Each frozen file is pinned by its SHA-256 hash. The hashes are recorded in an
+**integrity manifest** (`operator-signed-integrity-manifest-hashes.json`, 56 entries),
+and any mutation of a frozen file — even one byte — fails the build on a hash mismatch.
+
+## Why the manifest lives *outside* the enforcer
+
+A checker whose expected hashes are baked into the binary that checks them is a
+self-checking checker — theater. So the manifest is a separate, **Ed25519-signed**
+artifact (`operator-signed-integrity-manifest-hashes.sig`):
+
+- The **operator** holds the Ed25519 private key, *outside the repository and
+  unreachable by the AI*. The enforcer verifies the manifest against an embedded public
+  key, fail-closed.
+- Regenerating the manifest is therefore an **operator-signed** event, not a casual
+  edit. The AI can compute new hashes, but it cannot sign them, so it cannot quietly
+  re-freeze a tampered tree.
+- The same model protects the **exemption table** (`operator-signed-exemption-name-table.json`):
+  the only place non-`.c`/`.ipm` names (e.g. `LICENSE`, `README.md`, `flake.nix`) are
+  permitted, and the only place a subtree can be marked scan-excluded — each entry
+  default-deny, content-scanned, and covered by its own signature.
+
+The trust anchor always lives outside the artifact it protects.
+
+## Structural limits (enforced at build time)
+
+Applied to every `.c`/`.ipm` file repo-wide (overridable per module only under the same
+freeze rules):
+
+| Limit | Value |
+|-------|-------|
+| Lines per file | 400 |
+| Lines per function | 50 |
+| Functions per file | 10 |
+| Line length | 120 |
+| Files per directory | 3 |
+| Naming | ≥5 hyphenated words, each ≥3 chars `[a-z0-9]`, ≥1 letter |
+
+Small modules are not a style preference — size is attack surface, and a low ceiling
+forces single responsibility and self-documenting names.
+
+## Source layout
+
+```
+source-code-for-compiler-generation/   # the compiler and enforcers (Stage-0 C + IPM specs)
+  compile-specifications-into-source-code/   # codegen + the structural/security enforcer
+  common-support-code-for-spec2c/            # shared runtime primitives (no codegen logic)
+  support-code-for-compiled-output/          # support code linked into generated output
+  known-answer-tests-for-primitives/         # KATs (e.g. SHA-256 test vectors)
+  ipm-compiler-definition-spec-directory/    # the compiler expressed as IPM specifications
+modules/                                # early pure-IPM packages (SHA-256, CRC-32, blob store)
+```
+
+The scan scope is the **whole repository**, rooted at a path derived at runtime — never
+a hardcoded `src/`. Relocating source to escape a narrow scan is treated as an active
+evasion, not a workaround.
+
+## Build & recovery
 
 ```bash
-# Via IPM (preferred)
-ipm workspace spec2c
-ipm workspace set-flake git+https://github.com/grigoriitropin/spec2c
-ipm build --install --attr spec2c
-spec2c --help
-
-# Via raw Nix (bootstrap only — IPM is the daily driver)
-nix build --no-link git+https://github.com/grigoriitropin/spec2c
+nix build .#spec2c        # the compiler
+nix build .#s2c-enforce    # structural & security enforcer (C)
+nix build .#ipm-enforce    # the enforcer expressed in IPM
 ```
 
-## Immutable Bootstrap Anchor
+**Recovery principle.** The frozen Stage-0 C set is the recovery floor: because it is
+hash-pinned and operator-signed, it can be rebuilt deterministically with a C compiler
+independent of the IPM layer. The integrity gate is what guarantees that what you
+recover is exactly what was signed, not a tampered copy.
 
-`spec2c.c` is the Stage 0 compiler — a hand-written C implementation that reads
-`.ipm` specifications and generates C source code. It is **frozen and immutable**.
-It must never be modified except to fix critical security vulnerabilities or to
-align its semantics with the AST codegen (e.g., `""` vs `NULL` fallback).
+## Deterministic flags
 
-**Rationale:** If the AST codegen (in `spec2c.ipm`) ever becomes corrupted or
-produces broken output, `gcc spec2c.c` must always produce a working Stage 1
-binary. This is the bootstrap escape hatch.
-
-## Source of Truth
-
-- `spec2c.ipm` — canonical compiler. All function definitions, all codegen logic.
-- `spec2c.c` — bootstrap loader. Frozen C implementation.
-- `src/ipm_builtins.c` — runtime primitives. No compiler logic.
-
-## Bootstrap Chain
-
-```
-Stage 0 (spec2c.c, frozen)
-  ↓ reads spec2c.ipm
-Stage 1 (s1.c, generated)
-  ↓ uses AST compile_* functions
-Stage 2 (s2.c, generated)
-  ↓ fixed point
-Stage 3 (s3.c, generated)
-  s2.c == s3.c  (source fixpoint)
-  stage2 == stage3  (ELF fixpoint)
-```
-
-## Known Drift
-
-Stage 0 and Stage 1+ produce functionally equivalent but not byte-identical C:
-- Stage 0 uses depth-tracking indentation
-- Stage 1+ uses fixed 2-space indentation
-
-This is a cosmetic formatting legacy. It does not affect correctness or ELF identity.
-
-## CI Regression
-
-```bash
-./tests/regression.sh
-```
-
-Runs the full bootstrap chain and asserts:
-- Source fixpoint: s2.c == s3.c
-- ELF fixpoint: stage2 == stage3
-
-## Deterministic Build Flags
-
-Defined in `flake.nix`:
-- `-O2 -fno-ident -frandom-seed=spec2c -Wl,--build-id=none`
-
-## Frozen Boundaries
-
-```
-Core language:      8 instruction types (immutable)
-Core runtime:       src/ipm_builtins.c (199 LOC, immutable)
-Bootstrap anchor:   spec2c.c at commit 446c083 (re-frozen)
-Self-hosting loop:  spec2c.ipm + modules/ (no optional builtins)
-
-Expansion zone (additive only):
-  Optional runtime: runtime/ipm_builtins_fs.c (≤150 LOC, pure wrappers)
-  New .ipm programs: standalone workspaces, not IPM internals
-```
-
-## Bootstrap Recovery
-
-If the multi-file compiler is corrupted, restore from the monolithic bootstrap:
-```bash
-gcc spec2c.c -o stage0_recovery
-./stage0_recovery bootstrap/spec2c-monolith.ipm -o recovery.c
-gcc recovery.c src/ipm_builtins.c -o recovery
-./recovery modules/codegen.ipm codegen.c  # works with multi-file modules
-```
-
-## Structural Enforcement
-
-spec2c enforces at compile time (defaults, overridable per-module via `structural_limits`):
-- File lines: max 2000
-- Functions per file: max 15
-- Top-level instructions per function: max 250
+`-O2 -fno-ident -frandom-seed=spec2c -Wl,--build-id=none` — so the same inputs always
+produce the same bytes, which is what makes both freezing and tamper-detection
+meaningful.

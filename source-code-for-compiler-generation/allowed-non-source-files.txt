@@ -1,6 +1,8 @@
 
 LICENSE
 README.md
+AGENTS.md
+HIGHLIGHTS.md
 allowed-names.txt
 allowed-non-source-files.txt
 banned-patterns.txt
