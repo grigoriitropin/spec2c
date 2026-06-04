@@ -99,6 +99,7 @@
             ${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns/detect-banned-patterns-and-braces.c \
             ${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns/validate-ipm-content-scan/validate-ipm-content-scan.c \
             ${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns/enforce-bootstrap-code-file-whitelist.c \
+            ${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns/load-manifest-path-exemption-entries/load-manifest-paths-for-exemption.c \
             ${builtins.toString runtime_src} \
             verify-ed25519-digital-signature-key.c \
             -o s2c-enforce ${cjson-static}/lib/libcjson.a -lm
@@ -143,6 +144,7 @@
             ${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns/detect-banned-patterns-and-braces.c \
             ${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns/validate-ipm-content-scan/validate-ipm-content-scan.c \
             ${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns/enforce-bootstrap-code-file-whitelist.c \
+            ${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns/load-manifest-path-exemption-entries/load-manifest-paths-for-exemption.c \
             ${builtins.toString runtime_src} \
             verify-ed25519-digital-signature-key.c \
             -o s2c_enforce ${cjson-static}/lib/libcjson.a -lm

@@ -4,21 +4,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <cjson/cJSON.h>
-
-#define PUBKEY_HEX "489532082ae4dfc21c6ffe21e1bf78c432bc07200d712ad07568c9a46fe52f24"
-
-typedef struct {
-    char name[128];
-    char scan_as[64];
-} exemption_entry_t;
-
-static exemption_entry_t exemptions[128];
-static int exemptions_count = 0;
-
-void report_fatal_error_and_exit(const char *msg) {
-    fprintf(stderr, "spec2c: %s\n", msg); exit(1);
-}
 
 static char *read_file_content_into_memory(const char *srcdir) {
     char path[4096];
