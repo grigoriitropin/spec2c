@@ -63,6 +63,24 @@
         "src/support-code-for-compiled-output/buffer-output-and-command-launch.c"
       ];
     in {
+      # ── Manifest generator (C, no Python in trust path) ─────────────
+      generate-integrity-manifest-from-source = pkgs.stdenv.mkDerivation {
+        pname = "generate-integrity-manifest-from-source";
+        version = "0.1.0";
+        inherit src;
+        buildInputs = [ cjson-static ];
+        buildPhase = ''
+          cc -O2 -Wall -Werror -std=c2x -Isrc/support-code-for-compiled-output \
+            generate-integrity-manifest-from-source.c \
+            src/support-code-for-compiled-output/compute-file-sha-hash-digest/compute-sha256-hash-for-files.c \
+            -o generate-integrity-manifest-from-source \
+            ${cjson-static}/lib/libcjson.a -lm
+        '';
+        installPhase = ''
+          mkdir -p $out/bin
+          cp generate-integrity-manifest-from-source $out/bin/
+        '';
+      };
       # ── Standalone enforcement checker ────────────────────────────
       s2c-enforce = pkgs.stdenv.mkDerivation {
         pname = "s2c-enforce";
