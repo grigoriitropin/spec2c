@@ -377,6 +377,164 @@
         '';
       };
 
+      # ── Codegen parity gate (TRANSITIONAL — dies at Phase 8 with Nix) ──────
+      # Proves the IPM self-hosted codegen (generate-code-from-instruction-ast.ipm)
+      # produces C byte-identical (after clang-format canonicalization) to the
+      # frozen C codegen, across the sanctioned green corpus. Builds a twin-spec2c
+      # whose codegen is the twin's generated code + a thin adapter, then diffs.
+      # Fail-closed: an unhandled instruction shape makes the twin error -> build fails.
+      # NOTE: parity is proven on the corpus' current instruction shapes, NOT general
+      # codegen equivalence. The adapter glue is transitional scaffolding (it supplies
+      # the stateful inference C does inline); it dies with this gate at Phase 8.
+      ipm-codegen-parity-gate = pkgs.stdenv.mkDerivation {
+        pname = "ipm-codegen-parity-gate";
+        version = "0.1.0";
+        inherit src;
+        buildInputs = [ cjson-static self.packages.${system}.spec2c ];
+        nativeBuildInputs = [ pkgs.pkg-config pkgs.clang-tools ];
+        SPEC2C = "${self.packages.${system}.spec2c}/bin/spec2c";
+        buildPhase = ''
+          runHook preBuild
+          TWIN=source-code-for-compiler-generation/ipm-compiler-definition-spec-directory/generate-code-from-instruction-ast.ipm
+
+          # Transitional adapter: bridge C driver entry to the twin's string_buffer
+          # codegen + supply the stateful inference C does inline (number text,
+          # variable-type lookup, function return_type). Dies with this gate.
+          cat > parity-adapter.c <<'ADAPTER_EOF'
+#include "share-type-definitions-across-files.h"
+void compile_instruction_array_into_code(cJSON *instructions, string_buffer *buffer);
+const char *extract_json_field_number_text(const cJSON *obj, const char *key) {
+    static char buf[32];
+    const cJSON *v = cJSON_GetObjectItemCaseSensitive(obj, key);
+    if (v && cJSON_IsNumber(v)) { snprintf(buf, sizeof buf, "%d", v->valueint); return buf; }
+    buf[0] = '0'; buf[1] = '\0';
+    return buf;
+}
+static const char *twin_find_variable_type_recursive(cJSON *node, const char *var_name) {
+    if (!node) return NULL;
+    if (cJSON_IsObject(node)) {
+        cJSON *it = cJSON_GetObjectItemCaseSensitive(node, "instruction_type");
+        if (it && cJSON_IsString(it)) {
+            if (!strcmp(it->valuestring, "variable_declaration")) {
+                cJSON *vn = cJSON_GetObjectItemCaseSensitive(node, "variable_name");
+                if (vn && cJSON_IsString(vn) && !strcmp(vn->valuestring, var_name)) {
+                    cJSON *vt = cJSON_GetObjectItemCaseSensitive(node, "variable_type");
+                    if (vt && cJSON_IsString(vt)) return vt->valuestring;
+                }
+            } else if (!strcmp(it->valuestring, "read_file_content")) {
+                cJSON *rv = cJSON_GetObjectItemCaseSensitive(node, "result_variable");
+                if (rv && cJSON_IsString(rv) && !strcmp(rv->valuestring, var_name)) return "slice";
+            } else if (!strcmp(it->valuestring, "function_invocation")) {
+                cJSON *rv = cJSON_GetObjectItemCaseSensitive(node, "result_assignment_variable");
+                if (rv && cJSON_IsString(rv) && !strcmp(rv->valuestring, var_name)) {
+                    cJSON *rt = cJSON_GetObjectItemCaseSensitive(node, "result_type");
+                    if (rt && cJSON_IsString(rt)) return rt->valuestring;
+                }
+            }
+        }
+        for (cJSON *c = node->child; c; c = c->next) {
+            const char *r = twin_find_variable_type_recursive(c, var_name);
+            if (r) return r;
+        }
+    } else if (cJSON_IsArray(node)) {
+        for (cJSON *c = node->child; c; c = c->next) {
+            const char *r = twin_find_variable_type_recursive(c, var_name);
+            if (r) return r;
+        }
+    }
+    return NULL;
+}
+const char *lookup_current_function_variable_type(const char *var_name) {
+    if (!current_function_definition_ast) return "";
+    cJSON *params = cJSON_GetObjectItemCaseSensitive(current_function_definition_ast, "parameter_definitions");
+    if (params && cJSON_IsArray(params)) {
+        for (int i = 0; i < cJSON_GetArraySize(params); i++) {
+            cJSON *p = cJSON_GetArrayItem(params, i);
+            cJSON *pn = cJSON_GetObjectItemCaseSensitive(p, "parameter_name");
+            if (pn && cJSON_IsString(pn) && !strcmp(pn->valuestring, var_name)) {
+                cJSON *pt = cJSON_GetObjectItemCaseSensitive(p, "parameter_type");
+                if (pt && cJSON_IsString(pt)) return pt->valuestring;
+            }
+        }
+    }
+    cJSON *body = cJSON_GetObjectItemCaseSensitive(current_function_definition_ast, "execution_instructions");
+    const char *r = twin_find_variable_type_recursive(body, var_name);
+    return r ? r : "";
+}
+const char *current_function_return_type_text(void) {
+    if (!current_function_definition_ast) return "void";
+    cJSON *rt = cJSON_GetObjectItemCaseSensitive(current_function_definition_ast, "return_type");
+    if (rt && cJSON_IsString(rt) && rt->valuestring[0]) return rt->valuestring;
+    return "void";
+}
+void generate_code_via_dispatch_table(cJSON *insts, FILE *out, int indent, const char *rt) {
+    (void)indent; (void)rt;
+    if (!cJSON_IsArray(insts)) return;
+    string_buffer *sb = create_empty_growable_string_buffer();
+    compile_instruction_array_into_code(insts, sb);
+    if (sb->data && sb->len) fwrite(sb->data, 1, sb->len, out);
+    free_allocated_string_buffer_memory(sb);
+}
+ADAPTER_EOF
+
+          # Generate the twin's codegen C + the standard module fixups.
+          "$SPEC2C" "$TWIN" --library -o gen-codegen.c
+          sed -i '/^{"ok"/d' gen-codegen.c
+          sed -i -E 's/\bchar \* ([a-z_0-9]+) = (resolve_spec_type_into_lang|extract_json_field_number_text|lookup_current_function_variable_type|current_function_return_type_text)\(/const char * \1 = \2(/g' gen-codegen.c
+          sed -i 's/const char \*_name = "[^"]*";//' gen-codegen.c
+          sed -i '1i extern const char *current_function_return_type_text(void);' gen-codegen.c
+          sed -i '1i extern const char *lookup_current_function_variable_type(const char *var_name);' gen-codegen.c
+          sed -i '1i extern const char *extract_json_field_number_text(const cJSON *obj, const char *key);' gen-codegen.c
+          sed -i '1i#include "share-type-definitions-across-files.h"' gen-codegen.c
+          sed -i '1i#include "runtime-for-generated-ipm-code.h"' gen-codegen.c
+
+          # Build twin-spec2c (same cjson-static + cflags as the C spec2c; the two
+          # frozen codegen leaves are replaced by gen-codegen.c + parity-adapter.c).
+          cc ${builtins.toString cflags} ${builtins.toString inc} \
+            ${S}/parse-command-dispatch-into-pipeline.c \
+            ${S}/compile-abstract-instructions-into-code.c \
+            ${S}/generate-output-from-ipm-specification.c \
+            ${S}/parse-legacy-specification-file-format/parse-old-format-specification-data.c \
+            gen-codegen.c \
+            parity-adapter.c \
+            ${builtins.toString runtime_src} \
+            verify-ed25519-digital-signature-key.c \
+            -o spec2c-twin ${cjson-static}/lib/libcjson.a -lm
+
+          # NOTE: no L2 symbol gate on twin-spec2c. It is the same bootstrap class as
+          # spec2c (a libc-using bootstrap compiler, name-exempt in the L2 UNDEF gate);
+          # its only non-whitelisted import (strncmp) comes from the shared
+          # parse-old-format file, identical to spec2c. The glue (gen-codegen.c +
+          # adapter) introduces no new banned imports. The gate's job is codegen PARITY.
+
+          # Canonical parity diff over the sanctioned corpus (fail-closed).
+          printf 'BasedOnStyle: LLVM\n' > .clang-format
+          for m in \
+            check-banned-patterns-pure-ipm.ipm \
+            enforce-naming-rules-via-ffi.ipm \
+            modules/rules/naming-and-density-checkers/check-each-line-token-density.ipm \
+            modules/rules/naming-and-density-checkers/validate-file-stem-naming-dfa.ipm \
+            modules/rules/function-and-pattern-scanners/locate-all-function-body-blocks.ipm \
+            modules/rules/function-and-pattern-scanners/find-every-main-function-block.ipm \
+            modules/rules/function-and-pattern-scanners/detect-any-hardcoded-filesystem-paths.ipm ; do
+            "$SPEC2C" "$m" --library -o ref.c || exit 1
+            ./spec2c-twin "$m" --library -o twin.c || { echo "PARITY GATE: twin failed on $m (unhandled shape)"; exit 1; }
+            clang-format ref.c > ref.fmt
+            clang-format twin.c > twin.fmt
+            diff ref.fmt twin.fmt || { echo "PARITY GATE: MISMATCH on $m"; exit 1; }
+            echo "parity OK: $m"
+          done
+          echo "ipm-codegen-parity-gate: PASS (7/7 corpus)"
+          runHook postBuild
+        '';
+        installPhase = ''
+          runHook preInstall
+          mkdir -p $out
+          echo "ipm-codegen-parity-gate PASS" > $out/parity-passed.txt
+          runHook postInstall
+        '';
+      };
+
       default = self.packages.${system}.spec2c;
     });
   };
