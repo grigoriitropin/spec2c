@@ -82,7 +82,7 @@ static int load_operator_integrity_manifest_file(const char *srcdir, char **out,
     return 1;
 }
 
-static int read_sidecar_signature_file(const char *srcdir, const char *basename, char *sig_hex, int sigsz) {
+static int read_sidecar_signature_file_bytes(const char *srcdir, const char *basename, char *sig_hex, int sigsz) {
     char path[4096];
     /* basename = "foo.json", sidecar = "foo.sig" — strip .json suffix */
     char sidecar[256];
@@ -173,7 +173,7 @@ void enforce_bootstrap_code_freeze_check(const char *srcdir) {
     if (!load_operator_integrity_manifest_file(srcdir, &content, &content_len))
         return;
     char sig_hex[256] = {0};
-    if (!read_sidecar_signature_file(srcdir, "operator-signed-integrity-manifest-hashes.json", sig_hex, sizeof(sig_hex))) {
+    if (!read_sidecar_signature_file_bytes(srcdir, "operator-signed-integrity-manifest-hashes.json", sig_hex, sizeof(sig_hex))) {
         fprintf(stderr, "spec2c: integrity manifest: missing or invalid signature file\n");
         free(content); exit(1);
     }

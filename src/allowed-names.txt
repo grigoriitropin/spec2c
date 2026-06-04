@@ -258,6 +258,7 @@ read_entire_text_into_memory
 read_file_bytes_into_buffer
 read_file_content_into_memory
 read_pattern_definitions_from_json
+read_sidecar_signature_file_bytes
 remaining-rules-ffi-batch-four
 rename_file_from_old_path
 report_fatal_error_and_exit
