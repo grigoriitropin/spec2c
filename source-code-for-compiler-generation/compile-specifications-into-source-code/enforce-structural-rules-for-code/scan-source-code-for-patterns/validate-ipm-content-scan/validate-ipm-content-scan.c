@@ -205,7 +205,7 @@ static void validate_single_ipm_file_content(const char *sp,
     FILE *f = fopen(sp, "r"); if (!f) {
         fprintf(stderr, "spec2c: FATAL: cannot open IPM file %s\n", sp); exit(1); }
     fseek(f, 0, SEEK_END); long sz = ftell(f); fseek(f, 0, SEEK_SET);
-    if (sz <= 0 || sz > 65536) { fclose(f);
+    if (sz <= 0 || sz > 131072) { fclose(f);
         fprintf(stderr, "spec2c: FATAL: IPM file %s size %ld invalid\n", sp, sz); exit(1); }
     char *txt = malloc(sz + 1);
     if (!txt) { fclose(f);
