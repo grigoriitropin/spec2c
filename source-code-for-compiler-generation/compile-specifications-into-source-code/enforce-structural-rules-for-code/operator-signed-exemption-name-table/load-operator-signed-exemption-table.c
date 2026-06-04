@@ -16,7 +16,7 @@ typedef struct {
 static exemption_entry_t exemptions[128];
 static int exemptions_count = 0;
 
-static void report_fatal_error_and_exit(const char *msg) {
+void report_fatal_error_and_exit(const char *msg) {
     fprintf(stderr, "spec2c: %s\n", msg); exit(1);
 }
 

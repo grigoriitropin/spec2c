@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-static void report_fatal_error_and_exit(const char *msg) {
+void report_fatal_error_and_exit(const char *msg) {
     fprintf(stderr, "spec2c: %s\n", msg); exit(1);
 }
 
