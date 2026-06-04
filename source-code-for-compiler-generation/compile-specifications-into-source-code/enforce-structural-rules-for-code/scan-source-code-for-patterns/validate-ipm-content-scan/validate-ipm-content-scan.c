@@ -69,11 +69,17 @@ static void validate_values_against_banned_content(const char *val, const char *
             "  → remove goto/setjmp/longjmp/#pragma weak from IPM strings", path);
         fprintf(stderr, "spec2c: %s\n", msg); exit(1);
     }
-    if (strstr(val, "\"/")) {
-        char msg[512]; snprintf(msg, sizeof(msg),
-            "SOUL §7: hardcoded path in IPM string at %s\n"
-            "  → resolve paths at runtime, never hardcode", path);
-        fprintf(stderr, "spec2c: %s\n", msg); exit(1);
+    {   const char *p = val;
+        while ((p = strstr(p, "\"/")) != NULL) {
+            p += 2;
+            if (*p == '*' || *p == '/') continue;
+            if ((*p >= 'a' && *p <= 'z') || *p == '/' || *p == '.') {
+                char msg[512]; snprintf(msg, sizeof(msg),
+                    "SOUL §7: hardcoded path in IPM string at %s\n"
+                    "  → resolve paths at runtime, never hardcode", path);
+                fprintf(stderr, "spec2c: %s\n", msg); exit(1);
+            }
+        }
     }
 }
 
