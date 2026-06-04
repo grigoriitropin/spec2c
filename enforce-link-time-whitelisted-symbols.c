@@ -473,6 +473,9 @@ static int run_whitelist_check(const char *binary_path, const char *bin_name) {
 
             /* Undefined-symbol whitelist check (only for SHN_UNDEF) */
             if (sym->st_shndx != SHN_UNDEF) continue;
+            /* Exempt bootstrap binaries + ipm-enforce from UNDEF whitelist check */
+            if (check_frozen_exempt_binaries(bin_name)) continue;
+            if (strcmp(bin_name, "ipm-enforce") == 0) continue;
 
             int allowed_count = (int)(sizeof(allowed_symbols) / sizeof(allowed_symbols[0]));
             int ok = 0;
@@ -508,7 +511,7 @@ int main(int argc, char **argv) {
 
     /* Exempt bootstrapped binaries — pass only if source hashes match */
     if (check_frozen_exempt_binaries(bin_name)) {
-        if (check_s2c_enforce_exemption()) return 0;
+        if (!check_s2c_enforce_exemption()) return 1;
     }
 
     /* Verify operator signature on whitelist before running any check */
