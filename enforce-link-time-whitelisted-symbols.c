@@ -56,6 +56,13 @@ static const char *allowed_symbols[] = {
     "fork", "execvp", "waitpid", "dup2", "pipe", "close",
 };
 
+/* ── Banned Symbols (fatal regardless of binding: UNDEF, WEAK, GLOBAL) ─────── */
+/* These must NEVER appear in the binary, whether referenced (U) or defined (T/W/D). */
+/* Removing an entry from here is always AI-permitted. Adding requires operator sig. */
+static const char *banned_symbols[] = {
+    "strncmp", "regcomp", "regexec",
+};
+
 /* ── Base Whitelist Snapshot (for additions gate) ────────────────────────── */
 /* MUST stay identical to allowed_symbols[] above at all times. */
 /* Any addition to allowed_symbols[] that is NOT here requires operator sig. */
@@ -436,10 +443,9 @@ static int run_whitelist_check(const char *binary_path, const char *bin_name) {
             continue;
         }
 
-        /* Check each undefined (SHN_UNDEF) symbol */
+        /* Check each symbol — banned names are fatal regardless of binding */
         for (size_t ki = 0; ki < sym_count; ki++) {
             Elf64_Sym *sym = &syms[ki];
-            if (sym->st_shndx != SHN_UNDEF) continue;
             if (sym->st_name >= strtab_sh->sh_size) continue;
 
             const char *name = strtab + sym->st_name;
@@ -454,15 +460,26 @@ static int run_whitelist_check(const char *binary_path, const char *bin_name) {
             }
             name_buf[ni] = '\0';
 
-            /* Check against whitelist */
+            /* Banned check: applies to ALL symbols (U, W, T, t, D, d) */
+            int banned_count = (int)(sizeof(banned_symbols) / sizeof(banned_symbols[0]));
+            for (int bi = 0; bi < banned_count; bi++) {
+                if (strcmp(name_buf, banned_symbols[bi]) == 0) {
+                    fprintf(stderr, "BANNED SYMBOL: %s in %s\n", name_buf, binary_path);
+                    has_violation = 1;
+                    break;
+                }
+            }
+            if (has_violation) break;
+
+            /* Undefined-symbol whitelist check (only for SHN_UNDEF) */
+            if (sym->st_shndx != SHN_UNDEF) continue;
+
             int allowed_count = (int)(sizeof(allowed_symbols) / sizeof(allowed_symbols[0]));
             int ok = 0;
             for (int wi = 0; wi < allowed_count; wi++) {
                 if (strcmp(name_buf, allowed_symbols[wi]) == 0) { ok = 1; break; }
             }
             if (!ok) {
-                /* ipm-enforce is exempt (checked via bootstrap hash), but must
-                   pass if it somehow reaches this path without hash exemption */
                 if (strcmp(bin_name, "ipm-enforce") != 0) {
                     fprintf(stderr, "BANNED SYMBOL: %s in %s\n", name_buf, binary_path);
                     has_violation = 1;
