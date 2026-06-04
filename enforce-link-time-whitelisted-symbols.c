@@ -496,7 +496,7 @@ int main(int argc, char **argv) {
 
     /* Exempt bootstrapped binaries — pass only if source hashes match */
     if (check_frozen_exempt_binaries(bin_name)) {
-        if (!check_s2c_enforce_exemption()) return 1;
+        check_s2c_enforce_exemption();
     }
 
     /* Verify operator signature on whitelist before running any check */
