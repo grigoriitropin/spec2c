@@ -22,3 +22,5 @@ SOUL.md
 SPEC.md
 bootstrap.md
 soul-patterns.json
+operator-signed-integrity-manifest-hashes.sig
+operator-signed-exemption-name-table.sig
