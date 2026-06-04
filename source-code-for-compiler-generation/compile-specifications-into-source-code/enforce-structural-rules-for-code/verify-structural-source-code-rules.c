@@ -346,6 +346,8 @@ static int is_main_count_exempt_file(const char *path) {
 }
 void enforce_all_source_code_rules(const char *srcdir) {
     const char *data_dir = srcdir;
+    char sd[4096]; snprintf(sd, sizeof(sd), "%s/source-code-for-compiler-generation", srcdir);
+    struct stat st_sd; if (!stat(sd, &st_sd) && S_ISDIR(st_sd.st_mode)) data_dir = sd;
     load_operator_signed_exemption_table(srcdir);
     read_allowed_names_from_file(data_dir); read_banned_patterns_from_file(data_dir);
     load_non_source_file_allowlist(data_dir); load_bootstrap_whitelist_from_disk(data_dir);
