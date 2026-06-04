@@ -6,7 +6,7 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include <cjson/cJSON.h>
-#include "verify-structural-source-code-rules.h"
+#include "../verify-structural-source-code-rules.h"
 
 static const char *banned_type_words[] = {
     "service","server","daemon","library","tool","binary",
@@ -61,12 +61,6 @@ const char *check_name_following_soul_rules(const char *what, const char *name, 
 
 void initialize_naming_rules_enforcer_ffi(const char *srcdir) {
     const char *data_dir = srcdir;
-    char sd[4096];
-    snprintf(sd, sizeof(sd), "%s/src", srcdir);
-    struct stat st_sd;
-    if (!stat(sd, &st_sd) && S_ISDIR(st_sd.st_mode)) {
-        data_dir = sd;
-    }
     read_allowed_names_from_file(data_dir);
     read_banned_patterns_from_file(data_dir);
     load_non_source_file_allowlist(data_dir);

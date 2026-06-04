@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-#include "../shared-type-declarations-across-modules/share-type-definitions-across-files.h"
+#include "../../shared-type-declarations-across-modules/share-type-definitions-across-files.h"
 
 int emit_report_error_then_exit(cJSON *inst, FILE *out) {
     cJSON *args = cJSON_GetObjectItemCaseSensitive(inst, "invocation_arguments");

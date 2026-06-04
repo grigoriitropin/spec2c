@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // ipm_builtins — I/O, JSON, error, regex, type mapping (split part 1)
-#include "runtime-for-generated-ipm-code.h"
+#include "../runtime-for-generated-ipm-code.h"
 #include <unistd.h>
 #include <stdint.h>
 #include <string.h>

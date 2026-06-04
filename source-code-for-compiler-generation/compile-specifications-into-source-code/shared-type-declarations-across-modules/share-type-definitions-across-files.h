@@ -12,7 +12,7 @@
 #include <cjson/cJSON.h>
 #include <dirent.h>
 #include <sys/stat.h>
-#include "runtime-for-generated-ipm-code.h"
+#include "../../runtime-for-generated-ipm-code.h"
 
 #define SUBST_MAX 32
 #define VAL_SZ   4096

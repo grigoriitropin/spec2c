@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // ipm_builtins — hash table, substitution, string buffer create/append (split part 2)
-#include "runtime-for-generated-ipm-code.h"
+#include "../runtime-for-generated-ipm-code.h"
 
 subst_table* allocate_and_init_hash_table(void) {
     subst_table *t = malloc(sizeof(subst_table));

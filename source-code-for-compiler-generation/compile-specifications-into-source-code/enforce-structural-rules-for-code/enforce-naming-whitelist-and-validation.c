@@ -2,7 +2,7 @@
 // whitelist + naming validation — shared with enforce.c
 
 #include "verify-structural-source-code-rules.h"
-#include "soul-naming-forbidden-words-list.h"
+#include "../shared-type-declarations-across-modules/soul-naming-forbidden-words-list.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -273,10 +273,6 @@ void read_allowed_names_from_file(const char *srcdir) {
         report_fatal_error_and_exit("config filename not in exemption table and does not follow 5-word convention");
     char path[4096]; snprintf(path, sizeof(path), "%s/%s", srcdir, cn);
     FILE *f = fopen(path, "r");
-    if (!f) {
-        snprintf(path, sizeof(path), "%s/src/%s", srcdir, cn);
-        f = fopen(path, "r");
-    }
     if (!f) report_fatal_error_and_exit("cannot open config file (create with one valid 5-word name per line)");
     char line[256];
     while (fgets(line, sizeof(line), f) && allowed_qty < 512) {
@@ -321,10 +317,6 @@ void read_banned_patterns_from_file(const char *srcdir) {
         report_fatal_error_and_exit("config filename not in exemption table and does not follow 5-word convention");
     char path[4096]; snprintf(path, sizeof(path), "%s/%s", srcdir, cn);
     FILE *f = fopen(path, "r");
-    if (!f) {
-        snprintf(path, sizeof(path), "%s/src/%s", srcdir, cn);
-        f = fopen(path, "r");
-    }
     if (!f) report_fatal_error_and_exit("cannot open config file (create with one banned pattern per line)");
     char line[64];
     while (fgets(line, sizeof(line), f) && banned_patterns_count < 32) {

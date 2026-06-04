@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // bootstrap C whitelist + external integrity manifest verification
-#include "verify-structural-source-code-rules.h"
-#include "verify-ed25519-digital-signature-key.h"
+#include "../verify-structural-source-code-rules.h"
+#include "../../../../verify-ed25519-digital-signature-key.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

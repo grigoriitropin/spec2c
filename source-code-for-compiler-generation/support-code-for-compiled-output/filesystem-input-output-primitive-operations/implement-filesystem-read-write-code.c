@@ -6,7 +6,7 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <cjson/cJSON.h>
-#include "ipm_builtins.h"
+#include "../../runtime-for-generated-ipm-code.h"
 
 /* enumerate_directory_entry_list_items(path) → cJSON array of filenames, or NULL on error */
 cJSON* enumerate_directory_entry_list_items(const char *path) {

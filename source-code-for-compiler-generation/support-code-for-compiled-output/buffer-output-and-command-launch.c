@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // ipm_builtins — buffer output, arg access, exec wrappers (split part 3)
-#include "runtime-for-generated-ipm-code.h"
+#include "../runtime-for-generated-ipm-code.h"
 #include <unistd.h>
 #include <sys/wait.h>
 
