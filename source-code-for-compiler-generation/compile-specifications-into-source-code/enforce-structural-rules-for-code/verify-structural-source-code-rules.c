@@ -216,6 +216,10 @@ void check_single_file_for_violations(const char *sub, int is_c, int is_source,
                         continue;
                     }
                     if (!in_target) continue;
+                    /* Manifest-pinned files are operator-signed — cpp expansion
+                       of their #pragma weak stubs is legitimate. */
+                    { const char *rp = sub; while (*rp == '.' || *rp == '/') rp++;
+                      if (match_path_against_integrity_manifest(rp)) continue; }
                     if (check_for_banned_keyword_pattern(pline)) {
                         if (lint_mode) {
                             fprintf(stderr, "spec2c: %s line %d — banned pattern after macro expansion\n", sub, ln);
