@@ -10,6 +10,6 @@ flake.lock
 flake.nix
 ipm-imports.whitelist
 operator-signed-exemption-name-table.json
-operator-signed-integrity-manifest.json
+operator-signed-integrity-manifest-hashes.json
 skeleton.json
 source-manifest.json

@@ -231,7 +231,7 @@ match_pattern_against_text_string
 match_source_code_header_filename
 match_type_against_strict_whitelist
 operator-signed-exemption-name-table
-operator-signed-integrity-manifest
+operator-signed-integrity-manifest-hashes
 operator_signed_exemption_name_table
 parse-and-generate-json-data
 parse-command-dispatch-into-pipeline

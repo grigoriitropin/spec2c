@@ -71,13 +71,13 @@ static int search_file_using_name_recursive(const char *dpath, const char *targe
 /* Verify SHA256 hashes from external operator-signed integrity manifest */
 static int load_operator_integrity_manifest_file(const char *srcdir, char **out, long *out_len) {
     char path[4096];
-    FILE *f = fopen("operator-signed-integrity-manifest.json", "r");
+    FILE *f = fopen("operator-signed-integrity-manifest-hashes.json", "r");
     if (!f) {
-        snprintf(path, sizeof(path), "%s/operator-signed-integrity-manifest.json", srcdir);
+        snprintf(path, sizeof(path), "%s/operator-signed-integrity-manifest-hashes.json", srcdir);
         f = fopen(path, "r");
     }
     if (!f) {
-        snprintf(path, sizeof(path), "%s/../operator-signed-integrity-manifest.json", srcdir);
+        snprintf(path, sizeof(path), "%s/../operator-signed-integrity-manifest-hashes.json", srcdir);
         f = fopen(path, "r");
     }
     if (!f) return 0;
