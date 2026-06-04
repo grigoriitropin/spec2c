@@ -44,7 +44,6 @@ void load_bootstrap_whitelist_from_disk(const char *srcdir) {
 
 int match_name_against_bootstrap_list(const char *basename) {
     for (int i = 0; i < whitelist_count_now; i++) {
-        /* match against basename of whitelist entry (strip path prefix) */
         const char *bn = strrchr(whitelist_names[i], '/');
         bn = bn ? bn + 1 : whitelist_names[i];
         if (!strcmp(bn, basename)) return 1;

@@ -266,6 +266,15 @@ static int check_non_source_and_bootstrap(const char *name, const char *sub, con
         size_t dn_len2 = strlen(name);
         if (!(dn_len2 > 4 && !strcmp(name + dn_len2 - 4, ".ipm")))
             report_violation_with_actionable_hint(ERR_NOT_IN_BOOTSTRAP_WHITELIST, sub, 0, 0, NULL);
+    } else {
+        /* Bootstrap whitelist only covers files in src/ — files elsewhere with
+           a whitelisted basename are NOT exempt */
+        const char *rp = sub; while (*rp == '.' || *rp == '/') rp++;
+        if (strncmp(rp, "src/", 4)) {
+            size_t dn_len2 = strlen(name);
+            if (!(dn_len2 > 4 && !strcmp(name + dn_len2 - 4, ".ipm")))
+                report_violation_with_actionable_hint(ERR_NOT_IN_BOOTSTRAP_WHITELIST, sub, 0, 0, NULL);
+        }
     }
     return 0;
 }
@@ -318,7 +327,7 @@ void enforce_all_source_code_rules(const char *srcdir) {
             struct stat st; if (lstat(sub, &st) != 0) continue;
             const char *scan = match_name_against_exemption_table(de->d_name);
             if (scan) {
-                if (!strcmp(scan, "subtree-skip")) { closedir(d); scan_depth--; return; }
+                if (!strcmp(scan, "subtree-skip")) continue;
                 if (!S_ISDIR(st.st_mode)) continue;
             }
             if (S_ISLNK(st.st_mode)) continue;
