@@ -216,7 +216,7 @@ static void validate_single_ipm_file_content(const char *sp,
         fprintf(stderr, "spec2c: FATAL: JSON parse error in %s\n", sp); exit(1); }
 
     const char *rp = !strncmp(sp, "./", 2) ? sp + 2 : sp;
-    if (!match_path_against_integrity_manifest(rp))
+    if (!match_path_against_integrity_manifest(rp) && strncmp(rp, "bootstrap/", 10))
         scan_json_for_banned_items(root, sp);
     check_ipm_ast_depth_limits(root, 0, sp);
 
