@@ -163,7 +163,24 @@ static void scan_json_for_banned_words(cJSON *node, const char *path) {
     }
     if (cJSON_IsObject(node)) {
         cJSON *child = node->child;
-        while (child) { scan_json_for_banned_words(child, path); child = child->next; }
+        while (child) {
+            /* Check JSON KEY names (not just values) for banned patterns.
+               cJSON decodes \uXXXX in keys too — catches Unicode-escaped goto/setjmp etc. */
+            if (child->string) {
+                const char *kn = child->string;
+                if (strstr(kn, "goto") || strstr(kn, "setjmp") ||
+                    strstr(kn, "longjmp") || strstr(kn, "#pragma") ||
+                    strstr(kn, "2>") || strstr(kn, "#include") ||
+                    strstr(kn, "malloc") || strstr(kn, "free(") ||
+                    strstr(kn, "sizeof")) {
+                    char msg[512]; snprintf(msg, sizeof(msg),
+                        "SOUL §7: banned pattern in IPM key '%s' at %s\n"
+                        "  → rename the key, banned patterns are not allowed in key names", kn, path);
+                    fprintf(stderr, "spec2c: %s\n", msg); exit(1);
+                }
+            }
+            scan_json_for_banned_words(child, path); child = child->next;
+        }
     }
 }
 static void check_ipm_imports_against_whitelist(cJSON *root, const char *sp,

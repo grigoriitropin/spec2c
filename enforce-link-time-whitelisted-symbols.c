@@ -480,6 +480,14 @@ static int run_whitelist_check(const char *binary_path, const char *bin_name) {
             }
             name_buf[ni] = '\0';
 
+            /* IFUNC detection: GNU indirect functions are hijack vectors (XZ-style).
+               No IFUNC symbol is permitted in any enforcer binary. */
+            if (ELF64_ST_TYPE(sym->st_info) == STT_GNU_IFUNC) {
+                fprintf(stderr, "IFUNC SYMBOL: %s in %s\n", name_buf, binary_path);
+                has_violation = 1;
+                break;
+            }
+
             /* WEAK binding check: only explicit operator-signed stubs permitted.
                allowed_symbols[] is for UNDEF references, NOT for WEAK definitions.
                Structural backstop: a permitted WEAK name that shadows a dangerous
