@@ -291,8 +291,7 @@ static void skip_root_files_when_scanning(const char *srcdir)
 }
 
 void enforce_all_source_code_rules(const char *srcdir) {
-    const char *data_dir = srcdir;
-    char sd[4096]; snprintf(sd, sizeof(sd), "%s/src", srcdir);
+    const char *data_dir = srcdir; char sd[4096]; snprintf(sd, sizeof(sd), "%s/src", srcdir);
     struct stat st_sd; if (!stat(sd, &st_sd) && S_ISDIR(st_sd.st_mode)) data_dir = sd;
     read_allowed_names_from_file(data_dir); read_banned_patterns_from_file(data_dir);
     load_non_source_file_allowlist(data_dir); load_bootstrap_whitelist_from_disk(data_dir);
