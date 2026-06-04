@@ -6,29 +6,7 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include <cjson/cJSON.h>
-
-typedef struct {
-    char name[128];
-    char file[256];
-} fn_entry_t;
-
-typedef struct {
-    char name[64];
-    int count;
-} inc_entry_t;
-
-void check_single_file_for_violations(const char *sub, int is_c, int is_source,
-    fn_entry_t *fns, int *fn_qty, inc_entry_t *incs, int *inc_qty);
-void search_for_unused_function_code(fn_entry_t *fns, int fn_qty, const char *srcdir);
-int check_name_against_allowed_whitelist(const char *name);
-void load_operator_signed_exemption_table(const char *srcdir);
-const char *match_name_against_exemption_table(const char *name);
-void load_non_source_file_allowlist(const char *srcdir);
-void load_bootstrap_whitelist_from_disk(const char *srcdir);
-int check_non_source_file_allowlist(const char *name);
-int match_name_against_bootstrap_list(const char *basename);
-void read_allowed_names_from_file(const char *srcdir);
-void read_banned_patterns_from_file(const char *srcdir);
+#include "verify-structural-source-code-rules.h"
 
 static const char *banned_type_words[] = {
     "service","server","daemon","library","tool","binary",
@@ -41,13 +19,6 @@ static int fn_qty = 0;
 static inc_entry_t incs[128];
 static int inc_qty = 0;
 static int total_main = 0;
-
-static const char *main_exempt_directory_names[] = {
-    "enforce-structural-rules-for-code",
-    "verify-source-against-soul-patterns",
-    "helper-standalone-executables-for-spec2c",
-    NULL
-};
 
 extern int validate_file_stem_naming_dfa(const char *name_arg);
 extern int find_every_main_function_block(const char *path);

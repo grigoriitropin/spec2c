@@ -49,6 +49,15 @@ void load_operator_signed_exemption_table(const char *srcdir);
 const char *match_name_against_exemption_table(const char *name);
 int  match_path_against_integrity_manifest(const char *relpath);
 int check_name_against_allowed_whitelist(const char *name);
+
+/* directories exempt from main() counting (names only, no slashes) */
+static const char *main_exempt_directory_names[] __attribute__((unused)) = {
+    "enforce-structural-rules-for-code",
+    "verify-source-against-soul-patterns",
+    "helper-standalone-executables-for-spec2c",
+    NULL
+};
+
 #endif
 
 

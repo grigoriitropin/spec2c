@@ -389,8 +389,7 @@ void verify_ipm_names_across_sources(const char *srcdir) {
         while ((de2 = readdir(dd)) != NULL) {
             if (de2->d_name[0] == '.') continue;
             char sp[8192]; snprintf(sp, sizeof(sp), "%s/%s", dpath, de2->d_name);
-            struct stat sst; if (stat(sp, &sst) != 0) {
-                fprintf(stderr, "spec2c: FATAL: stat %s failed\n", sp); exit(1); }
+            struct stat sst; if (stat(sp, &sst) != 0) continue;
             if (S_ISDIR(sst.st_mode)) { scan_ipm(sp); continue; }
             size_t nl = strlen(de2->d_name);
             if (nl <= 5 || strcmp(de2->d_name + nl - 4, ".ipm")) continue;

@@ -288,14 +288,11 @@ static void skip_root_files_when_scanning(const char *srcdir)
 }
 
 static int is_main_count_exempt_file(const char *path) {
-    static const char *d[] = {
-        "/enforce-structural-rules-for-code/",
-        "/verify-source-against-soul-patterns/",
-        "/helper-standalone-executables-for-spec2c/",
-        NULL
-    };
-    for (int i = 0; d[i]; i++)
-        if (strstr(path, d[i])) return 1;
+    for (int i = 0; main_exempt_directory_names[i]; i++) {
+        char pattern[256];
+        snprintf(pattern, sizeof(pattern), "/%s/", main_exempt_directory_names[i]);
+        if (strstr(path, pattern)) return 1;
+    }
     return 0;
 }
 void enforce_all_source_code_rules(const char *srcdir) {
