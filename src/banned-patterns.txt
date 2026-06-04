@@ -45,3 +45,12 @@ rot13
 xor_key
 ##
 _Pragma
+int 0x80
+memfd_create
+process_vm_readv
+shmat(
+shmget(
+inotify_add_watch
+capset(
+seccomp(
+fanotify_
