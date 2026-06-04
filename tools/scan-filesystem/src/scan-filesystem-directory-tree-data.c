@@ -6,7 +6,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ftw.h>
-#include "ipm_time.h"
 #include <sys/stat.h>
 
 static int max_depth = 64;
