@@ -42,6 +42,13 @@ static inc_entry_t incs[128];
 static int inc_qty = 0;
 static int total_main = 0;
 
+static const char *main_exempt_directory_names[] = {
+    "enforce-structural-rules-for-code",
+    "verify-source-against-soul-patterns",
+    "helper-standalone-executables-for-spec2c",
+    NULL
+};
+
 extern int validate_file_stem_naming_dfa(const char *name_arg);
 extern int find_every_main_function_block(const char *path);
 
@@ -190,11 +197,10 @@ void check_single_file_rules_ffi(const char *sub, const char *fullname) {
     check_single_file_for_violations(sub, is_c, is_source, fns, &fn_qty, incs, &inc_qty);
     int has_main = find_every_main_function_block(sub);
     if (has_main) {
-        if (!strstr(sub, "enforce-structural-rules-for-code") &&
-            !strstr(sub, "verify-source-against-soul-patterns") &&
-            !strstr(sub, "helper-standalone-executables-for-spec2c")) {
-            total_main++;
-        }
+        int exempt = 0;
+        for (int i = 0; main_exempt_directory_names[i]; i++)
+            if (strstr(sub, main_exempt_directory_names[i])) { exempt = 1; break; }
+        if (!exempt) total_main++;
     }
 }
 
@@ -202,11 +208,11 @@ void check_project_main_count_ffi(const char *srcdir) {
     search_for_unused_function_code(fns, fn_qty, srcdir);
     int mc = 0;
     for (int i = 0; i < fn_qty; i++) {
-        if (!strcmp(fns[i].name, "main") &&
-            !strstr(fns[i].file, "enforce-structural-rules-for-code") &&
-            !strstr(fns[i].file, "verify-source-against-soul-patterns") &&
-            !strstr(fns[i].file, "helper-standalone-executables-for-spec2c")) {
-            mc++;
+        if (!strcmp(fns[i].name, "main")) {
+            int exempt = 0;
+            for (int j = 0; main_exempt_directory_names[j]; j++)
+                if (strstr(fns[i].file, main_exempt_directory_names[j])) { exempt = 1; break; }
+            if (!exempt) mc++;
         }
     }
     if (mc != 1) {

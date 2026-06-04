@@ -7,19 +7,22 @@
 #pragma weak match_name_against_exemption_table
 const char *match_name_against_exemption_table(const char *name) {
     (void)name;
-    return NULL;
+    fprintf(stderr, "FATAL: match_name_against_exemption_table stub called — not implemented\n");
+    exit(1);
 }
 
 #pragma weak check_non_source_file_allowlist
 int check_non_source_file_allowlist(const char *name) {
     (void)name;
-    return 0;
+    fprintf(stderr, "FATAL: check_non_source_file_allowlist stub called — not implemented\n");
+    exit(1);
 }
 
 #pragma weak match_name_against_bootstrap_list
 int match_name_against_bootstrap_list(const char *basename) {
     (void)basename;
-    return 0;
+    fprintf(stderr, "FATAL: match_name_against_bootstrap_list stub called — not implemented\n");
+    exit(1);
 }
 
 #pragma weak check_single_file_for_violations
@@ -44,5 +47,6 @@ void search_for_unused_function_code(void *fns, int fn_qty, const char *srcdir)
 #pragma weak check_name_against_allowed_whitelist
 int check_name_against_allowed_whitelist(const char *name) {
     (void)name;
-    return 0;
+    fprintf(stderr, "FATAL: check_name_against_allowed_whitelist stub called — not implemented\n");
+    exit(1);
 }

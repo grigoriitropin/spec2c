@@ -40,6 +40,39 @@ static const char *dir_note_text =
 static struct { char name[128]; } allowed[512];
 static int allowed_qty;
 
+static const char *known_config_filenames[] = {
+    "allowed-names.txt",
+    "banned-patterns.txt",
+    NULL
+};
+
+static int check_config_name_against_exemption_table(const char *name) {
+    if (match_name_against_exemption_table(name)) return 1;
+    for (int i = 0; known_config_filenames[i]; i++)
+        if (!strcmp(known_config_filenames[i], name)) return 1;
+    const char *dot = strrchr(name, '.');
+    size_t slen = dot ? (size_t)(dot - name) : strlen(name);
+    if (slen < 3) return 0;
+    char stem[256];
+    if (slen >= 256) return 0;
+    memcpy(stem, name, slen);
+    stem[slen] = '\0';
+    int tokens = 0, tok_len = 0;
+    for (const char *p = stem; *p; p++) {
+        if (*p == '-') {
+            if (tok_len < 3) return 0;
+            tokens++; tok_len = 0;
+            if (*(p+1) == '-' || *(p+1) == '\0') return 0;
+            continue;
+        }
+        if (*p < 'a' || *p > 'z') return 0;
+        tok_len++;
+    }
+    if (tok_len < 3) return 0;
+    tokens++;
+    return tokens == 5;
+}
+
 int match_header_against_include_whitelist(const char *hdr) {
     const char *ok[] = {
         "stdio.h","stdlib.h","string.h","errno.h","unistd.h","fcntl.h",
@@ -191,7 +224,7 @@ void validate_name_against_soul_rules(const char *what, const char *name, const 
     if (!check_name_against_allowed_whitelist(name)) {
         char eb[2048];
         snprintf(eb, sizeof(eb),
-            "SOUL §10: %s '%s' at %s — not in allowed-names.txt.\n%s%s",
+            "SOUL §10: %s '%s' at %s — not in whitelist.\n%s%s",
             what, name, fp, soful, dir_note);
         report_fatal_error_and_exit(eb);
     }
@@ -233,14 +266,16 @@ static int validate_single_whitelist_entry_name(const char *line) {
 }
 
 void read_allowed_names_from_file(const char *srcdir) {
-    char path[4096]; snprintf(path, sizeof(path), "%s/allowed-names.txt", srcdir);
+    const char *cn = known_config_filenames[0];
+    if (!check_config_name_against_exemption_table(cn))
+        report_fatal_error_and_exit("config filename not in exemption table and does not follow 5-word convention");
+    char path[4096]; snprintf(path, sizeof(path), "%s/%s", srcdir, cn);
     FILE *f = fopen(path, "r");
     if (!f) {
-        snprintf(path, sizeof(path), "%s/src/allowed-names.txt", srcdir);
+        snprintf(path, sizeof(path), "%s/src/%s", srcdir, cn);
         f = fopen(path, "r");
     }
-    if (!f) report_fatal_error_and_exit("cannot open allowed-names.txt\n"
-        "  → create it with one valid 5-word name per line");
+    if (!f) report_fatal_error_and_exit("cannot open config file (create with one valid 5-word name per line)");
     char line[256];
     while (fgets(line, sizeof(line), f) && allowed_qty < 512) {
         size_t len = strlen(line);
@@ -279,14 +314,16 @@ char banned_patterns[32][64];
 int banned_patterns_count;
 
 void read_banned_patterns_from_file(const char *srcdir) {
-    char path[4096]; snprintf(path, sizeof(path), "%s/banned-patterns.txt", srcdir);
+    const char *cn = known_config_filenames[1];
+    if (!check_config_name_against_exemption_table(cn))
+        report_fatal_error_and_exit("config filename not in exemption table and does not follow 5-word convention");
+    char path[4096]; snprintf(path, sizeof(path), "%s/%s", srcdir, cn);
     FILE *f = fopen(path, "r");
     if (!f) {
-        snprintf(path, sizeof(path), "%s/src/banned-patterns.txt", srcdir);
+        snprintf(path, sizeof(path), "%s/src/%s", srcdir, cn);
         f = fopen(path, "r");
     }
-    if (!f) report_fatal_error_and_exit("cannot open banned-patterns.txt\n"
-        "  → create it with one banned pattern per line (goto, setjmp, etc.)");
+    if (!f) report_fatal_error_and_exit("cannot open config file (create with one banned pattern per line)");
     char line[64];
     while (fgets(line, sizeof(line), f) && banned_patterns_count < 32) {
         size_t len = strlen(line);

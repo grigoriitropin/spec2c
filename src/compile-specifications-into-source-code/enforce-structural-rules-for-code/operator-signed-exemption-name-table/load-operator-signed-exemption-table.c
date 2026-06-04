@@ -62,7 +62,7 @@ void load_operator_signed_exemption_table(const char *srcdir) {
         { free(content); report_fatal_error_and_exit("exemption table: Ed25519 signature invalid"); }
     cJSON *root = cJSON_Parse(content);
     free(content);
-    if (!root) return;
+    if (!root) report_fatal_error_and_exit("exemption table: JSON parse failed");
     cJSON *entries = cJSON_GetObjectItem(root, "entries");
     if (entries) {
         int sz = cJSON_GetArraySize(entries);

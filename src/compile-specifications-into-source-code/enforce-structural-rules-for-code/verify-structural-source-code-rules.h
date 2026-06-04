@@ -37,7 +37,7 @@ void clear_brace_tracking_for_function(brace_state_t *state);
 void count_open_close_brace_pairs(const char *line, brace_state_t *state);
 void pull_function_name_from_definition(const char *line, char *out, size_t sz);
 int  check_for_banned_keyword_pattern(const char *line);
-int  detect_hardcoded_file_path_string(const char *line);
+int  detect_hardcoded_file_path_string(const char *line, const char *filepath);
 int  validate_file_stem_with_dfa(const char *stem, const char *fullname, const char *path);
 void verify_ipm_names_across_sources(const char *srcdir);
 void load_bootstrap_whitelist_from_disk(const char *srcdir);

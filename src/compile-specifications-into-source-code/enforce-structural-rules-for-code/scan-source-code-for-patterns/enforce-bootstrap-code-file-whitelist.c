@@ -27,6 +27,11 @@ int match_path_against_integrity_manifest(const char *relpath) {
 static char whitelist_names[64][128];
 static int whitelist_count_now;
 
+static const char *bootstrap_exempt_dir_names[] = {
+    "code-generated-output",
+    "handler-code",
+};
+
 void load_bootstrap_whitelist_from_disk(const char *srcdir) {
     char path[4096]; snprintf(path, sizeof(path), "%s/bootstrap-c-whitelist.txt", srcdir);
     FILE *f = fopen(path, "r");
@@ -43,8 +48,8 @@ void load_bootstrap_whitelist_from_disk(const char *srcdir) {
 }
 
 int match_name_against_bootstrap_list(const char *basename) {
-    if (strstr(basename, "code-generated-output") || strstr(basename, "handler-code"))
-        return 1;
+    for (size_t i = 0; i < sizeof(bootstrap_exempt_dir_names)/sizeof(bootstrap_exempt_dir_names[0]); i++)
+        if (strstr(basename, bootstrap_exempt_dir_names[i])) return 1;
     for (int i = 0; i < whitelist_count_now; i++) {
         /* match against basename of whitelist entry (strip path prefix) */
         const char *bn = strrchr(whitelist_names[i], '/');
@@ -68,13 +73,18 @@ static int load_operator_integrity_manifest_file(const char *srcdir, char **out,
         snprintf(path, sizeof(path), "%s/../operator-signed-integrity-manifest-hashes.json", srcdir);
         f = fopen(path, "r");
     }
-    if (!f) return 0;
+    if (!f) {
+        fprintf(stderr, "FATAL: integrity manifest not found (tried cwd, %s, %s/../)\n",
+            srcdir, srcdir); exit(1);
+    }
     fseek(f, 0, SEEK_END);
     *out_len = ftell(f);
     fseek(f, 0, SEEK_SET);
-    if (*out_len < 0) { fclose(f); return 0; }
+    if (*out_len < 0) { fclose(f);
+        fprintf(stderr, "FATAL: integrity manifest seek failed\n"); exit(1); }
     *out = malloc(*out_len + 1);
-    if (!*out) { fclose(f); return 0; }
+    if (!*out) { fclose(f);
+        fprintf(stderr, "FATAL: integrity manifest malloc failed (%ld bytes)\n", *out_len + 1); exit(1); }
     size_t rd = fread(*out, 1, *out_len, f);
     fclose(f);
     (*out)[rd] = 0;
@@ -93,10 +103,15 @@ static int read_sidecar_signature_file_bytes(const char *srcdir, const char *bas
     FILE *f = fopen(path, "r");
     if (!f) { snprintf(path, sizeof(path), "%s/%s.sig", srcdir, sidecar); f = fopen(path, "r"); }
     if (!f) { snprintf(path, sizeof(path), "%s/../%s.sig", srcdir, sidecar); f = fopen(path, "r"); }
-    if (!f) return 0;
+    if (!f) {
+        fprintf(stderr, "FATAL: signature sidecar not found for %s\n", basename); exit(1);
+    }
     size_t n = fread(sig_hex, 1, sigsz - 1, f);
     fclose(f);
-    if (n < 128) return 0;
+    if (n < 128) {
+        fprintf(stderr, "FATAL: signature sidecar too short for %s (%zu bytes)\n", basename, n);
+        exit(1);
+    }
     sig_hex[n] = 0;
     return 1;
 }
@@ -104,7 +119,7 @@ static int read_sidecar_signature_file_bytes(const char *srcdir, const char *bas
 static int search_file_using_full_path(const char *srcdir, const char *manifest_path, char *out, size_t outsz) {
     void walk(const char *dpath, const char *prefix) {
         DIR *d = opendir(dpath);
-        if (!d) return;
+        if (!d) { fprintf(stderr, "FATAL: opendir failed: %s\n", dpath); exit(1); }
         struct dirent *de;
         while ((de = readdir(d)) != NULL) {
             if (de->d_name[0] == '.') continue;
@@ -170,19 +185,18 @@ static void verify_manifest_entry_file_hash(const char *srcdir, const char *fnam
 void enforce_bootstrap_code_freeze_check(const char *srcdir) {
     char *content = NULL;
     long content_len = 0;
-    if (!load_operator_integrity_manifest_file(srcdir, &content, &content_len))
-        return;
+    load_operator_integrity_manifest_file(srcdir, &content, &content_len);
     char sig_hex[256] = {0};
-    if (!read_sidecar_signature_file_bytes(srcdir, "operator-signed-integrity-manifest-hashes.json", sig_hex, sizeof(sig_hex))) {
-        fprintf(stderr, "spec2c: integrity manifest: missing or invalid signature file\n");
-        free(content); exit(1);
-    }
+    read_sidecar_signature_file_bytes(srcdir, "operator-signed-integrity-manifest-hashes.json", sig_hex, sizeof(sig_hex));
     if (verify_signature(PUBKEY_HEX, sig_hex, (unsigned char *)content, (size_t)content_len) != 0) {
         fprintf(stderr, "spec2c: integrity manifest: Ed25519 signature invalid\n");
         free(content); exit(1);
     }
     cJSON *root = cJSON_Parse(content);
-    if (!root) { free(content); return; }
+    if (!root) {
+        fprintf(stderr, "spec2c: FATAL: integrity manifest JSON parse failed\n");
+        free(content); exit(1);
+    }
     cJSON *entries = cJSON_GetObjectItem(root, "entries");
     if (entries) {
         int sz = cJSON_GetArraySize(entries);

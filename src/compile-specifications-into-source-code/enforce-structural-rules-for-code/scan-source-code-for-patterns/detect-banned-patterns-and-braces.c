@@ -46,10 +46,18 @@ int check_for_banned_keyword_pattern(const char *line) {
         if (strstr(line, banned_patterns[i])) return 1;
     return 0;
 }
-int detect_hardcoded_file_path_string(const char *line) {
+int detect_hardcoded_file_path_string(const char *line, const char *filepath) {
     if (strstr(line, "#include")) return 0;
     if (strstr(line, "strstr(fns[i].file")) return 0;
-    if (strstr(line, "enforce-naming-whitelist-and-validation")) return 0;
+    {
+        static const char *exempt_file_suffixes[] = {
+            "enforce-naming-whitelist-and-validation",
+            NULL
+        };
+        if (filepath)
+            for (int e = 0; exempt_file_suffixes[e]; e++)
+                if (strstr(filepath, exempt_file_suffixes[e])) return 0;
+    }
     const char *p = line;
     while ((p = strstr(p, "\"/")) != NULL) {
         p += 2;
@@ -61,7 +69,11 @@ int detect_hardcoded_file_path_string(const char *line) {
 /* ── cross-reference: .ipm validation ──────────────────────────────── */
 #include <cjson/cJSON.h>
 static void validate_single_ipm_name_value(const char *name, const char *what, const char *path) {
-    if (!name || !name[0] || !strcmp(name, "main")) return;
+    if (!name || !name[0]) {
+        fprintf(stderr, "spec2c: SOUL §10: empty %s in %s\n", what, path ? path : "?");
+        exit(1);
+    }
+    if (!strcmp(name, "main")) return;
     char sep[2] = {strchr(name, '-') ? '-' : '_', 0};
     int w = 0; char buf[256], *tok;
     snprintf(buf, sizeof(buf), "%s", name);
@@ -212,14 +224,18 @@ static void check_ipm_ast_depth_limits(cJSON *node, int depth, const char *path)
 static void validate_single_ipm_file_content(const char *sp,
     char allowed_imports[64][128], int n_allowed)
 {
-    FILE *f = fopen(sp, "r"); if (!f) return;
+    FILE *f = fopen(sp, "r"); if (!f) {
+        fprintf(stderr, "spec2c: FATAL: cannot open IPM file %s\n", sp); exit(1); }
     fseek(f, 0, SEEK_END); long sz = ftell(f); fseek(f, 0, SEEK_SET);
-    if (sz <= 0 || sz > 65536) { fclose(f); return; }
+    if (sz <= 0 || sz > 65536) { fclose(f);
+        fprintf(stderr, "spec2c: FATAL: IPM file %s size %ld invalid\n", sp, sz); exit(1); }
     char *txt = malloc(sz + 1);
-    if (!txt) { fclose(f); return; }
+    if (!txt) { fclose(f);
+        fprintf(stderr, "spec2c: FATAL: malloc %ld for %s failed\n", sz + 1, sp); exit(1); }
     (void)!fread(txt, 1, sz, f); fclose(f); txt[sz] = 0;
     cJSON *root = cJSON_Parse(txt); free(txt);
-    if (!root) return;
+    if (!root) {
+        fprintf(stderr, "spec2c: FATAL: JSON parse error in %s\n", sp); exit(1); }
 
     scan_json_for_banned_words(root, sp);
     check_ipm_ast_depth_limits(root, 0, sp);
@@ -366,13 +382,15 @@ void verify_ipm_names_across_sources(const char *srcdir) {
     }
 
     void scan_ipm(const char *dpath) {
-        DIR *dd = opendir(dpath); if (!dd) return;
+        DIR *dd = opendir(dpath); if (!dd) {
+            fprintf(stderr, "spec2c: FATAL: cannot open directory %s\n", dpath); exit(1); }
         int ipm_cnt = 0;
         struct dirent *de2;
         while ((de2 = readdir(dd)) != NULL) {
             if (de2->d_name[0] == '.') continue;
             char sp[8192]; snprintf(sp, sizeof(sp), "%s/%s", dpath, de2->d_name);
-            struct stat sst; if (stat(sp, &sst) != 0) continue;
+            struct stat sst; if (stat(sp, &sst) != 0) {
+                fprintf(stderr, "spec2c: FATAL: stat %s failed\n", sp); exit(1); }
             if (S_ISDIR(sst.st_mode)) { scan_ipm(sp); continue; }
             size_t nl = strlen(de2->d_name);
             if (nl <= 5 || strcmp(de2->d_name + nl - 4, ".ipm")) continue;

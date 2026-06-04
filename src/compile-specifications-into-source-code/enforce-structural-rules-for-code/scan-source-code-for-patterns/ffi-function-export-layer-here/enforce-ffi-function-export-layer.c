@@ -22,7 +22,10 @@ int count_lines_inside_file_ffi(const char *path) {
 /* ── hardcoded path check ───────────────────────────────────────────── */
 const char *check_hardcoded_path_inside_file(const char *path) {
     char *c = read_entire_file_into_string(path);
-    if (!c) return NULL;
+    if (!c) {
+        fprintf(stderr, "spec2c: FATAL: cannot read %s for hardcoded path check\n", path);
+        exit(1);
+    }
     const char *p = c;
     while ((p = strstr(p, "\"/")) != NULL) {
         p += 2;
@@ -38,7 +41,10 @@ const char *check_hardcoded_path_inside_file(const char *path) {
 /* ── line density (control tokens per line) ─────────────────────────── */
 const char *check_line_density_inside_file(const char *path) {
     char *c = read_entire_file_into_string(path);
-    if (!c) return NULL;
+    if (!c) {
+        fprintf(stderr, "spec2c: FATAL: cannot read %s for line density check\n", path);
+        exit(1);
+    }
     char *line = c, *next;
     while (line && *line) {
         next = strchr(line, '\n');
