@@ -46,7 +46,7 @@ static const char *known_config_filenames[] = {
     NULL
 };
 
-static int check_config_name_against_exemption_table(const char *name) {
+static int verify_name_against_exemption_config(const char *name) {
     if (match_name_against_exemption_table(name)) return 1;
     for (int i = 0; known_config_filenames[i]; i++)
         if (!strcmp(known_config_filenames[i], name)) return 1;
@@ -91,6 +91,7 @@ int match_header_against_include_whitelist(const char *hdr) {
         "../../verify-structural-source-code-rules.h",
         "../../../shared-type-declarations-across-modules/soul-naming-forbidden-words-list.h",
         "verify-ed25519-digital-signature-key.h",
+        "../../../../verify-ed25519-digital-signature-key.h",
         "../bootstrap-compiled-limit-hash-data/bootstrap-freeze-data-compiled-into.h",
         "../bootstrap-compiled-limit-hash-data/bootstrap-file-sha-hashes-generated.h",
         "shared-type-declarations-across-modules/share-type-definitions-across-files.h",
@@ -272,7 +273,7 @@ static int validate_single_whitelist_entry_name(const char *line) {
 
 void read_allowed_names_from_file(const char *srcdir) {
     const char *cn = known_config_filenames[0];
-    if (!check_config_name_against_exemption_table(cn))
+    if (!verify_name_against_exemption_config(cn))
         report_fatal_error_and_exit("config filename not in exemption table and does not follow 5-word convention");
     char path[4096]; snprintf(path, sizeof(path), "%s/%s", srcdir, cn);
     FILE *f = fopen(path, "r");
@@ -316,7 +317,7 @@ int banned_patterns_count;
 
 void read_banned_patterns_from_file(const char *srcdir) {
     const char *cn = known_config_filenames[1];
-    if (!check_config_name_against_exemption_table(cn))
+    if (!verify_name_against_exemption_config(cn))
         report_fatal_error_and_exit("config filename not in exemption table and does not follow 5-word convention");
     char path[4096]; snprintf(path, sizeof(path), "%s/%s", srcdir, cn);
     FILE *f = fopen(path, "r");
