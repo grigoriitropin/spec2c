@@ -37,7 +37,7 @@ void pull_function_name_from_definition(const char *line, char *out, size_t sz) 
     if (len == 0) { out[0] = 0; return; }
     memcpy(out, start, len); out[len] = 0;
 }
-static int check_whether_single_character_can_identify(int c) { return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_'; }
+static int confirm_character_belongs_identifier_set(int c) { return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_'; }
 
 int check_for_banned_keyword_pattern(const char *line) {
     for (int i = 0; i < banned_patterns_count; i++) {
@@ -49,9 +49,9 @@ int check_for_banned_keyword_pattern(const char *line) {
         const char *p = line;
         while ((p = strstr(p, pat))) {
             /* Check left boundary: char before match must not be ident */
-            if (p > line && check_whether_single_character_can_identify(*(p-1))) { p += plen; continue; }
+            if (p > line && confirm_character_belongs_identifier_set(*(p-1))) { p += plen; continue; }
             /* Check right boundary: char after match must not be ident */
-            if (check_whether_single_character_can_identify(p[plen])) { p += plen; continue; }
+            if (confirm_character_belongs_identifier_set(p[plen])) { p += plen; continue; }
             return 1;
         }
     }
