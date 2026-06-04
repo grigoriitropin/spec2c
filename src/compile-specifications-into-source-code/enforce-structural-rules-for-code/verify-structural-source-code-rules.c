@@ -7,6 +7,7 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <sys/wait.h>
 #include <cjson/cJSON.h>
 static int lint_mode = 0;
 static int lint_errors = 0;
@@ -188,6 +189,44 @@ void check_single_file_for_violations(const char *sub, int is_c, int is_source,
             report_violation_with_actionable_hint(ERR_HARDCODED_PATH, sub, 0, 0, NULL);
     }
     fclose(f);
+    /* Preprocessor-aware scan: catches ## token-paste, _Pragma, macro-expanded
+       banned patterns invisible in raw source. Uses gcc -E line markers to
+       filter system headers — only scans user code. */
+    if (is_c) {
+        int pp_fd[2];
+        if (pipe(pp_fd) == 0) {
+            pid_t pid = fork();
+            if (pid == 0) {
+                close(pp_fd[0]); dup2(pp_fd[1], 1); close(pp_fd[1]);
+                execlp("cc", "cc", "-E", "-P", sub, (char *)NULL);
+                _exit(1);
+            }
+            close(pp_fd[1]);
+            FILE *pp = fdopen(pp_fd[0], "r");
+            if (pp) {
+                char pline[4096]; int in_target = 1, ln = 0;
+                while (fgets(pline, sizeof(pline), pp)) {
+                    ln++;
+                    if (pline[0] == '#' && pline[1] == ' ') {
+                        char fname[256] = {0}; int mark_ln = 0;
+                        if (sscanf(pline, "# %d \"%255[^\"]\"", &mark_ln, fname) == 2) {
+                            in_target = strstr(sub, fname) != NULL;
+                            if (mark_ln > 0) ln = mark_ln;
+                        }
+                        continue;
+                    }
+                    if (!in_target) continue;
+                    if (check_for_banned_keyword_pattern(pline)) {
+                        fprintf(stderr, "spec2c: SOUL §7: %s line %d — banned pattern after macro expansion\n"
+                                "  → preprocessor reconstructed banned keyword (##, _Pragma, etc.)\n", sub, ln);
+                        fclose(pp); waitpid(pid, NULL, 0); exit(1);
+                    }
+                }
+                fclose(pp);
+            }
+            waitpid(pid, NULL, 0);
+        }
+    }
     check_include_headers_for_file(sub, incs, inc_qty);
 }
 static void check_include_headers_for_file(const char *sub, inc_entry_t *incs, int *inc_qty) {
