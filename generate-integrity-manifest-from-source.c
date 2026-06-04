@@ -62,19 +62,32 @@ static void walk_collect(const char *dpath, const char *prefix, cJSON *arr) {
     closedir(d);
 }
 
+static void add_file_to_manifest(cJSON *arr, const char *relpath, const char *note) {
+    char hash[65];
+    file_sha256_hex(relpath, hash);
+    if (!hash[0]) return;
+    cJSON *entry = cJSON_CreateObject();
+    cJSON_AddStringToObject(entry, "file", relpath);
+    cJSON_AddStringToObject(entry, "sha256", hash);
+    if (note) cJSON_AddStringToObject(entry, "note", note);
+    cJSON_AddItemToArray(arr, entry);
+}
+
 int main(void) {
     cJSON *arr = cJSON_CreateArray();
     walk_collect("source-code-for-compiler-generation", "source-code-for-compiler-generation", arr);
-    /* Add flake.nix */
-    char hash[65];
-    file_sha256_hex("flake.nix", hash);
-    if (hash[0]) {
-        cJSON *entry = cJSON_CreateObject();
-        cJSON_AddStringToObject(entry, "file", "flake.nix");
-        cJSON_AddStringToObject(entry, "sha256", hash);
-        cJSON_AddStringToObject(entry, "note", "build-entry-pin");
-        cJSON_AddItemToArray(arr, entry);
-    }
+    /* Trust-critical root files — must be frozen */
+    add_file_to_manifest(arr, "verify-ed25519-digital-signature-key.c", "signature-verifier");
+    add_file_to_manifest(arr, "enforce-link-time-whitelisted-symbols.c", "L2-symbol-gate");
+    add_file_to_manifest(arr, "generate-integrity-manifest-from-source.c", "manifest-generator");
+    /* Policy .txt files — whitelist growth gated */
+    add_file_to_manifest(arr, "source-code-for-compiler-generation/allowed-names.txt", "allowed-names");
+    add_file_to_manifest(arr, "source-code-for-compiler-generation/banned-patterns.txt", "banned-patterns");
+    add_file_to_manifest(arr, "source-code-for-compiler-generation/bootstrap-c-whitelist.txt", "bootstrap-whitelist");
+    add_file_to_manifest(arr, "source-code-for-compiler-generation/bootstrap-c-freeze-limits.txt", "freeze-limits");
+    add_file_to_manifest(arr, "source-code-for-compiler-generation/allowed-non-source-files.txt", "non-source");
+    /* Build entry */
+    add_file_to_manifest(arr, "flake.nix", "build-entry-pin");
     cJSON *root = cJSON_CreateObject();
     cJSON_AddItemToObject(root, "entries", arr);
     char *json = cJSON_PrintUnformatted(root);

@@ -43,23 +43,10 @@ static void validate_single_ipm_name_value(const char *name, const char *what, c
         fprintf(stderr, "spec2c: %s\n", msg); exit(1);
     }
 }
-/* scan ALL string values in JSON tree for banned words */
+/* scan string values for security patterns only (C-leak, banned keywords, hardcoded paths).
+   §10 naming rules (banned words, word count, min length) are enforced by
+   validate_single_ipm_name_value on name-fields only — not on free text. */
 static void validate_values_against_banned_content(const char *val, const char *key, const char *path) {
-    char *buf = strdup(val);
-    if (buf) {
-        for (char *tok = strtok(buf, " "); tok; tok = strtok(NULL, " ")) {
-            for (int i = 0; soul_banned_words[i]; i++)
-                if (!strcmp(tok, soul_banned_words[i])) {
-                    char msg[512]; snprintf(msg, sizeof(msg),
-                        "SOUL §10: .ipm string '%s' in %s contains banned word '%s'\n"
-                        "  → replace '%s' with a word describing WHAT it does, not WHAT it is",
-                        val, path, tok, tok);
-                    free(buf);
-                    fprintf(stderr, "spec2c: %s\n", msg); exit(1);
-                }
-        }
-        free(buf);
-    }
     if (strstr(val, "malloc(") || strstr(val, "free(") || strstr(val, "sizeof(")) {
         char msg[512]; snprintf(msg, sizeof(msg),
             "SOUL §7: C-leak — IPM string contains malloc/free/sizeof at %s\n"
@@ -216,7 +203,7 @@ static void validate_single_ipm_file_content(const char *sp,
         fprintf(stderr, "spec2c: FATAL: JSON parse error in %s\n", sp); exit(1); }
 
     const char *rp = !strncmp(sp, "./", 2) ? sp + 2 : sp;
-    if (!match_path_against_integrity_manifest(rp) && strncmp(rp, "bootstrap/", 10))
+    if (!match_path_against_integrity_manifest(rp))
         scan_json_for_banned_items(root, sp);
     check_ipm_ast_depth_limits(root, 0, sp);
 
