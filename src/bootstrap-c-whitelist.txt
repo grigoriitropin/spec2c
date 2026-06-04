@@ -39,7 +39,6 @@ dead-code-header-check-batch.c
 extracted-codegen-helper-functions-here/emit-report-error-and-exit.c
 operator-signed-exemption-name-table/load-operator-signed-exemption-table.c
 runtime-weak-stubs-part-two.c
-runtime-weak-stubs-part-two.c
 check-banned-patterns-pure-ipm.ipm
 enforce-naming-rules-via-ffi.ipm
 verify-ed25519-digital-signature-key.c

@@ -4,6 +4,7 @@ README.md
 allowed-names.txt
 allowed-non-source-files.txt
 banned-patterns.txt
+.gitignore
 bootstrap-c-freeze-limits.txt
 bootstrap-c-whitelist.txt
 flake.lock
