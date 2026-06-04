@@ -11,6 +11,7 @@
 #include <cjson/cJSON.h>
 int lint_mode = 0;
 int lint_errors = 0;
+int generated_mode = 0;
 #define MAX_FILES_PER_DIR 3
 #define MAX_LINES_PER_FILE 400
 #define MAX_FUNCTIONS_PER_FILE 10
@@ -129,6 +130,24 @@ static int handle_new_function_definition_entry(const char *line, const char *su
 void check_single_file_for_violations(const char *sub, int is_c, int is_source,
     fn_entry_t *fns, int *fn_qty)
 {
+    if (generated_mode) {
+        /* Generated code is regenerated from IPM, never hand-edited: human
+           maintainability rules (length, header whitelist, naming) do not apply.
+           Only security patterns are enforced. */
+        FILE *gf = fopen(sub, "r");
+        if (!gf) report_fatal_error_and_exit("cannot open generated file for banned-pattern scan");
+        char gl[1024];
+        while (fgets(gl, sizeof(gl), gf)) {
+            if (is_source && check_for_banned_keyword_pattern(gl)) {
+                const char *rp = sub; while (*rp == '.' || *rp == '/') rp++;
+                if (!match_path_against_integrity_manifest(rp))
+                    report_violation_with_actionable_hint(ERR_BANNED_PATTERN, sub, 0, 0, NULL);
+            }
+        }
+        fclose(gf);
+        (void)fns; (void)fn_qty;
+        return;
+    }
     if (is_c) {
         int lines = count_lines_within_source_file(sub);
         if (lines > MAX_LINES_PER_FILE)
@@ -248,6 +267,11 @@ static void load_all_enforcement_config_tables(const char *srcdir) {
     if (!lint_mode) enforce_bootstrap_code_freeze_check(srcdir);
 }
 static void verify_post_directory_scan_rules(fn_entry_t *fns, int fn_qty, const char *srcdir) {
+    if (generated_mode) {
+        (void)fns;
+        (void)fn_qty;
+        return;
+    }
     const char *data_dir = srcdir;
     char sd[4096]; snprintf(sd, sizeof(sd), "%s/source-code-for-compiler-generation", srcdir);
     struct stat st_sd; if (!stat(sd, &st_sd) && S_ISDIR(st_sd.st_mode)) data_dir = sd;
@@ -289,14 +313,14 @@ void enforce_all_source_code_rules(const char *srcdir) {
             char fname[256]; snprintf(fname, sizeof(fname), "%s", de->d_name);
             char *dot = strrchr(fname, '.'); if (dot) *dot = 0;
             { const char *rp = sub; while (*rp == '.' || *rp == '/') rp++;
-              if (!strcmp(rp, de->d_name))
+              if (!generated_mode && !strcmp(rp, de->d_name))
                 if (validate_file_stem_with_dfa(fname, de->d_name, sub)) exit(1); }
             int is_c = !strcmp(de->d_name + strlen(de->d_name) - 2, ".c");
             int is_source = is_c || (strlen(de->d_name) > 4 && !strcmp(de->d_name + strlen(de->d_name) - 4, ".ipm"));
             check_single_file_for_violations(sub, is_c, is_source, fns, &fn_qty);
         }
         closedir(d);
-        if (file_cnt > MAX_FILES_PER_DIR)
+        if (!generated_mode && file_cnt > MAX_FILES_PER_DIR)
             report_violation_with_actionable_hint(ERR_TOO_MANY_FILES_IN_DIR, dirpath, file_cnt, MAX_FILES_PER_DIR, NULL);
         else if (file_cnt == 0 && dir_cnt == 0) {
             fprintf(stderr, "FATAL: empty source directory in %s\n", dirpath); exit(1);
@@ -311,6 +335,9 @@ int main(int argc, char **argv) {
     for (int i = 1; i < argc; i++) {
         if (!strcmp(argv[i], "--lint"))
             lint_mode = 1;
+        else if (!strcmp(argv[i], "--lint-generated")) {
+            lint_mode = 1; generated_mode = 1;
+        }
         else
             src_dir = argv[i];
     }

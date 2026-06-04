@@ -16,7 +16,7 @@ _Noreturn void report_fatal_error_and_exit(const char *msg) {
     char *s = cJSON_PrintUnformatted(r);
     if (s) { printf("%s\n", s); free(s); }
     cJSON_Delete(r);
-    report_fatal_error_and_exit(msg);
+    exit(1);
 }
 char *convert_hyphen_name_into_underscore(const char *name) {
     char *s = strdup(name);

@@ -348,9 +348,10 @@
           cp source-code-for-compiler-generation/banned-patterns.txt gen_c/
           cp source-code-for-compiler-generation/bootstrap-c-whitelist.txt gen_c/
           cp source-code-for-compiler-generation/bootstrap-c-freeze-limits.txt gen_c/
+          cp source-code-for-compiler-generation/allowed-non-source-files.txt gen_c/
           for f in gen_c/*.c; do sed -i '/^{"ok"/d' "$f"; done
           echo "=== Translation Gate ==="
-          $S2C_ENFORCE --lint ./gen_c || exit 1
+          $S2C_ENFORCE --lint-generated ./gen_c || exit 1
 
           runHook postBuild
         '';
