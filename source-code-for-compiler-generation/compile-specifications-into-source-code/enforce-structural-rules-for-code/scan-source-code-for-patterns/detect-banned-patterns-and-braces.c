@@ -123,16 +123,20 @@ static void scan_json_for_banned_words(cJSON *node, const char *path) {
     if (cJSON_IsString(node)) {
         const char *val = node->valuestring;
         if (!val || !val[0]) return;
-        char buf[256]; snprintf(buf, sizeof(buf), "%s", val);
-        for (char *tok = strtok(buf, " "); tok; tok = strtok(NULL, " ")) {
-            for (int i = 0; soul_banned_words[i]; i++)
-                if (!strcmp(tok, soul_banned_words[i])) {
-                    char msg[512]; snprintf(msg, sizeof(msg),
-                        "SOUL §10: .ipm string '%s' in %s contains banned word '%s'\n"
-                        "  → replace '%s' with a word describing WHAT it does, not WHAT it is",
-                        val, path, tok, tok);
-                    fprintf(stderr, "spec2c: %s\n", msg); exit(1);
-                }
+        char *buf = strdup(val);
+        if (buf) {
+            for (char *tok = strtok(buf, " "); tok; tok = strtok(NULL, " ")) {
+                for (int i = 0; soul_banned_words[i]; i++)
+                    if (!strcmp(tok, soul_banned_words[i])) {
+                        char msg[512]; snprintf(msg, sizeof(msg),
+                            "SOUL §10: .ipm string '%s' in %s contains banned word '%s'\n"
+                            "  → replace '%s' with a word describing WHAT it does, not WHAT it is",
+                            val, path, tok, tok);
+                        free(buf);
+                        fprintf(stderr, "spec2c: %s\n", msg); exit(1);
+                    }
+            }
+            free(buf);
         }
         /* C-leak purge: forbid C patterns in IPM strings (except codegen templates) */
         if (cJSON_IsString(node) && node->string) {
