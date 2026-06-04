@@ -1,0 +1,25 @@
+# Bootstrap freeze limits
+buffer-output-and-command-launch.c 70 8
+compile-abstract-instructions-into-code.c 156 5
+detect-banned-patterns-and-braces.c 413 13
+dump-context-from-ipm-graph.c 109 3
+emit-variable-declaration-handler-function.c 364 5
+enforce-bootstrap-code-file-whitelist.c 247 4
+enforce-naming-whitelist-and-validation.c 298 10
+file-string-and-json-parsing.c 241 10
+generate-output-from-ipm-specification.c 207 6
+hash-table-and-substitution-code.c 116 9
+implement-filesystem-read-write-code.c 83 8
+implement-interprocess-message-exchange-code.c 58 1
+manage-timing-for-ipm-operations.h 31 3
+parse-command-dispatch-into-pipeline.c 417 14
+parse-old-format-specification-data.c 141 4
+runtime-for-generated-ipm-code.c 54 0
+runtime-for-generated-ipm-code.h 134 26
+share-type-definitions-across-files.h 65 19
+soul-naming-forbidden-words-list.h 14 0
+soul-rules-for-naming-validation.h 58 2
+vehir-shared-abstraction-wrapper-code.c 135 7
+vehir-shared-abstraction-wrapper-code.h 53 8
+verify-structural-source-code-rules.c 421 15
+verify-structural-source-code-rules.h 57 18

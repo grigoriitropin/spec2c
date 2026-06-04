@@ -26,9 +26,9 @@ int count_stem_tokens_lowercase_bytewise(const char *stem, const char *fullname,
             }
             continue;
         }
-        if (*p < 'a' || *p > 'z') {
+        if (!((*p >= 'a' && *p <= 'z') || (*p >= '0' && *p <= '9'))) {
             fprintf(stderr, "SOUL §10: file '%s' at %s — char '%c' (0x%02x) not allowed\n"
-                    "  → use only lowercase a-z and single '-'\n", fullname, path, *p, (unsigned char)*p);
+                    "  → use only lowercase a-z, digits 0-9 and single '-'\n", fullname, path, *p, (unsigned char)*p);
             return -1;
         }
         tok_len++; p++;

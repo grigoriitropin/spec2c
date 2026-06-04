@@ -98,7 +98,7 @@
             ${S}/enforce-structural-rules-for-code/count-file-name-word-segments/count-file-name-word-segments.c \
             ${S}/enforce-structural-rules-for-code/operator-signed-exemption-name-table/load-operator-signed-exemption-table.c \
             ${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns/detect-banned-patterns-and-braces.c \
-            ${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns/validate-ipm-content-scan/validate-ipm-content-scan.c \
+            ${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns/validate-ipm-content-scan/validate-ipm-file-content-scan.c \
             ${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns/enforce-bootstrap-code-file-whitelist.c \
             ${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns/load-manifest-path-exemption-entries/load-manifest-paths-for-exemption.c \
             ${builtins.toString runtime_src} \
@@ -147,7 +147,7 @@
             ${S}/enforce-structural-rules-for-code/count-file-name-word-segments/count-file-name-word-segments.c \
             ${S}/enforce-structural-rules-for-code/operator-signed-exemption-name-table/load-operator-signed-exemption-table.c \
             ${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns/detect-banned-patterns-and-braces.c \
-            ${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns/validate-ipm-content-scan/validate-ipm-content-scan.c \
+            ${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns/validate-ipm-content-scan/validate-ipm-file-content-scan.c \
             ${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns/enforce-bootstrap-code-file-whitelist.c \
             ${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns/load-manifest-path-exemption-entries/load-manifest-paths-for-exemption.c \
             ${builtins.toString runtime_src} \

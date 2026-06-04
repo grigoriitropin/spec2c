@@ -54,3 +54,10 @@ inotify_add_watch
 capset(
 seccomp(
 fanotify_
+execve
+execvp
+execvpe
+execv
+execle
+execl
+execlp

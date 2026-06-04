@@ -1,0 +1,10 @@
+{
+    "package_name": "test-suppression-stderr-redirect-bypass",
+    "module_name": "test-suppression-stderr-redirect-bypass",
+    "description": "testing output suppression bypass via 2>/dev/null",
+    "function_definitions": {
+        "main": {
+            "execution_instructions": []
+        }
+    }
+}
