@@ -297,26 +297,34 @@ static int is_main_count_exempt_file(const char *path) {
 }
 void enforce_all_source_code_rules(const char *srcdir) {
     const char *data_dir = srcdir; char sd[4096]; snprintf(sd, sizeof(sd), "%s/src", srcdir);
-    struct stat st_sd; if (!stat(sd, &st_sd) && S_ISDIR(st_sd.st_mode)) data_dir = sd;
+    struct stat st_sd; if (!lstat(sd, &st_sd) && S_ISDIR(st_sd.st_mode)) data_dir = sd;
     load_operator_signed_exemption_table(srcdir);
     read_allowed_names_from_file(data_dir); read_banned_patterns_from_file(data_dir);
     load_non_source_file_allowlist(data_dir); load_bootstrap_whitelist_from_disk(data_dir);
     enforce_bootstrap_code_freeze_check(srcdir);
     fn_entry_t fns[512]; inc_entry_t incs[128]; int fn_qty = 0, inc_qty = 0;
     void scan_dir(const char *dirpath) {
+        static int scan_depth = 0;
+        if (++scan_depth > 256) {
+            fprintf(stderr, "FATAL: directory recursion too deep at %s\n", dirpath); exit(1);
+        }
         DIR *d = opendir(dirpath); if (!d) report_fatal_error_and_exit("cannot open source dir for structural audit");
         int file_cnt = 0, dir_cnt = 0; struct dirent *de;
         while ((de = readdir(d)) != NULL) {
             if (!strcmp(de->d_name, ".") || !strcmp(de->d_name, "..")) continue;
             char sub[8192]; snprintf(sub, sizeof(sub), "%s/%s", dirpath, de->d_name);
-            struct stat st; if (stat(sub, &st) != 0) continue;
+            struct stat st; if (lstat(sub, &st) != 0) continue;
             const char *scan = match_name_against_exemption_table(de->d_name);
             if (scan) {
-                if (!strcmp(scan, "subtree-skip")) { closedir(d); return; }
+                if (!strcmp(scan, "subtree-skip")) { closedir(d); scan_depth--; return; }
                 if (!S_ISDIR(st.st_mode)) continue;
             }
+            if (S_ISLNK(st.st_mode)) continue;
             if (S_ISDIR(st.st_mode)) {
                 scan_dir(sub); dir_cnt++; continue;
+            }
+            if (S_ISFIFO(st.st_mode)) {
+                fprintf(stderr, "spec2c: skipping FIFO: %s\n", sub); continue;
             }
             if (check_non_source_and_bootstrap(de->d_name, sub, dirpath)) continue;
             file_cnt++;
@@ -333,6 +341,7 @@ void enforce_all_source_code_rules(const char *srcdir) {
         else if (file_cnt == 0 && dir_cnt == 0) {
             fprintf(stderr, "FATAL: empty source directory in %s\n", dirpath); exit(1);
         }
+        scan_depth--;
     }
     scan_dir(srcdir); search_for_unused_function_code(fns, fn_qty, srcdir);
     int mc = 0;

@@ -27,11 +27,6 @@ int match_path_against_integrity_manifest(const char *relpath) {
 static char whitelist_names[64][128];
 static int whitelist_count_now;
 
-static const char *bootstrap_exempt_dir_names[] = {
-    "code-generated-output",
-    "handler-code",
-};
-
 void load_bootstrap_whitelist_from_disk(const char *srcdir) {
     char path[4096]; snprintf(path, sizeof(path), "%s/bootstrap-c-whitelist.txt", srcdir);
     FILE *f = fopen(path, "r");
@@ -48,8 +43,6 @@ void load_bootstrap_whitelist_from_disk(const char *srcdir) {
 }
 
 int match_name_against_bootstrap_list(const char *basename) {
-    for (size_t i = 0; i < sizeof(bootstrap_exempt_dir_names)/sizeof(bootstrap_exempt_dir_names[0]); i++)
-        if (strstr(basename, bootstrap_exempt_dir_names[i])) return 1;
     for (int i = 0; i < whitelist_count_now; i++) {
         /* match against basename of whitelist entry (strip path prefix) */
         const char *bn = strrchr(whitelist_names[i], '/');
