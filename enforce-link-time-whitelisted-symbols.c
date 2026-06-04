@@ -54,6 +54,8 @@ static const char *allowed_symbols[] = {
 
     /* Process control (used by buffer-output-and-command-launch.c) */
     "fork", "execvp", "waitpid", "dup2", "pipe", "close",
+    "lstat", "execlp",
+    "lstat", "execlp",
 };
 
 /* ── Base Whitelist Snapshot (for additions gate) ────────────────────────── */
@@ -78,6 +80,8 @@ static const char *base_whitelist[] = {
     "stat", "qsort", "localeconv",
     "__ctype_tolower_loc",
     "fork", "execvp", "waitpid", "dup2", "pipe", "close",
+    "lstat", "execlp",
+    "lstat", "execlp",
 };
 
 /* ── SHA256 Implementation (public domain) ──────────────────────────────── */
