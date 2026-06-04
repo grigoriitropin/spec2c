@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // IPM file validation — name/value scanning, dead code, CLI docs, type enforcement
-#include "../verify-structural-source-code-rules.h"
-#include "../../shared-type-declarations-across-modules/soul-naming-forbidden-words-list.h"
+#include "../../verify-structural-source-code-rules.h"
+#include "../../../shared-type-declarations-across-modules/soul-naming-forbidden-words-list.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <dirent.h>
