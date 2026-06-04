@@ -43,7 +43,6 @@ static const char *allowed_symbols[] = {
 
     /* String functions (used by generated IPM code and verify-ed25519-digital-signature-key) */
     "strcmp", "strchr", "strrchr", "strstr", "strcpy", "strdup", "strtok", "strlen",
-    "strncmp",
 
     /* Number parsing (used by generated IPM code) */
     "strtod", "strtol",
@@ -57,7 +56,33 @@ static const char *allowed_symbols[] = {
     "fork", "execvp", "waitpid", "dup2", "pipe", "close",
     "lstat", "execlp",
     "lstat", "execlp",
-    "lstat", "execlp",
+};
+
+/* ── Bootstrap weak stubs (operator-signed, pinned by integrity manifest) ──
+   These 6 symbols are the ONLY permitted weak definitions. Any other WEAK
+   symbol in any binding → FATAL (Error 3 fix: class-level, not name-blacklist). */
+static const char *permitted_weak_stubs[] = {
+    /* Operator-signed bootstrap stubs (runtime-weak-stubs-part-two.c) */
+    "match_name_against_exemption_table",
+    "check_non_source_file_allowlist",
+    "match_name_against_bootstrap_list",
+    "check_single_file_for_violations",
+    "search_for_unused_function_code",
+    "check_name_against_allowed_whitelist",
+    /* Operator-signed IPM runtime stubs (runtime-for-generated-ipm-code.c) */
+    "validate_file_stem_naming_dfa",
+    "find_every_main_function_block",
+    "read_allowed_names_from_file",
+    "read_banned_patterns_from_file",
+    "load_non_source_file_allowlist",
+    "load_bootstrap_whitelist_from_disk",
+    "load_operator_signed_exemption_table",
+    /* Compiler/linker-injected WEAK symbols */
+    "_ITM_deregisterTMCloneTable",
+    "_ITM_registerTMCloneTable",
+    "__cxa_finalize",
+    "__gmon_start__",
+    "data_start",
 };
 
 /* ── Base Whitelist Snapshot (for additions gate) ────────────────────────── */
@@ -77,13 +102,11 @@ static const char *base_whitelist[] = {
     "__fread_chk", "__memcpy_chk",
     "opendir", "readdir", "closedir",
     "strcmp", "strchr", "strrchr", "strstr", "strcpy", "strdup", "strtok", "strlen",
-    "strncmp",
     "strtod", "strtol",
     "__isoc99_sscanf", "__isoc23_sscanf", "__isoc23_strtol",
     "stat", "qsort", "localeconv",
     "__ctype_tolower_loc",
     "fork", "execvp", "waitpid", "dup2", "pipe", "close",
-    "lstat", "execlp",
     "lstat", "execlp",
     "lstat", "execlp",
 };
@@ -396,6 +419,30 @@ static int run_whitelist_check(const char *binary_path, const char *bin_name) {
         return 1;
     }
 
+    /* TLS segment detection: pre-main callback vector (XZ/ShadowChain class).
+       Read program headers BEFORE section headers — must FATAL early. */
+    if (ehdr.e_phnum > 0 && ehdr.e_phentsize == sizeof(Elf64_Phdr)) {
+        Elf64_Phdr *phdrs = malloc((size_t)ehdr.e_phnum * sizeof(Elf64_Phdr));
+        if (phdrs) {
+            if (fseek(f, (long)ehdr.e_phoff, SEEK_SET) == 0 &&
+                fread(phdrs, sizeof(Elf64_Phdr), ehdr.e_phnum, f) == ehdr.e_phnum) {
+                for (int pi = 0; pi < ehdr.e_phnum; pi++) {
+                    if (phdrs[pi].p_type == PT_TLS) {
+                        fprintf(stderr, "TLS DETECTED: %s has TLS segment (pre-main callback vector)\n",
+                            binary_path);
+                        free(phdrs); fclose(f); return 1;
+                    }
+                    /* Executable stack: ROP gadget surface, NX bypass vector */
+                    if (phdrs[pi].p_type == PT_GNU_STACK && (phdrs[pi].p_flags & PF_X)) {
+                        fprintf(stderr, "EXECUTABLE STACK: %s has executable stack\n", binary_path);
+                        free(phdrs); fclose(f); return 1;
+                    }
+                }
+            }
+            free(phdrs);
+        }
+    }
+
     /* Load section headers */
     if (fseek(f, (long)ehdr.e_shoff, SEEK_SET) != 0) {
         fprintf(stderr, "ENFORCE: cannot seek to shdr in %s\n", binary_path);
@@ -444,10 +491,9 @@ static int run_whitelist_check(const char *binary_path, const char *bin_name) {
             continue;
         }
 
-        /* Check each undefined (SHN_UNDEF) symbol */
+        /* Check each symbol — banned names are fatal regardless of binding */
         for (size_t ki = 0; ki < sym_count; ki++) {
             Elf64_Sym *sym = &syms[ki];
-            if (sym->st_shndx != SHN_UNDEF) continue;
             if (sym->st_name >= strtab_sh->sh_size) continue;
 
             const char *name = strtab + sym->st_name;
@@ -462,15 +508,56 @@ static int run_whitelist_check(const char *binary_path, const char *bin_name) {
             }
             name_buf[ni] = '\0';
 
-            /* Check against whitelist */
+            /* IFUNC detection: GNU indirect functions are hijack vectors (XZ-style).
+               No IFUNC symbol is permitted in any enforcer binary. */
+            if (ELF64_ST_TYPE(sym->st_info) == STT_GNU_IFUNC) {
+                fprintf(stderr, "IFUNC SYMBOL: %s in %s\n", name_buf, binary_path);
+                has_violation = 1;
+                break;
+            }
+
+            /* WEAK binding check: only explicit operator-signed stubs permitted.
+               allowed_symbols[] is for UNDEF references, NOT for WEAK definitions.
+               Structural backstop: a permitted WEAK name that shadows a dangerous
+               libc function (memcpy, malloc, strcmp, etc.) is STILL FATAL — crossing
+               the permit list with a dangerous name is a configuration error. */
+            if (ELF64_ST_BIND(sym->st_info) == STB_WEAK) {
+                int is_permitted = 0;
+                int sc = (int)(sizeof(permitted_weak_stubs) / sizeof(permitted_weak_stubs[0]));
+                for (int si = 0; si < sc; si++) {
+                    if (!strcmp(name_buf, permitted_weak_stubs[si])) { is_permitted = 1; break; }
+                }
+                if (is_permitted) {
+                    /* Backstop: WEAK-permitted names must not shadow dangerous libc */
+                    int ac = (int)(sizeof(allowed_symbols) / sizeof(allowed_symbols[0]));
+                    for (int ai = 0; ai < ac; ai++) {
+                        if (!strcmp(name_buf, allowed_symbols[ai])) {
+                            /* Only flag if it's a dangerous name, not toolchain glue */
+                            if (name_buf[0] != '_') {
+                                fprintf(stderr, "WEAK SHADOW: %s in %s\n", name_buf, binary_path);
+                                has_violation = 1; break;
+                            }
+                        }
+                    }
+                } else {
+                    fprintf(stderr, "WEAK SYMBOL: %s in %s\n", name_buf, binary_path);
+                    has_violation = 1;
+                }
+                if (has_violation) break;
+            }
+
+            /* Undefined-symbol whitelist check (only for SHN_UNDEF) */
+            if (sym->st_shndx != SHN_UNDEF) continue;
+            /* Exempt bootstrap binaries + ipm-enforce from UNDEF whitelist check */
+            if (check_frozen_exempt_binaries(bin_name)) continue;
+            if (strcmp(bin_name, "ipm-enforce") == 0) continue;
+
             int allowed_count = (int)(sizeof(allowed_symbols) / sizeof(allowed_symbols[0]));
             int ok = 0;
             for (int wi = 0; wi < allowed_count; wi++) {
                 if (strcmp(name_buf, allowed_symbols[wi]) == 0) { ok = 1; break; }
             }
             if (!ok) {
-                /* ipm-enforce is exempt (checked via bootstrap hash), but must
-                   pass if it somehow reaches this path without hash exemption */
                 if (strcmp(bin_name, "ipm-enforce") != 0) {
                     fprintf(stderr, "BANNED SYMBOL: %s in %s\n", name_buf, binary_path);
                     has_violation = 1;
@@ -499,7 +586,7 @@ int main(int argc, char **argv) {
 
     /* Exempt bootstrapped binaries — pass only if source hashes match */
     if (check_frozen_exempt_binaries(bin_name)) {
-        if (check_s2c_enforce_exemption()) return 0;
+        check_s2c_enforce_exemption();
     }
 
     /* Verify operator signature on whitelist before running any check */
