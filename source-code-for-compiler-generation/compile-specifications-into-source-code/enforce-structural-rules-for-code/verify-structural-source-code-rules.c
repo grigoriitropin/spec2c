@@ -130,7 +130,7 @@ static int handle_new_function_definition_entry(const char *line, const char *su
 
 
 void check_single_file_for_violations(const char *sub, int is_c, int is_source,
-    fn_entry_t *fns, int *fn_qty, inc_entry_t *incs, int *inc_qty)
+    fn_entry_t *fns, int *fn_qty)
 {
     if (is_c) {
         int lines = count_lines_within_source_file(sub);
@@ -293,7 +293,7 @@ void enforce_all_source_code_rules(const char *srcdir) {
                 if (validate_file_stem_with_dfa(fname, de->d_name, sub)) exit(1); }
             int is_c = !strcmp(de->d_name + strlen(de->d_name) - 2, ".c");
             int is_source = is_c || (strlen(de->d_name) > 4 && !strcmp(de->d_name + strlen(de->d_name) - 4, ".ipm"));
-            check_single_file_for_violations(sub, is_c, is_source, fns, &fn_qty, incs, &inc_qty);
+            check_single_file_for_violations(sub, is_c, is_source, fns, &fn_qty);
         }
         closedir(d);
         if (file_cnt > MAX_FILES_PER_DIR)

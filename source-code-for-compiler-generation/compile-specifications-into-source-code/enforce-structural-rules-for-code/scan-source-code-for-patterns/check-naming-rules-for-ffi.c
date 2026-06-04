@@ -159,7 +159,7 @@ void check_directory_file_limits_ffi(const char *dirpath, int file_cnt, int dir_
 void check_single_file_rules_ffi(const char *sub, const char *fullname) {
     int is_c = !strcmp(fullname + strlen(fullname) - 2, ".c");
     int is_source = is_c || (strlen(fullname) > 4 && !strcmp(fullname + strlen(fullname) - 4, ".ipm"));
-    check_single_file_for_violations(sub, is_c, is_source, fns, &fn_qty, incs, &inc_qty);
+    check_single_file_for_violations(sub, is_c, is_source, fns, &fn_qty);
     int has_main = find_every_main_function_block(sub);
     if (has_main) {
         int exempt = 0;

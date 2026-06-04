@@ -50,7 +50,7 @@ typedef struct {
 } inc_entry_t;
 
 void check_single_file_for_violations(const char *sub, int is_c, int is_source,
-    fn_entry_t *fns, int *fn_qty, inc_entry_t *incs, int *inc_qty);
+    fn_entry_t *fns, int *fn_qty);
 void search_for_unused_function_code(fn_entry_t *fns, int fn_qty, const char *srcdir);
 void scan_source_for_undocumented_flags(const char *srcdir);
 void skip_root_files_when_scanning(const char *srcdir);
