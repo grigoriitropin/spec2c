@@ -55,28 +55,6 @@ int match_name_against_bootstrap_list(const char *basename) {
 }
 
 /* find a file by basename anywhere under dpath */
-static int search_file_using_name_recursive(const char *dpath, const char *target, char *out, size_t outsz) {
-    DIR *d = opendir(dpath);
-    if (!d) return 0;
-    struct dirent *de;
-    while ((de = readdir(d)) != NULL) {
-        if (de->d_name[0] == '.') continue;
-        char sub[8192]; snprintf(sub, sizeof(sub), "%s/%s", dpath, de->d_name);
-        struct stat st;
-        if (stat(sub, &st) != 0) continue;
-        if (S_ISDIR(st.st_mode)) {
-            if (search_file_using_name_recursive(sub, target, out, outsz)) { closedir(d); return 1; }
-            continue;
-        }
-        if (!strcmp(de->d_name, target)) {
-            snprintf(out, outsz, "%s", sub);
-            closedir(d);
-            return 1;
-        }
-    }
-    closedir(d);
-    return 0;
-}
 
 /* Verify SHA256 hashes from external operator-signed integrity manifest */
 static int load_operator_integrity_manifest_file(const char *srcdir, char **out, long *out_len) {
