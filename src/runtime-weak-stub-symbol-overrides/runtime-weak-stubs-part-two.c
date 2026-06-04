@@ -27,7 +27,8 @@ void check_single_file_for_violations(const char *sub, int is_c, int is_source,
     void *fns, int *fn_qty, void *incs, int *inc_qty)
 {
     (void)sub; (void)is_c; (void)is_source;
-    (void)fns; (void)fn_qty; (void)incs; (void)inc_qty;
+    (void)fns; (void)fn_qty;
+    (void)incs; (void)inc_qty;
     fprintf(stderr, "FATAL: check_single_file_for_violations stub called — not implemented\n");
     exit(1);
 }
