@@ -9,33 +9,18 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <cjson/cJSON.h>
-static int lint_mode = 0;
-static int lint_errors = 0;
+int lint_mode = 0;
+int lint_errors = 0;
 #define MAX_FILES_PER_DIR 3
 #define MAX_LINES_PER_FILE 400
-#define MAX_INCLUDES 5
 #define MAX_FUNCTIONS_PER_FILE 10
 #define MAX_LINES_PER_FUNCTION 50
 #define MAX_LINE_LENGTH 120
-typedef enum {
-    ERR_FILE_TOO_LONG,
-    ERR_TOO_MANY_FUNCTIONS,
-    ERR_FUNCTION_TOO_LONG,
-    ERR_TOO_MANY_FILES_IN_DIR,
-    ERR_BANNED_PATTERN,
-    ERR_HARDCODED_PATH,
-    ERR_HEADER_NOT_IN_WHITELIST,
-    ERR_HEADER_INCLUDED_TOO_OFTEN,
-    ERR_DEAD_CODE,
-    ERR_MAIN_COUNT,
-    ERR_FLAG_NOT_IN_HELP,
-    ERR_LINE_TOO_DENSE,
-    ERR_NOT_IN_BOOTSTRAP_WHITELIST
-} enforce_err_t;
-static void report_fatal_error_and_exit(const char *msg) {
+
+void report_fatal_error_and_exit(const char *msg) {
     fprintf(stderr, "spec2c: %s\n", msg); exit(1);
 }
-static void report_violation_with_actionable_hint(enforce_err_t code, const char *a1,
+void report_violation_with_actionable_hint(enforce_err_t code, const char *a1,
     int v1, int v2, const char *a2)
 {
     char buf[8448];
@@ -68,7 +53,6 @@ static int count_lines_within_source_file(const char *path) {
     }
     fclose(f); return lines;
 }
-#define match_source_code_header_filename(name) (strlen(name) > 2 && (!strcmp((name) + strlen(name) - 2, ".c") || !strcmp((name) + strlen(name) - 2, ".h")))
 static int detect_function_definition_start_line(const char *line) {
     const char *s = line;
     while (*s == ' ' || *s == '\t') s++;
@@ -101,8 +85,6 @@ static int detect_function_definition_start_line(const char *line) {
     for (int i = 0; lib[i]; i++) if (!strcmp(first, lib[i])) return 0;
     return 1;
 }
-// Types declared in verify-structural-source-code-rules.h
-static void check_include_headers_for_file(const char *sub, inc_entry_t *incs, int *inc_qty);
 static void check_line_density_within_source(const char *line, const char *sub, int file_line) {
     int in_str = 0, in_char = 0, in_comment = 0, tokens = 0;
     for (const char *p = line; *p; p++) {
@@ -238,68 +220,6 @@ void check_single_file_for_violations(const char *sub, int is_c, int is_source,
     }
     check_include_headers_for_file(sub, incs, inc_qty);
 }
-static void check_include_headers_for_file(const char *sub, inc_entry_t *incs, int *inc_qty) {
-    FILE *f2 = fopen(sub, "r");
-    if (!f2) report_fatal_error_and_exit("cannot open file for include audit");
-    char line[512];
-    while (fgets(line, sizeof(line), f2)) {
-        char hdr[128] = {0}; int is_angle = 0;
-        if (sscanf(line, " #include <%127[^>]>", hdr) == 1) is_angle = 1;
-        else if (sscanf(line, " #include \"%127[^\"]\"", hdr) == 1) is_angle = 0;
-        else if (sscanf(line, " # include <%127[^>]>", hdr) == 1) is_angle = 1;
-        else if (sscanf(line, " # include \"%127[^\"]\"", hdr) == 1) is_angle = 0;
-        else continue;
-        if (!match_header_against_include_whitelist(hdr)) {
-            fclose(f2); report_violation_with_actionable_hint(ERR_HEADER_NOT_IN_WHITELIST, hdr, 0, 0, sub);
-        }
-        if (!is_angle) {
-            int found = 0;
-            for (int i = 0; i < *inc_qty; i++)
-                if (!strcmp(incs[i].name, hdr)) {
-                    if (++incs[i].count > MAX_INCLUDES) {
-                        fclose(f2); report_violation_with_actionable_hint(ERR_HEADER_INCLUDED_TOO_OFTEN, hdr, incs[i].count, MAX_INCLUDES, NULL);
-                    }
-                    found = 1; break;
-                }
-            if (!found && *inc_qty < 128) {
-                snprintf(incs[*inc_qty].name, 64, "%s", hdr);
-                incs[*inc_qty].count = 1; (*inc_qty)++;
-            }
-        }
-    }
-    fclose(f2);
-}
-void search_for_unused_function_code(fn_entry_t *fns, int fn_qty, const char *srcdir) {
-    for (int i = 0; i < fn_qty; i++) {
-        if (!strcmp(fns[i].name, "main")) continue;
-        int called = 0;
-        void search_calls(const char *dpath) {
-            DIR *dd = opendir(dpath); if (!dd) report_fatal_error_and_exit("cannot open dir in dead-code search");
-            struct dirent *de2;
-            while ((de2 = readdir(dd)) != NULL && !called) {
-                if (de2->d_name[0] == '.') continue;
-                char sp[8192]; snprintf(sp, sizeof(sp), "%s/%s", dpath, de2->d_name);
-                struct stat sst; if (stat(sp, &sst) != 0) continue;
-                if (S_ISDIR(sst.st_mode)) { search_calls(sp); continue; }
-                if (!match_source_code_header_filename(de2->d_name)) continue;
-                FILE *rf = fopen(sp, "r"); if (!rf) report_fatal_error_and_exit("cannot open source file in dead-code search");
-                char rl[1024];
-                while (fgets(rl, sizeof(rl), rf) && !called) {
-                    char call[256]; snprintf(call, sizeof(call), "%s(", fns[i].name);
-                    if (strstr(rl, call)) called = 1;
-                }
-                fclose(rf);
-            }
-            closedir(dd);
-        }
-        search_calls(srcdir);
-        if (!called) {
-            report_violation_with_actionable_hint(ERR_DEAD_CODE, fns[i].name, 0, 0, fns[i].file);
-        }
-    }
-}
-static void scan_source_for_undocumented_flags(const char *srcdir);
-
 static int check_non_source_and_bootstrap(const char *name, const char *sub, const char *dirpath) {
     if (!match_source_code_header_filename(name)) {
         size_t dn_len = strlen(name);
@@ -320,34 +240,6 @@ static int check_non_source_and_bootstrap(const char *name, const char *sub, con
     }
     return 0;
 }
-static void skip_root_files_when_scanning(const char *srcdir)
-{
-    if (!strcmp(srcdir, ".")) {
-        DIR *d = opendir(srcdir);
-        if (!d) report_fatal_error_and_exit("cannot open root directory for scan");
-        struct dirent *de;
-        while ((de = readdir(d)) != NULL) {
-            if (!strcmp(de->d_name, ".") || !strcmp(de->d_name, "..")) continue;
-            char sub[8192];
-            snprintf(sub, sizeof(sub), "%s/%s", srcdir, de->d_name);
-            struct stat st;
-            if (stat(sub, &st) == 0 && S_ISDIR(st.st_mode))
-                verify_ipm_names_across_sources(sub);
-        }
-        closedir(d);
-    } else {
-        verify_ipm_names_across_sources(srcdir);
-    }
-}
-
-static int is_main_count_exempt_file(const char *path) {
-    for (int i = 0; main_exempt_directory_names[i]; i++) {
-        char pattern[256];
-        snprintf(pattern, sizeof(pattern), "/%s/", main_exempt_directory_names[i]);
-        if (strstr(path, pattern)) return 1;
-    }
-    return 0;
-}
 void enforce_all_source_code_rules(const char *srcdir) {
     const char *data_dir = srcdir;
     char sd[4096]; snprintf(sd, sizeof(sd), "%s/source-code-for-compiler-generation", srcdir);
@@ -355,6 +247,7 @@ void enforce_all_source_code_rules(const char *srcdir) {
     load_operator_signed_exemption_table(srcdir);
     read_allowed_names_from_file(data_dir); read_banned_patterns_from_file(data_dir);
     load_non_source_file_allowlist(data_dir); load_bootstrap_whitelist_from_disk(data_dir);
+    load_manifest_paths_for_exemption(srcdir);
     if (!lint_mode) enforce_bootstrap_code_freeze_check(srcdir);
     fn_entry_t fns[512]; inc_entry_t incs[128]; int fn_qty = 0, inc_qty = 0;
     void scan_dir(const char *dirpath) {
@@ -402,45 +295,10 @@ void enforce_all_source_code_rules(const char *srcdir) {
     scan_dir(srcdir); search_for_unused_function_code(fns, fn_qty, srcdir);
     int mc = 0;
     for (int i = 0; i < fn_qty; i++)
-        if (!strcmp(fns[i].name, "main") && !is_main_count_exempt_file(fns[i].file)) mc++;
+        if (!strcmp(fns[i].name, "main") && !check_main_count_exemption_rule(fns[i].file)) mc++;
     if (mc != 1) report_violation_with_actionable_hint(ERR_MAIN_COUNT, NULL, mc, 0, NULL);
     scan_source_for_undocumented_flags(srcdir); skip_root_files_when_scanning(srcdir);
 }
-static void scan_source_for_undocumented_flags(const char *srcdir) {
-    void check_flags(const char *dpath) {
-        DIR *dd = opendir(dpath); if (!dd) report_fatal_error_and_exit("cannot open dir for flag scan");
-        struct dirent *de2;
-        while ((de2 = readdir(dd)) != NULL) {
-            if (de2->d_name[0] == '.') continue;
-            char sp[8192]; snprintf(sp, sizeof(sp), "%s/%s", dpath, de2->d_name);
-            struct stat sst;
-            if (stat(sp, &sst) != 0) continue;
-            if (S_ISDIR(sst.st_mode)) { check_flags(sp); continue; }
-            if (strcmp(de2->d_name + strlen(de2->d_name) - 2, ".c")) continue;
-            FILE *f4 = fopen(sp, "r"); if (!f4) report_fatal_error_and_exit("cannot open file for flag scan");
-            char *content = malloc(65536);
-            if (!content) { fclose(f4); report_fatal_error_and_exit("malloc failed for flag scan"); }
-            size_t cs = fread(content, 1, 65535, f4); fclose(f4);
-            if (cs < 10 || cs >= 65535) { free(content); continue; }
-            content[cs] = 0;
-            const char *p = content;
-            while ((p = strstr(p, "\"--")) != NULL) {
-                p += 2;
-                char flag[64]; int fi = 0;
-                while (*p && *p != '"' && fi < 63) flag[fi++] = *p++;
-                flag[fi] = 0;
-                if (fi == 0) continue;
-                if (!strstr(content, flag)) {
-                    free(content); report_violation_with_actionable_hint(ERR_FLAG_NOT_IN_HELP, flag, 0, 0, sp);
-                }
-            }
-            free(content);
-        }
-        closedir(dd);
-    }
-    check_flags(srcdir);
-}
-
 int main(int argc, char **argv) {
     const char *src_dir = ".";
     for (int i = 1; i < argc; i++) {

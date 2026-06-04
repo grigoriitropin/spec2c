@@ -92,6 +92,7 @@
           runHook preBuild
           cc ${builtins.toString cflags} ${builtins.toString enforce_inc} \
             ${S}/enforce-structural-rules-for-code/verify-structural-source-code-rules.c \
+            ${S}/enforce-structural-rules-for-code/secondary-source-code-audit-checks.c \
             ${S}/enforce-structural-rules-for-code/enforce-naming-whitelist-and-validation.c \
             ${S}/enforce-structural-rules-for-code/count-file-name-word-segments/count-file-name-word-segments.c \
             ${S}/enforce-structural-rules-for-code/operator-signed-exemption-name-table/load-operator-signed-exemption-table.c \
@@ -135,6 +136,7 @@
           # Step 1: Build enforcement checker
           cc ${builtins.toString cflags} ${builtins.toString enforce_inc} \
             ${S}/enforce-structural-rules-for-code/verify-structural-source-code-rules.c \
+            ${S}/enforce-structural-rules-for-code/secondary-source-code-audit-checks.c \
             ${S}/enforce-structural-rules-for-code/enforce-naming-whitelist-and-validation.c \
             ${S}/enforce-structural-rules-for-code/count-file-name-word-segments/count-file-name-word-segments.c \
             ${S}/enforce-structural-rules-for-code/operator-signed-exemption-name-table/load-operator-signed-exemption-table.c \
@@ -312,6 +314,7 @@
             source-code-for-compiler-generation/compile-specifications-into-source-code/enforce-structural-rules-for-code/count-file-name-word-segments/count-file-name-word-segments.c \
             source-code-for-compiler-generation/compile-specifications-into-source-code/enforce-structural-rules-for-code/operator-signed-exemption-name-table/load-operator-signed-exemption-table.c \
             source-code-for-compiler-generation/compile-specifications-into-source-code/enforce-structural-rules-for-code/scan-source-code-for-patterns/enforce-bootstrap-code-file-whitelist.c \
+            source-code-for-compiler-generation/compile-specifications-into-source-code/enforce-structural-rules-for-code/scan-source-code-for-patterns/load-manifest-path-exemption-entries/load-manifest-paths-for-exemption.c \
             source-code-for-compiler-generation/runtime-weak-stub-symbol-overrides/runtime-weak-stubs-part-two.c \
             verify-ed25519-digital-signature-key.c \
             source-code-for-compiler-generation/compile-specifications-into-source-code/enforce-structural-rules-for-code/scan-source-code-for-patterns/check-naming-rules-for-ffi.c \

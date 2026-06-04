@@ -15,8 +15,8 @@
 
 extern void compute_sha256_hash_into_bytes(const uint8_t *data, uint32_t len, uint8_t out[32]);
 
-static char manifest_paths[128][256];
-static int manifest_paths_count = 0;
+char manifest_paths[128][256];
+int manifest_paths_count = 0;
 
 int match_path_against_integrity_manifest(const char *relpath) {
     for (int i = 0; i < manifest_paths_count; i++)
@@ -51,10 +51,7 @@ int match_name_against_bootstrap_list(const char *basename) {
     return 0;
 }
 
-/* find a file by basename anywhere under dpath */
-
-/* Verify SHA256 hashes from external operator-signed integrity manifest */
-static int load_operator_integrity_manifest_file(const char *srcdir, char **out, long *out_len) {
+int load_operator_integrity_manifest_file(const char *srcdir, char **out, long *out_len) {
     char path[4096];
     FILE *f = fopen("operator-signed-integrity-manifest-hashes.json", "r");
     if (!f) {
@@ -179,22 +176,6 @@ void enforce_bootstrap_code_freeze_check(const char *srcdir) {
     char *content = NULL;
     long content_len = 0;
     load_operator_integrity_manifest_file(srcdir, &content, &content_len);
-    /* Populate manifest_paths BEFORE sig check — needed by cpp scan exemption
-       even when sig is stale (operator re-sign pending). */
-    { cJSON *pre = cJSON_Parse(content);
-      if (pre) {
-        cJSON *e = cJSON_GetObjectItem(pre, "entries");
-        if (e) { int sz = cJSON_GetArraySize(e);
-          for (int i = 0; i < sz && manifest_paths_count < 128; i++) {
-            cJSON *item = cJSON_GetArrayItem(e, i);
-            cJSON *fn = cJSON_GetObjectItem(item, "file");
-            if (fn && fn->valuestring)
-              snprintf(manifest_paths[manifest_paths_count++], 256, "%s", fn->valuestring);
-          }
-        }
-        cJSON_Delete(pre);
-      }
-    }
     char sig_hex[256] = {0};
     read_sidecar_signature_file_bytes(srcdir, "operator-signed-integrity-manifest-hashes.json", sig_hex, sizeof(sig_hex));
     if (verify_signature(PUBKEY_HEX, sig_hex, (unsigned char *)content, (size_t)content_len) != 0) {

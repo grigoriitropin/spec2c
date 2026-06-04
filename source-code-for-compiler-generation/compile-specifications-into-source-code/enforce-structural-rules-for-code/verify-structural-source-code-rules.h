@@ -5,6 +5,26 @@
 #define ENFORCE_H
 
 #include <stddef.h>
+#include <string.h>
+#define MAX_INCLUDES 5
+#define match_source_code_header_filename(name) (strlen(name) > 2 && (!strcmp((name) + strlen(name) - 2, ".c") || !strcmp((name) + strlen(name) - 2, ".h")))
+typedef enum {
+    ERR_FILE_TOO_LONG,
+    ERR_TOO_MANY_FUNCTIONS,
+    ERR_FUNCTION_TOO_LONG,
+    ERR_TOO_MANY_FILES_IN_DIR,
+    ERR_BANNED_PATTERN,
+    ERR_HARDCODED_PATH,
+    ERR_HEADER_NOT_IN_WHITELIST,
+    ERR_HEADER_INCLUDED_TOO_OFTEN,
+    ERR_DEAD_CODE,
+    ERR_MAIN_COUNT,
+    ERR_FLAG_NOT_IN_HELP,
+    ERR_LINE_TOO_DENSE,
+    ERR_NOT_IN_BOOTSTRAP_WHITELIST
+} enforce_err_t;
+extern int lint_mode;
+extern int lint_errors;
 void enforce_all_source_code_rules(const char *srcdir);
 void display_current_source_structure_report(const char *srcdir);
 
@@ -32,6 +52,12 @@ typedef struct {
 void check_single_file_for_violations(const char *sub, int is_c, int is_source,
     fn_entry_t *fns, int *fn_qty, inc_entry_t *incs, int *inc_qty);
 void search_for_unused_function_code(fn_entry_t *fns, int fn_qty, const char *srcdir);
+void scan_source_for_undocumented_flags(const char *srcdir);
+void skip_root_files_when_scanning(const char *srcdir);
+int  check_main_count_exemption_rule(const char *path);
+void check_include_headers_for_file(const char *sub, inc_entry_t *incs, int *inc_qty);
+void report_fatal_error_and_exit(const char *msg);
+void report_violation_with_actionable_hint(enforce_err_t code, const char *a1, int v1, int v2, const char *a2);
 
 void clear_brace_tracking_for_function(brace_state_t *state);
 void count_open_close_brace_pairs(const char *line, brace_state_t *state);
@@ -46,6 +72,8 @@ void load_non_source_file_allowlist(const char *srcdir);
 int check_non_source_file_allowlist(const char *name);
 int match_name_against_bootstrap_list(const char *basename);
 void enforce_bootstrap_code_freeze_check(const char *srcdir);
+int  load_operator_integrity_manifest_file(const char *srcdir, char **out, long *out_len);
+void load_manifest_paths_for_exemption(const char *srcdir);
 void load_operator_signed_exemption_table(const char *srcdir);
 const char *match_name_against_exemption_table(const char *name);
 int  match_path_against_integrity_manifest(const char *relpath);

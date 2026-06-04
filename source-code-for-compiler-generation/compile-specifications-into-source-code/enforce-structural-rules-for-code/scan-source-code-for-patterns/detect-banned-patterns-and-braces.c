@@ -46,7 +46,9 @@ static int confirm_position_occupies_string_comment(const char *line, const char
             if (*q == '*' && *(q+1) == '/') { in_comment = 0; q++; }
             continue;
         }
-        if (!in_str && !in_char && *q == '/' && *(q+1) == '*') { in_comment = 1; q++; continue; }
+        if (!in_str && !in_char && *q == '/' && *(q+1) == '*') {
+            in_comment = 1; q++; continue;
+        }
         if (!in_str && !in_char && *q == '/' && *(q+1) == '/') return 1;
         if (*q == '\\' && *(q+1) != '\0') { q++; continue; }
         if (!in_char && *q == '"') in_str = !in_str;
