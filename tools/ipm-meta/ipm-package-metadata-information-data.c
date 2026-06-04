@@ -7,7 +7,7 @@
 #include <cjson/cJSON.h>
 #include "ipm_time.h"
 
-static char *read_file(const char *path) {
+static char *read_file_into_memory_buffer(const char *path) {
     FILE *f = fopen(path, "rb");
     if (!f) return NULL;
     fseek(f, 0, SEEK_END);
@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
         fprintf(stderr, "Usage: ipm-meta <file.ipm>\n");
         return 1;
     }
-    char *text = read_file(argv[1]);
+    char *text = read_file_into_memory_buffer(argv[1]);
     if (!text) { fprintf(stderr, "cannot read %s\n", argv[1]); return 1; }
 
     cJSON *spec = cJSON_Parse(text);

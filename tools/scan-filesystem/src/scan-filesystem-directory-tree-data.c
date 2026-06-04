@@ -29,7 +29,6 @@ static int walk_callback(const char *fpath, const struct stat *sb,
             fpath, type_character_for_file_parsing(sb->st_mode),
             (long)sb->st_size, ftwbuf->level);
     fprintf(stderr, "scan-filesystem: %ld us
-", (long)ipm_time_us());
     return 0;
 }
 
@@ -48,6 +47,5 @@ int main(int argc, char **argv) {
         return 1;
     }
     fprintf(stderr, "scan-filesystem: %ld us
-", (long)ipm_time_us());
     return 0;
 }
