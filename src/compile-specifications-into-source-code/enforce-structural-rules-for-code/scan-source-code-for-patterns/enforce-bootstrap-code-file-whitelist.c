@@ -97,11 +97,15 @@ static int load_operator_integrity_manifest_file(const char *srcdir, char **out,
 
 static int read_sidecar_signature_file(const char *srcdir, const char *basename, char *sig_hex, int sigsz) {
     char path[4096];
-    snprintf(path, sizeof(path), "%s.sig", basename);
+    /* basename = "foo.json", sidecar = "foo.sig" — strip .json suffix */
+    char sidecar[256];
+    snprintf(sidecar, sizeof(sidecar), "%s", basename);
+    char *dot = strrchr(sidecar, '.');
+    if (dot) *dot = 0;
+    snprintf(path, sizeof(path), "%s.sig", sidecar);
     FILE *f = fopen(path, "r");
-    if (!f) { snprintf(path, sizeof(path), "%s/%s.sig", srcdir, basename); f = fopen(path, "r"); }
-    if (!f) { snprintf(path, sizeof(path), "%s/../%s.sig", srcdir, basename); f = fopen(path, "r"); }
-    if (!f) { snprintf(path, sizeof(path), "%s.sig", basename); f = fopen(path, "r"); }
+    if (!f) { snprintf(path, sizeof(path), "%s/%s.sig", srcdir, sidecar); f = fopen(path, "r"); }
+    if (!f) { snprintf(path, sizeof(path), "%s/../%s.sig", srcdir, sidecar); f = fopen(path, "r"); }
     if (!f) return 0;
     size_t n = fread(sig_hex, 1, sigsz - 1, f);
     fclose(f);
