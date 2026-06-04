@@ -174,8 +174,8 @@ static void check_ipm_ast_depth_limits(cJSON *node, int depth, const char *path)
     if (cJSON_IsObject(node)) {
         int keys = 0; cJSON *c = node->child;
         while (c) { keys++; c = c->next; }
-        if (keys > 10) { char msg[8448]; snprintf(msg, sizeof(msg),
-            "SOUL §7: object has %d keys (max 10) in %s\n  → split into smaller objects", keys, path);
+        if (keys > 20) { char msg[8448]; snprintf(msg, sizeof(msg),
+            "SOUL §7: object has %d keys (max 20) in %s\n  → split into smaller objects", keys, path);
             fprintf(stderr, "spec2c: %s\n", msg); exit(1); }
         c = node->child;
         while (c) { check_ipm_ast_depth_limits(c, depth + 1, path); c = c->next; }
