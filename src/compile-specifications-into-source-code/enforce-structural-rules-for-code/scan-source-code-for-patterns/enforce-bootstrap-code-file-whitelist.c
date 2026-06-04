@@ -11,6 +11,7 @@
 #include <stdint.h>
 #include <cjson/cJSON.h>
 
+#define PUBKEY_HEX "489532082ae4dfc21c6ffe21e1bf78c432bc07200d712ad07568c9a46fe52f24"
 
 extern void compute_sha256_hash_into_bytes(const uint8_t *data, uint32_t len, uint8_t out[32]);
 
@@ -94,18 +95,19 @@ static int load_operator_integrity_manifest_file(const char *srcdir, char **out,
     return 1;
 }
 
-static int extract_signed_integrity_payload_bytes(const char *raw, char *out, int outsz) {
-    cJSON *root = cJSON_Parse(raw);
-    if (!root) return 0;
-    cJSON_DeleteItemFromObject(root, "signature_hex");
-    char *payload = cJSON_PrintUnformatted(root);
-    cJSON_Delete(root);
-    if (!payload) return 0;
-    int plen = (int)strlen(payload);
-    if (plen < outsz) memcpy(out, payload, plen + 1);
-    else plen = 0;
-    free(payload);
-    return plen;
+static int read_sidecar_signature_file(const char *srcdir, const char *basename, char *sig_hex, int sigsz) {
+    char path[4096];
+    snprintf(path, sizeof(path), "%s.sig", basename);
+    FILE *f = fopen(path, "r");
+    if (!f) { snprintf(path, sizeof(path), "%s/%s.sig", srcdir, basename); f = fopen(path, "r"); }
+    if (!f) { snprintf(path, sizeof(path), "%s/../%s.sig", srcdir, basename); f = fopen(path, "r"); }
+    if (!f) { snprintf(path, sizeof(path), "%s.sig", basename); f = fopen(path, "r"); }
+    if (!f) return 0;
+    size_t n = fread(sig_hex, 1, sigsz - 1, f);
+    fclose(f);
+    if (n < 128) return 0;
+    sig_hex[n] = 0;
+    return 1;
 }
 
 static void verify_manifest_entry_file_hash(const char *srcdir, const char *fname, const char *expected) {
@@ -142,23 +144,15 @@ void enforce_bootstrap_code_freeze_check(const char *srcdir) {
     long content_len = 0;
     if (!load_operator_integrity_manifest_file(srcdir, &content, &content_len))
         return;
+    char sig_hex[256] = {0};
+    if (!read_sidecar_signature_file(srcdir, "operator-signed-integrity-manifest-hashes.json", sig_hex, sizeof(sig_hex)))
+        { free(content); return; }
+    if (verify_signature(PUBKEY_HEX, sig_hex, (unsigned char *)content, (size_t)content_len) != 0) {
+        fprintf(stderr, "spec2c: integrity manifest: Ed25519 signature invalid\n");
+        free(content); exit(1);
+    }
     cJSON *root = cJSON_Parse(content);
     if (!root) { free(content); return; }
-    cJSON *pub = cJSON_GetObjectItem(root, "public_key_hex");
-    cJSON *sig = cJSON_GetObjectItem(root, "signature_hex");
-    if (!pub || !sig || !pub->valuestring || !sig->valuestring) {
-        cJSON_Delete(root);
-        free(content);
-        return;
-    }
-    char pk[128]; snprintf(pk, sizeof(pk), "%s", pub->valuestring);
-    char sh[256]; snprintf(sh, sizeof(sh), "%s", sig->valuestring);
-    char payload[16384];
-    int plen = extract_signed_integrity_payload_bytes(content, payload, sizeof(payload));
-    if (!plen || verify_signature(pk, sh, (unsigned char *)payload, plen) != 0) {
-        fprintf(stderr, "spec2c: integrity manifest: Ed25519 signature invalid\n");
-        cJSON_Delete(root); free(content); exit(1);
-    }
     cJSON *entries = cJSON_GetObjectItem(root, "entries");
     if (entries) {
         int sz = cJSON_GetArraySize(entries);

@@ -6,6 +6,8 @@
 #include <string.h>
 #include <cjson/cJSON.h>
 
+#define PUBKEY_HEX "489532082ae4dfc21c6ffe21e1bf78c432bc07200d712ad07568c9a46fe52f24"
+
 typedef struct {
     char name[128];
     char scan_as[64];
@@ -70,22 +72,23 @@ void load_operator_signed_exemption_table(const char *srcdir) {
     char *content = read_file_content_into_memory(srcdir);
     if (!content)
         report_fatal_error_and_exit("cannot read operator-signed-exemption-name-table.json");
+    char sig_hex[256] = {0};
+    char path[4096];
+    snprintf(path, sizeof(path), "%s/../operator-signed-exemption-name-table.sig", srcdir);
+    FILE *sf = fopen(path, "r");
+    if (!sf) { snprintf(path, sizeof(path), "%s/operator-signed-exemption-name-table.sig", srcdir); sf = fopen(path, "r"); }
+    if (!sf) { snprintf(path, sizeof(path), "operator-signed-exemption-name-table.sig"); sf = fopen(path, "r"); }
+    if (!sf) { free(content);
+        report_fatal_error_and_exit("cannot read exemption table signature file"); }
+    size_t sn = fread(sig_hex, 1, 255, sf); fclose(sf); sig_hex[sn] = 0;
+    if (sn < 128) { free(content);
+        report_fatal_error_and_exit("exemption table signature too short"); }
+    long clen = (long)strlen(content);
+    if (verify_signature(PUBKEY_HEX, sig_hex, (unsigned char *)content, (size_t)clen) != 0)
+        { free(content); report_fatal_error_and_exit("exemption table: Ed25519 signature invalid"); }
     cJSON *root = cJSON_Parse(content);
-    if (!root) { free(content);
-        report_fatal_error_and_exit("cannot parse operator-signed-exemption-name-table.json"); }
-    cJSON *pub_obj = cJSON_GetObjectItem(root, "public_key_hex");
-    cJSON *sig_obj = cJSON_GetObjectItem(root, "signature_hex");
-    if (!pub_obj || !sig_obj || !pub_obj->valuestring || !sig_obj->valuestring)
-        { cJSON_Delete(root); free(content);
-          report_fatal_error_and_exit("operator-signed-exemption-name-table.json missing pubkey/sig"); }
-    char pk_hex[128]; snprintf(pk_hex, sizeof(pk_hex), "%s", pub_obj->valuestring);
-    char sig_hex[256]; snprintf(sig_hex, sizeof(sig_hex), "%s", sig_obj->valuestring);
-    char signed_bytes[4096];
-    int sb_len = extract_signed_payload_bytes_raw(content, signed_bytes, sizeof(signed_bytes));
-    if (verify_signature(pk_hex, sig_hex, (unsigned char *)signed_bytes, sb_len) != 0) {
-        cJSON_Delete(root); free(content);
-        report_fatal_error_and_exit("exemption table: Ed25519 signature invalid");
-    }
+    free(content);
+    if (!root) return;
     cJSON *entries = cJSON_GetObjectItem(root, "entries");
     if (entries) {
         int sz = cJSON_GetArraySize(entries);
@@ -100,7 +103,7 @@ void load_operator_signed_exemption_table(const char *srcdir) {
             }
         }
     }
-    cJSON_Delete(root); free(content);
+    cJSON_Delete(root);
 }
 
 const char *match_name_against_exemption_table(const char *name) {
