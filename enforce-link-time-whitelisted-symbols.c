@@ -485,18 +485,33 @@ static int run_whitelist_check(const char *binary_path, const char *bin_name) {
             name_buf[ni] = '\0';
 
             /* WEAK binding check: only explicit operator-signed stubs permitted.
-               allowed_symbols[] is for UNDEF references, NOT for WEAK definitions. */
+               allowed_symbols[] is for UNDEF references, NOT for WEAK definitions.
+               Structural backstop: a permitted WEAK name that shadows a dangerous
+               libc function (memcpy, malloc, strcmp, etc.) is STILL FATAL — crossing
+               the permit list with a dangerous name is a configuration error. */
             if (ELF64_ST_BIND(sym->st_info) == STB_WEAK) {
                 int is_permitted = 0;
                 int sc = (int)(sizeof(permitted_weak_stubs) / sizeof(permitted_weak_stubs[0]));
                 for (int si = 0; si < sc; si++) {
                     if (!strcmp(name_buf, permitted_weak_stubs[si])) { is_permitted = 1; break; }
                 }
-                if (!is_permitted) {
+                if (is_permitted) {
+                    /* Backstop: WEAK-permitted names must not shadow dangerous libc */
+                    int ac = (int)(sizeof(allowed_symbols) / sizeof(allowed_symbols[0]));
+                    for (int ai = 0; ai < ac; ai++) {
+                        if (!strcmp(name_buf, allowed_symbols[ai])) {
+                            /* Only flag if it's a dangerous name, not toolchain glue */
+                            if (name_buf[0] != '_') {
+                                fprintf(stderr, "WEAK SHADOW: %s in %s\n", name_buf, binary_path);
+                                has_violation = 1; break;
+                            }
+                        }
+                    }
+                } else {
                     fprintf(stderr, "WEAK SYMBOL: %s in %s\n", name_buf, binary_path);
                     has_violation = 1;
-                    break;
                 }
+                if (has_violation) break;
             }
 
             /* Undefined-symbol whitelist check (only for SHN_UNDEF) */
