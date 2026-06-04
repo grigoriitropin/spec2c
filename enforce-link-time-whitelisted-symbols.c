@@ -428,6 +428,11 @@ static int run_whitelist_check(const char *binary_path, const char *bin_name) {
                             binary_path);
                         free(phdrs); fclose(f); return 1;
                     }
+                    /* Executable stack: ROP gadget surface, NX bypass vector */
+                    if (phdrs[pi].p_type == PT_GNU_STACK && (phdrs[pi].p_flags & PF_X)) {
+                        fprintf(stderr, "EXECUTABLE STACK: %s has executable stack\n", binary_path);
+                        free(phdrs); fclose(f); return 1;
+                    }
                 }
             }
             free(phdrs);
