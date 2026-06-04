@@ -326,13 +326,13 @@
           mkdir -p gen_c
           cp dfa_obj/dfa.c density_obj/density.c path_obj/path.c \
              naming_obj/naming.c clex_obj/clex.c main_obj/main.c gen_c/
-          cp src/allowed-names.txt gen_c/ 2>/dev/null || true
-          cp src/banned-patterns.txt gen_c/ 2>/dev/null || true
-          cp src/bootstrap-c-whitelist.txt gen_c/ 2>/dev/null || true
-          cp src/bootstrap-c-freeze-limits.txt gen_c/ 2>/dev/null || true
-          for f in gen_c/*.c; do sed -i '/^{"ok"/d' "$f" 2>/dev/null; done
+          cp src/allowed-names.txt gen_c/
+          cp src/banned-patterns.txt gen_c/
+          cp src/bootstrap-c-whitelist.txt gen_c/
+          cp src/bootstrap-c-freeze-limits.txt gen_c/
+          for f in gen_c/*.c; do sed -i '/^{"ok"/d' "$f"; done
           echo "=== Translation Gate ==="
-          $S2C_ENFORCE --lint ./gen_c || echo "(generated code enforcer check done)"
+          $S2C_ENFORCE --lint ./gen_c || exit 1
 
           runHook postBuild
         '';
