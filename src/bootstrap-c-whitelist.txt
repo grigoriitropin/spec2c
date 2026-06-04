@@ -40,3 +40,9 @@ extracted-codegen-helper-functions-here/emit-report-error-and-exit.c
 operator-signed-exemption-name-table/load-operator-signed-exemption-table.c
 runtime-weak-stubs-part-two.c
 runtime-weak-stubs-part-two.c
+verify-ed25519-digital-signature-key.c
+verify-ed25519-digital-signature-key.h
+enforce-link-time-whitelisted-symbols.c
+generate-integrity-manifest-from-source.c
+check-banned-patterns-pure-ipm.ipm
+enforce-naming-rules-via-ffi.ipm

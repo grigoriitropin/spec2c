@@ -1,5 +1,0 @@
-enforce-fixture-banned-keyword-here.c
-enforce-fixture-hardcoded-path-here.c
-enforce-fixture-line-count-over.c
-enforce-fixture-line-too-dense.c
-use-service-name-fixture-here.c

@@ -1,9 +1,0 @@
-goto 
-goto	
-setjmp(
-longjmp(
-2>/dev/null
->/dev/null
-&>/dev/null
-1>/dev/null
-2>&1
