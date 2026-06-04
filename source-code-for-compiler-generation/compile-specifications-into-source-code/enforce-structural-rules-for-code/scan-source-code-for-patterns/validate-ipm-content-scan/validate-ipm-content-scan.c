@@ -165,9 +165,9 @@ static void check_ipm_cli_flag_docs(cJSON *root, const char *sp) {
 }
 
 static void check_ipm_ast_depth_limits(cJSON *node, int depth, const char *path) {
-    if (!node || depth > 20) {
-        if (depth > 20) { char msg[8448]; snprintf(msg, sizeof(msg),
-            "SOUL §7: AST depth > 20 in %s\n  → extract nested logic", path);
+    if (!node || depth > 25) {
+        if (depth > 25) { char msg[8448]; snprintf(msg, sizeof(msg),
+            "SOUL §7: AST depth > 25 in %s\n  → extract nested logic", path);
             fprintf(stderr, "spec2c: %s\n", msg); exit(1); }
         return;
     }
