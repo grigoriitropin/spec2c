@@ -92,7 +92,7 @@
           runHook preBuild
           cc ${builtins.toString cflags} ${builtins.toString enforce_inc} \
             ${S}/enforce-structural-rules-for-code/verify-structural-source-code-rules.c \
-            ${S}/enforce-structural-rules-for-code/secondary-source-code-audit-checks.c \
+            ${S}/enforce-structural-rules-for-code/audit-checks-for-source-code/secondary-source-code-audit-checks.c \
             ${S}/enforce-structural-rules-for-code/enforce-naming-whitelist-and-validation.c \
             ${S}/enforce-structural-rules-for-code/count-file-name-word-segments/count-file-name-word-segments.c \
             ${S}/enforce-structural-rules-for-code/operator-signed-exemption-name-table/load-operator-signed-exemption-table.c \
@@ -137,7 +137,7 @@
           # Step 1: Build enforcement checker
           cc ${builtins.toString cflags} ${builtins.toString enforce_inc} \
             ${S}/enforce-structural-rules-for-code/verify-structural-source-code-rules.c \
-            ${S}/enforce-structural-rules-for-code/secondary-source-code-audit-checks.c \
+            ${S}/enforce-structural-rules-for-code/audit-checks-for-source-code/secondary-source-code-audit-checks.c \
             ${S}/enforce-structural-rules-for-code/enforce-naming-whitelist-and-validation.c \
             ${S}/enforce-structural-rules-for-code/count-file-name-word-segments/count-file-name-word-segments.c \
             ${S}/enforce-structural-rules-for-code/operator-signed-exemption-name-table/load-operator-signed-exemption-table.c \

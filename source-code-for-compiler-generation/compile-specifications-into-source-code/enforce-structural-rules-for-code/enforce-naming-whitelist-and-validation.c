@@ -93,6 +93,7 @@ int match_header_against_include_whitelist(const char *hdr) {
         "../bootstrap-compiled-limit-hash-data/bootstrap-file-sha-hashes-generated.h",
         "shared-type-declarations-across-modules/share-type-definitions-across-files.h",
         "../shared-type-declarations-across-modules/share-type-definitions-across-files.h",
+        "../../shared-type-declarations-across-modules/share-type-definitions-across-files.h",
         "share-check-types-and-declarations.h",
         NULL
     };
