@@ -285,6 +285,14 @@ static void emit_bootstrap_central_dispatcher_func(cJSON *inst, FILE *out, int i
             fprintf(out, "  return 0;\n");
         return;
     }
+    /* SOUL §7: a type routed here but with no branch (e.g. access_json_field,
+       iterate_over_collection, iterate_over_object_keys) must fail hard, not emit nothing. */
+    {
+        char m[256];
+        snprintf(m, sizeof(m),
+            "SOUL §7: codegen dispatcher reached with unhandled instruction type '%s'", ty);
+        report_fatal_error_and_exit(m);
+    }
 }
 
 typedef struct {
@@ -318,8 +326,20 @@ void generate_code_via_dispatch_table(cJSON *insts, FILE *out, int indent, const
         cJSON *it = cJSON_GetObjectItemCaseSensitive(inst, "instruction_type");
         if (!cJSON_IsString(it)) continue;
         for (int s = 0; s < indent; s++) fputs("  ", out);
+        int matched = 0;
         for (int d = 0; INSTR_HANDLERS[d].type; d++)
-            if (!strcmp(it->valuestring, INSTR_HANDLERS[d].type))
-                { INSTR_HANDLERS[d].handler(inst, out, indent, rt); break; }
+            if (!strcmp(it->valuestring, INSTR_HANDLERS[d].type)) {
+                INSTR_HANDLERS[d].handler(inst, out, indent, rt);
+                matched = 1;
+                break;
+            }
+        /* SOUL §7: fail hard, never skip an instruction silently (silent skip = silent corruption) */
+        if (!matched) {
+            char m[256];
+            snprintf(m, sizeof(m),
+                "SOUL §7: codegen has no handler for instruction type '%s' — refusing to emit silently",
+                it->valuestring);
+            report_fatal_error_and_exit(m);
+        }
     }
 }
