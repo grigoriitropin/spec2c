@@ -15,7 +15,7 @@
         version = "0.1.0";
         src = ./.;
         buildPhase = ''
-          cc -O2 -Wall -Werror -std=c2x src/scanner.c -o scan-filesystem
+          cc -O2 -Wall -Werror -std=c2x src/scan-filesystem-directory-tree-data.c -o scan-filesystem
         '';
         installPhase = ''
           mkdir -p $out/bin
