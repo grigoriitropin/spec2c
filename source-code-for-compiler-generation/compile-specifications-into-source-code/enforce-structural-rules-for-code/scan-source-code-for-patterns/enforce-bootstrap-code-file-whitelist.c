@@ -156,7 +156,8 @@ static void verify_manifest_entry_file_hash(const char *srcdir, const char *fnam
         fprintf(stderr, "spec2c: integrity manifest: bad size: %s\n", fname);
         exit(1); }
     uint8_t *buf = malloc((size_t)fsz);
-    if (!buf) { fclose(f2); fprintf(stderr, "FATAL: malloc failed for %s\n", fname); exit(1); }
+    if (!buf) { fclose(f2);
+        fprintf(stderr, "FATAL: malloc failed for %s\n", fname); exit(1); }
     size_t n = fread(buf, 1, (size_t)fsz, f2);
     fclose(f2);
     uint8_t hash[32];
