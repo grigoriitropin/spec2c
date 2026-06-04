@@ -47,6 +47,7 @@ int match_name_against_bootstrap_list(const char *basename);
 void enforce_bootstrap_code_freeze_check(const char *srcdir);
 void load_operator_signed_exemption_table(const char *srcdir);
 const char *match_name_against_exemption_table(const char *name);
+int  match_path_against_integrity_manifest(const char *relpath);
 int check_name_against_allowed_whitelist(const char *name);
 #endif
 

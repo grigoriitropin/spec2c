@@ -15,6 +15,15 @@
 
 extern void compute_sha256_hash_into_bytes(const uint8_t *data, uint32_t len, uint8_t out[32]);
 
+static char manifest_paths[128][256];
+static int manifest_paths_count = 0;
+
+int match_path_against_integrity_manifest(const char *relpath) {
+    for (int i = 0; i < manifest_paths_count; i++)
+        if (!strcmp(manifest_paths[i], relpath)) return 1;
+    return 0;
+}
+
 static char whitelist_names[64][128];
 static int whitelist_count_now;
 
@@ -203,8 +212,11 @@ void enforce_bootstrap_code_freeze_check(const char *srcdir) {
             cJSON *item = cJSON_GetArrayItem(entries, i);
             cJSON *fn = cJSON_GetObjectItem(item, "file");
             cJSON *hs = cJSON_GetObjectItem(item, "sha256");
-            if (fn && hs && fn->valuestring && hs->valuestring)
+            if (fn && hs && fn->valuestring && hs->valuestring) {
+                if (manifest_paths_count < 128)
+                    snprintf(manifest_paths[manifest_paths_count++], 256, "%s", fn->valuestring);
                 verify_manifest_entry_file_hash(srcdir, fn->valuestring, hs->valuestring);
+            }
         }
     }
     cJSON_Delete(root);

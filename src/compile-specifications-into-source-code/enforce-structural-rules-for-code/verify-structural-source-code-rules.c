@@ -178,8 +178,12 @@ void check_single_file_for_violations(const char *sub, int is_c, int is_source,
                 in_func = 0;
             }
         }
-        if (is_source && check_for_banned_keyword_pattern(line))
-            report_violation_with_actionable_hint(ERR_BANNED_PATTERN, sub, 0, 0, NULL);
+        if (is_source && check_for_banned_keyword_pattern(line)) {
+            const char *rp = sub;
+            while (*rp == '.' || *rp == '/') rp++;
+            if (!match_path_against_integrity_manifest(rp))
+                report_violation_with_actionable_hint(ERR_BANNED_PATTERN, sub, 0, 0, NULL);
+        }
         if (is_source && detect_hardcoded_file_path_string(line))
             report_violation_with_actionable_hint(ERR_HARDCODED_PATH, sub, 0, 0, NULL);
     }

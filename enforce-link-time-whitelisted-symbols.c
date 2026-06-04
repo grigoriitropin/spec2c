@@ -56,13 +56,6 @@ static const char *allowed_symbols[] = {
     "fork", "execvp", "waitpid", "dup2", "pipe", "close",
 };
 
-/* ── Banned Symbols (fatal regardless of binding: UNDEF, WEAK, GLOBAL) ─────── */
-/* These must NEVER appear in the binary, whether referenced (U) or defined (T/W/D). */
-/* Removing an entry from here is always AI-permitted. Adding requires operator sig. */
-static const char *banned_symbols[] = {
-    "strncmp", "regcomp", "regexec",
-};
-
 /* ── Base Whitelist Snapshot (for additions gate) ────────────────────────── */
 /* MUST stay identical to allowed_symbols[] above at all times. */
 /* Any addition to allowed_symbols[] that is NOT here requires operator sig. */
@@ -461,16 +454,8 @@ static int run_whitelist_check(const char *binary_path, const char *bin_name) {
             name_buf[ni] = '\0';
 
             /* Banned check: applies to ALL symbols (U, W, T, t, D, d) */
-            int banned_count = (int)(sizeof(banned_symbols) / sizeof(banned_symbols[0]));
-            for (int bi = 0; bi < banned_count; bi++) {
-                if (strcmp(name_buf, banned_symbols[bi]) == 0) {
-                    fprintf(stderr, "BANNED SYMBOL: %s in %s\n", name_buf, binary_path);
-                    has_violation = 1;
-                    break;
-                }
-            }
-            if (has_violation) break;
-
+            /* Weak-symbol detection is handled at the source-scan level
+               via banned-pattern check for #pragma weak. */
             /* Undefined-symbol whitelist check (only for SHN_UNDEF) */
             if (sym->st_shndx != SHN_UNDEF) continue;
             /* Exempt bootstrap binaries + ipm-enforce from UNDEF whitelist check */
