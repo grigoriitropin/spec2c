@@ -68,7 +68,7 @@ void search_for_unused_function_code(fn_entry_t *fns, int fn_qty, const char *sr
     }
 }
 
-void skip_root_files_when_scanning(const char *srcdir)
+void skip_root_files_when_scanning(const char *cfg_dir, const char *srcdir)
 {
     if (!strcmp(srcdir, ".")) {
         DIR *d = opendir(srcdir);
@@ -80,11 +80,11 @@ void skip_root_files_when_scanning(const char *srcdir)
             snprintf(sub, sizeof(sub), "%s/%s", srcdir, de->d_name);
             struct stat st;
             if (stat(sub, &st) == 0 && S_ISDIR(st.st_mode))
-                verify_ipm_names_across_sources(sub);
+                verify_ipm_names_across_sources(cfg_dir, sub);
         }
         closedir(d);
     } else {
-        verify_ipm_names_across_sources(srcdir);
+        verify_ipm_names_across_sources(cfg_dir, srcdir);
     }
 }
 

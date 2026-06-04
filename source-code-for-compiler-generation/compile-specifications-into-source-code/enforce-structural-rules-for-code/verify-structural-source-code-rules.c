@@ -17,9 +17,6 @@ int lint_errors = 0;
 #define MAX_LINES_PER_FUNCTION 50
 #define MAX_LINE_LENGTH 120
 
-void report_fatal_error_and_exit(const char *msg) {
-    fprintf(stderr, "spec2c: %s\n", msg); exit(1);
-}
 void report_violation_with_actionable_hint(enforce_err_t code, const char *a1,
     int v1, int v2, const char *a2)
 {
@@ -251,12 +248,15 @@ static void load_all_enforcement_config_tables(const char *srcdir) {
     if (!lint_mode) enforce_bootstrap_code_freeze_check(srcdir);
 }
 static void verify_post_directory_scan_rules(fn_entry_t *fns, int fn_qty, const char *srcdir) {
+    const char *data_dir = srcdir;
+    char sd[4096]; snprintf(sd, sizeof(sd), "%s/source-code-for-compiler-generation", srcdir);
+    struct stat st_sd; if (!stat(sd, &st_sd) && S_ISDIR(st_sd.st_mode)) data_dir = sd;
     search_for_unused_function_code(fns, fn_qty, srcdir);
     int mc = 0;
     for (int i = 0; i < fn_qty; i++)
         if (!strcmp(fns[i].name, "main") && !check_main_count_exemption_rule(fns[i].file)) mc++;
     if (mc != 1) report_violation_with_actionable_hint(ERR_MAIN_COUNT, NULL, mc, 0, NULL);
-    scan_source_for_undocumented_flags(srcdir); skip_root_files_when_scanning(srcdir);
+    scan_source_for_undocumented_flags(srcdir); skip_root_files_when_scanning(data_dir, srcdir);
 }
 void enforce_all_source_code_rules(const char *srcdir) {
     load_all_enforcement_config_tables(srcdir);

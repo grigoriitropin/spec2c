@@ -53,7 +53,7 @@ void check_single_file_for_violations(const char *sub, int is_c, int is_source,
     fn_entry_t *fns, int *fn_qty);
 void search_for_unused_function_code(fn_entry_t *fns, int fn_qty, const char *srcdir);
 void scan_source_for_undocumented_flags(const char *srcdir);
-void skip_root_files_when_scanning(const char *srcdir);
+void skip_root_files_when_scanning(const char *cfg_dir, const char *srcdir);
 int  check_main_count_exemption_rule(const char *path);
 void check_include_headers_for_file(const char *sub);
 void report_fatal_error_and_exit(const char *msg);
@@ -66,7 +66,7 @@ int  check_for_banned_keyword_pattern(const char *line);
 int  detect_hardcoded_file_path_string(const char *line, const char *filepath);
 int  validate_file_stem_with_dfa(const char *stem, const char *fullname, const char *path);
 int  count_stem_tokens_lowercase_bytewise(const char *stem, const char *fullname, const char *path);
-void verify_ipm_names_across_sources(const char *srcdir);
+void verify_ipm_names_across_sources(const char *cfg_dir, const char *srcdir);
 void load_bootstrap_whitelist_from_disk(const char *srcdir);
 void load_non_source_file_allowlist(const char *srcdir);
 int check_non_source_file_allowlist(const char *name);

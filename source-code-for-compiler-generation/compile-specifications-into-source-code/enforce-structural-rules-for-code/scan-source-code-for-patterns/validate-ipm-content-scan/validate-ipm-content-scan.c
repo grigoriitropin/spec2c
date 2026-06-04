@@ -343,9 +343,9 @@ static void validate_single_ipm_file_content(const char *sp,
     cJSON_Delete(root);
 }
 
-void verify_ipm_names_across_sources(const char *srcdir) {
+void verify_ipm_names_across_sources(const char *cfg_dir, const char *srcdir) {
     char allowed_imports[64][128]; int n_allowed = 0;
-    {   char wpath[4096]; snprintf(wpath, sizeof(wpath), "%s/ipm-imports.whitelist", srcdir);
+    {   char wpath[4096]; snprintf(wpath, sizeof(wpath), "%s/ipm-imports.whitelist", cfg_dir);
         FILE *wf = fopen(wpath, "r");
         if (wf) {
             char wline[128];

@@ -92,6 +92,7 @@
           runHook preBuild
           cc ${builtins.toString cflags} ${builtins.toString enforce_inc} \
             ${S}/enforce-structural-rules-for-code/verify-structural-source-code-rules.c \
+            source-code-for-compiler-generation/support-code-for-compiled-output/report-fatal-error-and-exit-helper/report-fatal-error-and-exit-helper.c \
             ${S}/enforce-structural-rules-for-code/audit-checks-for-source-code/secondary-source-code-audit-checks.c \
             ${S}/enforce-structural-rules-for-code/enforce-naming-whitelist-and-validation.c \
             ${S}/enforce-structural-rules-for-code/count-file-name-word-segments/count-file-name-word-segments.c \
@@ -140,6 +141,7 @@
           # Step 1: Build enforcement checker
           cc ${builtins.toString cflags} ${builtins.toString enforce_inc} \
             ${S}/enforce-structural-rules-for-code/verify-structural-source-code-rules.c \
+            source-code-for-compiler-generation/support-code-for-compiled-output/report-fatal-error-and-exit-helper/report-fatal-error-and-exit-helper.c \
             ${S}/enforce-structural-rules-for-code/audit-checks-for-source-code/secondary-source-code-audit-checks.c \
             ${S}/enforce-structural-rules-for-code/enforce-naming-whitelist-and-validation.c \
             ${S}/enforce-structural-rules-for-code/count-file-name-word-segments/count-file-name-word-segments.c \
@@ -175,7 +177,6 @@
           cp spec2c $out/bin/
           cp s2c_enforce $out/bin/
           cp skeleton.json $out/share/spec2c/
-          cp -r templates $out/share/spec2c/
           runHook postInstall
         '';
         doCheck = true;
@@ -329,6 +330,7 @@
             source-code-for-compiler-generation/compile-specifications-into-source-code/enforce-structural-rules-for-code/scan-source-code-for-patterns/ffi-function-export-layer-here/enforce-ffi-function-export-layer.c \
             source-code-for-compiler-generation/support-code-for-compiled-output/remaining-rules-ffi-batch-four/remaining-rules-ffi-batch-four.c \
             source-code-for-compiler-generation/support-code-for-compiled-output/dead-code-header-check-batch/dead-code-header-check-batch.c \
+            source-code-for-compiler-generation/support-code-for-compiled-output/report-fatal-error-and-exit-helper/report-fatal-error-and-exit-helper.c \
             dfa_obj/dfa.o \
             density_obj/density.o \
             path_obj/path.o \
