@@ -311,10 +311,8 @@ void enforce_all_source_code_rules(const char *srcdir) {
             char sub[8192]; snprintf(sub, sizeof(sub), "%s/%s", dirpath, de->d_name);
             struct stat st; if (stat(sub, &st) != 0) continue;
             if (S_ISDIR(st.st_mode)) {
-                if (!strcmp(dirpath, ".") && strcmp(de->d_name, "src")) continue;
                 scan_dir(sub); dir_cnt++; continue;
             }
-            if (!strcmp(dirpath, ".") && !strstr(de->d_name, "evil")) continue;
             if (check_non_source_and_bootstrap(de->d_name, sub, dirpath)) continue;
             file_cnt++;
             char fname[256]; snprintf(fname, sizeof(fname), "%s", de->d_name);
