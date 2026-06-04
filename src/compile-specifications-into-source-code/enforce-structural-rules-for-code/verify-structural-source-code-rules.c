@@ -308,16 +308,11 @@ static int check_non_source_and_bootstrap(const char *name, const char *sub, con
     }
     if (!match_name_against_bootstrap_list(name)) {
         size_t dn_len2 = strlen(name);
-        if (!(dn_len2 > 4 && !strcmp(name + dn_len2 - 4, ".ipm")))
-            report_violation_with_actionable_hint(ERR_NOT_IN_BOOTSTRAP_WHITELIST, sub, 0, 0, NULL);
-    } else {
-        /* Bootstrap whitelist only covers files in src/ — files elsewhere with
-           a whitelisted basename are NOT exempt */
-        const char *rp = sub; while (*rp == '.' || *rp == '/') rp++;
-        /* Allow files in src/ OR at repo root (path == basename) */
-        if (!strstr(rp, "/src/") && strncmp(rp, "src/", 4) && strcmp(rp, name)) {
-            size_t dn_len2 = strlen(name);
-            if (!(dn_len2 > 4 && !strcmp(name + dn_len2 - 4, ".ipm")))
+        if (!(dn_len2 > 4 && !strcmp(name + dn_len2 - 4, ".ipm"))) {
+            const char *rp = sub; while (*rp == '.' || *rp == '/') rp++;
+            /* Bootstrap whitelist only enforced for src/ and root files.
+               tools/, modules/, etc. are separate packages — skip check. */
+            if (strstr(rp, "/src/") || !strncmp(rp, "src/", 4) || !strcmp(rp, name))
                 report_violation_with_actionable_hint(ERR_NOT_IN_BOOTSTRAP_WHITELIST, sub, 0, 0, NULL);
         }
     }
