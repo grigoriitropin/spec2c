@@ -1,4 +1,3 @@
-
 allocate_and_init_hash_table
 append_key_value_into_substitution
 append_text_into_string_buffer
@@ -175,7 +174,6 @@ format_json_into_print_buffer
 format_timestamp_into_string_buffer
 free_allocated_string_buffer_memory
 generate-agent-context-from-graph
-generate-code-from-instruction-ast
 generate-output-from-ipm-specification
 generate_auto_entry_point_code
 generate_code_via_dispatch_table
@@ -199,11 +197,13 @@ implement-filesystem-read-write-code
 implement-interprocess-message-exchange-code
 initialize_naming_rules_enforcer_ffi
 initialize_timing_for_ipm_runtime
+instruction-codegen-handler-spec-modules
 inter-task-communication-primitive-calls
 ipm-compiler-definition-spec-directory
 ipm-file-validator-ffi-batch
 ipm-handler-code-generated-output
 iterate_source_files_with_callback
+iteration-filesystem-codegen-handler-functions
 launch_command_capture_stdout_output
 launch_command_with_argument_array
 launch_command_with_argument_list
@@ -259,6 +259,7 @@ read_file_bytes_into_buffer
 read_file_content_into_memory
 read_pattern_definitions_from_json
 read_sidecar_signature_file_bytes
+recursive-instruction-dispatch-codegen-core
 remaining-rules-ffi-batch-four
 rename_file_from_old_path
 report_fatal_error_and_exit
@@ -296,6 +297,7 @@ soul-naming-forbidden-words-list
 soul-rules-for-naming-validation
 spec2c-own-self-compilation-spec
 specification-into-source-code-compiler
+statement-instruction-codegen-handler-functions
 store_function_definition_into_path
 structural-rule-checker-batch-two
 support-code-for-compiled-output
@@ -303,6 +305,7 @@ terminate_with_error_message_output
 terminate_with_status_return_code
 tokenize_string_into_slice_loop
 tokenizer-loop-code-generator-func
+type_character_for_file_parsing
 validate-file-stem-naming-dfa
 validate-ipm-content-structure-deeply
 validate-soul-naming-rule-check
@@ -337,4 +340,3 @@ write_bytes_into_file_path
 write_component_header_with_prototypes
 write_string_buffer_into_file
 write_text_string_into_file
-type_character_for_file_parsing

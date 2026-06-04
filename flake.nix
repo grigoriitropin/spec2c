@@ -378,14 +378,16 @@
       };
 
       # ── Codegen parity gate (TRANSITIONAL — dies at Phase 8 with Nix) ──────
-      # Proves the IPM self-hosted codegen (generate-code-from-instruction-ast.ipm)
-      # produces C byte-identical (after clang-format canonicalization) to the
-      # frozen C codegen, across the sanctioned green corpus. Builds a twin-spec2c
-      # whose codegen is the twin's generated code + a thin adapter, then diffs.
-      # Fail-closed: an unhandled instruction shape makes the twin error -> build fails.
-      # NOTE: parity is proven on the corpus' current instruction shapes, NOT general
-      # codegen equivalence. The adapter glue is transitional scaffolding (it supplies
-      # the stateful inference C does inline); it dies with this gate at Phase 8.
+      # Proves the IPM self-hosted codegen (the 3 modules under
+      # ipm-compiler-definition-spec-directory/instruction-codegen-handler-spec-modules)
+      # produces C byte-identical (after clang-format canonicalization) to the frozen C
+      # codegen. Builds a twin-spec2c whose codegen is the 3 modules' generated code +
+      # a thin adapter, then diffs over the 7 corpus modules AND the 3 codegen modules
+      # themselves (CLOSURE: twin compiles twin). Fail-closed: an unhandled instruction
+      # shape makes the twin error -> build fails.
+      # NOTE: corpus parity is proven on those modules' current instruction shapes, NOT
+      # general codegen equivalence. The adapter glue is transitional scaffolding (it
+      # supplies the stateful inference C does inline); it dies with this gate at Phase 8.
       ipm-codegen-parity-gate = pkgs.stdenv.mkDerivation {
         pname = "ipm-codegen-parity-gate";
         version = "0.1.0";
@@ -395,7 +397,10 @@
         SPEC2C = "${self.packages.${system}.spec2c}/bin/spec2c";
         buildPhase = ''
           runHook preBuild
-          TWIN=source-code-for-compiler-generation/ipm-compiler-definition-spec-directory/generate-code-from-instruction-ast.ipm
+          MODDIR=source-code-for-compiler-generation/ipm-compiler-definition-spec-directory/instruction-codegen-handler-spec-modules
+          M1=$MODDIR/recursive-instruction-dispatch-codegen-core.ipm
+          M2=$MODDIR/statement-instruction-codegen-handler-functions.ipm
+          M3=$MODDIR/iteration-filesystem-codegen-handler-functions.ipm
 
           # Transitional adapter: bridge C driver entry to the twin's string_buffer
           # codegen + supply the stateful inference C does inline (number text,
@@ -477,25 +482,36 @@ void generate_code_via_dispatch_table(cJSON *insts, FILE *out, int indent, const
 }
 ADAPTER_EOF
 
-          # Generate the twin's codegen C + the standard module fixups.
-          "$SPEC2C" "$TWIN" --library -o gen-codegen.c
-          sed -i '/^{"ok"/d' gen-codegen.c
-          sed -i -E 's/\bchar \* ([a-z_0-9]+) = (resolve_spec_type_into_lang|extract_json_field_number_text|lookup_current_function_variable_type|current_function_return_type_text)\(/const char * \1 = \2(/g' gen-codegen.c
-          sed -i 's/const char \*_name = "[^"]*";//' gen-codegen.c
-          sed -i '1i extern const char *current_function_return_type_text(void);' gen-codegen.c
-          sed -i '1i extern const char *lookup_current_function_variable_type(const char *var_name);' gen-codegen.c
-          sed -i '1i extern const char *extract_json_field_number_text(const cJSON *obj, const char *key);' gen-codegen.c
-          sed -i '1i#include "share-type-definitions-across-files.h"' gen-codegen.c
-          sed -i '1i#include "runtime-for-generated-ipm-code.h"' gen-codegen.c
+          # Generate the 3 split codegen modules (--library => .c + a module-named .h with
+          # a unique guard), apply the standard module fixups, then cross-include the
+          # module-named headers so cross-module twin calls resolve (spec2c does NOT
+          # auto-extern plain IPM calls; the module-named .h carry the prototypes).
+          fixup() {
+            sed -i '/^{"ok"/d' "$1"
+            sed -i -E 's/\bchar \* ([a-z_0-9]+) = (resolve_spec_type_into_lang|extract_json_field_number_text|lookup_current_function_variable_type|current_function_return_type_text)\(/const char * \1 = \2(/g' "$1"
+            sed -i 's/const char \*_name = "[^"]*";//' "$1"
+            sed -i '1i extern const char *current_function_return_type_text(void);' "$1"
+            sed -i '1i extern const char *lookup_current_function_variable_type(const char *var_name);' "$1"
+            sed -i '1i extern const char *extract_json_field_number_text(const cJSON *obj, const char *key);' "$1"
+            sed -i '1i#include "share-type-definitions-across-files.h"' "$1"
+          }
+          "$SPEC2C" "$M1" --library -o m1.c
+          "$SPEC2C" "$M2" --library -o m2.c
+          "$SPEC2C" "$M3" --library -o m3.c
+          fixup m1.c ; fixup m2.c ; fixup m3.c
+          sed -i '1i#include "iteration_filesystem_codegen_handler_functions.h"' m1.c
+          sed -i '1i#include "statement_instruction_codegen_handler_functions.h"' m1.c
+          sed -i '1i#include "recursive_instruction_dispatch_codegen_core.h"' m2.c
+          sed -i '1i#include "recursive_instruction_dispatch_codegen_core.h"' m3.c
 
-          # Build twin-spec2c (same cjson-static + cflags as the C spec2c; the two
-          # frozen codegen leaves are replaced by gen-codegen.c + parity-adapter.c).
-          cc ${builtins.toString cflags} ${builtins.toString inc} \
+          # Build twin-spec2c (same cjson-static + cflags as the C spec2c; the two frozen
+          # codegen leaves are replaced by the 3 generated modules + parity-adapter.c).
+          cc ${builtins.toString cflags} ${builtins.toString inc} -I. \
             ${S}/parse-command-dispatch-into-pipeline.c \
             ${S}/compile-abstract-instructions-into-code.c \
             ${S}/generate-output-from-ipm-specification.c \
             ${S}/parse-legacy-specification-file-format/parse-old-format-specification-data.c \
-            gen-codegen.c \
+            m1.c m2.c m3.c \
             parity-adapter.c \
             ${builtins.toString runtime_src} \
             verify-ed25519-digital-signature-key.c \
@@ -504,10 +520,11 @@ ADAPTER_EOF
           # NOTE: no L2 symbol gate on twin-spec2c. It is the same bootstrap class as
           # spec2c (a libc-using bootstrap compiler, name-exempt in the L2 UNDEF gate);
           # its only non-whitelisted import (strncmp) comes from the shared
-          # parse-old-format file, identical to spec2c. The glue (gen-codegen.c +
-          # adapter) introduces no new banned imports. The gate's job is codegen PARITY.
+          # parse-old-format file, identical to spec2c. The glue introduces no new
+          # banned imports. The gate's job is codegen PARITY.
 
-          # Canonical parity diff over the sanctioned corpus (fail-closed).
+          # Canonical parity diff: the 7 corpus modules + the 3 twin codegen modules
+          # THEMSELVES (CLOSURE: twin compiles twin, byte-identical to C). Fail-closed.
           printf 'BasedOnStyle: LLVM\n' > .clang-format
           for m in \
             check-banned-patterns-pure-ipm.ipm \
@@ -516,7 +533,8 @@ ADAPTER_EOF
             modules/rules/naming-and-density-checkers/validate-file-stem-naming-dfa.ipm \
             modules/rules/function-and-pattern-scanners/locate-all-function-body-blocks.ipm \
             modules/rules/function-and-pattern-scanners/find-every-main-function-block.ipm \
-            modules/rules/function-and-pattern-scanners/detect-any-hardcoded-filesystem-paths.ipm ; do
+            modules/rules/function-and-pattern-scanners/detect-any-hardcoded-filesystem-paths.ipm \
+            "$M1" "$M2" "$M3" ; do
             "$SPEC2C" "$m" --library -o ref.c || exit 1
             ./spec2c-twin "$m" --library -o twin.c || { echo "PARITY GATE: twin failed on $m (unhandled shape)"; exit 1; }
             clang-format ref.c > ref.fmt
@@ -524,7 +542,7 @@ ADAPTER_EOF
             diff ref.fmt twin.fmt || { echo "PARITY GATE: MISMATCH on $m"; exit 1; }
             echo "parity OK: $m"
           done
-          echo "ipm-codegen-parity-gate: PASS (7/7 corpus)"
+          echo "ipm-codegen-parity-gate: PASS (7/7 corpus + 3/3 closure)"
           runHook postBuild
         '';
         installPhase = ''
