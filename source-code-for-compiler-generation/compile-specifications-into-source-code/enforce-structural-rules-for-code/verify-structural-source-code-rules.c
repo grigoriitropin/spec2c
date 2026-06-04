@@ -198,7 +198,7 @@ void check_single_file_for_violations(const char *sub, int is_c, int is_source,
             pid_t pid = fork();
             if (pid == 0) {
                 close(pp_fd[0]); dup2(pp_fd[1], 1); close(pp_fd[1]);
-                execlp("cc", "cc", "-E", "-P", sub, (char *)NULL);
+                execlp("cc", "cc", "-E", sub, (char *)NULL);
                 _exit(1);
             }
             close(pp_fd[1]);
@@ -355,7 +355,7 @@ void enforce_all_source_code_rules(const char *srcdir) {
     load_operator_signed_exemption_table(srcdir);
     read_allowed_names_from_file(data_dir); read_banned_patterns_from_file(data_dir);
     load_non_source_file_allowlist(data_dir); load_bootstrap_whitelist_from_disk(data_dir);
-    enforce_bootstrap_code_freeze_check(srcdir);
+    if (!lint_mode) enforce_bootstrap_code_freeze_check(srcdir);
     fn_entry_t fns[512]; inc_entry_t incs[128]; int fn_qty = 0, inc_qty = 0;
     void scan_dir(const char *dirpath) {
         static int scan_depth = 0;

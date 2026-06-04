@@ -93,6 +93,7 @@
           cc ${builtins.toString cflags} ${builtins.toString enforce_inc} \
             ${S}/enforce-structural-rules-for-code/verify-structural-source-code-rules.c \
             ${S}/enforce-structural-rules-for-code/enforce-naming-whitelist-and-validation.c \
+            ${S}/enforce-structural-rules-for-code/count-file-name-word-segments/count-file-name-word-segments.c \
             ${S}/enforce-structural-rules-for-code/operator-signed-exemption-name-table/load-operator-signed-exemption-table.c \
             ${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns/detect-banned-patterns-and-braces.c \
             ${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns/validate-ipm-content-scan/validate-ipm-content-scan.c \
@@ -135,6 +136,7 @@
           cc ${builtins.toString cflags} ${builtins.toString enforce_inc} \
             ${S}/enforce-structural-rules-for-code/verify-structural-source-code-rules.c \
             ${S}/enforce-structural-rules-for-code/enforce-naming-whitelist-and-validation.c \
+            ${S}/enforce-structural-rules-for-code/count-file-name-word-segments/count-file-name-word-segments.c \
             ${S}/enforce-structural-rules-for-code/operator-signed-exemption-name-table/load-operator-signed-exemption-table.c \
             ${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns/detect-banned-patterns-and-braces.c \
             ${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns/validate-ipm-content-scan/validate-ipm-content-scan.c \
@@ -307,6 +309,7 @@
             source-code-for-compiler-generation/support-code-for-compiled-output/ipm-file-validator-ffi-batch/ipm-file-validator-ffi-batch.c \
             source-code-for-compiler-generation/support-code-for-compiled-output/validate-type-name-against-whitelist/validate-type-name-against-whitelist.c \
             source-code-for-compiler-generation/compile-specifications-into-source-code/enforce-structural-rules-for-code/enforce-naming-whitelist-and-validation.c \
+            source-code-for-compiler-generation/compile-specifications-into-source-code/enforce-structural-rules-for-code/count-file-name-word-segments/count-file-name-word-segments.c \
             source-code-for-compiler-generation/compile-specifications-into-source-code/enforce-structural-rules-for-code/operator-signed-exemption-name-table/load-operator-signed-exemption-table.c \
             source-code-for-compiler-generation/compile-specifications-into-source-code/enforce-structural-rules-for-code/scan-source-code-for-patterns/enforce-bootstrap-code-file-whitelist.c \
             source-code-for-compiler-generation/runtime-weak-stub-symbol-overrides/runtime-weak-stubs-part-two.c \

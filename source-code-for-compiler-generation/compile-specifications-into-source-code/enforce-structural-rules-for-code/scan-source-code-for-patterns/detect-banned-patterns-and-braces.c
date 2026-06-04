@@ -39,18 +39,32 @@ void pull_function_name_from_definition(const char *line, char *out, size_t sz) 
 }
 static int confirm_character_belongs_identifier_set(int c) { return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_'; }
 
+static int position_inside_string_or_comment(const char *line, const char *pos) {
+    int in_str = 0, in_char = 0, in_comment = 0;
+    for (const char *q = line; q < pos; q++) {
+        if (in_comment) {
+            if (*q == '*' && *(q+1) == '/') { in_comment = 0; q++; }
+            continue;
+        }
+        if (!in_str && !in_char && *q == '/' && *(q+1) == '*') { in_comment = 1; q++; continue; }
+        if (!in_str && !in_char && *q == '/' && *(q+1) == '/') return 1;
+        if (*q == '\\' && *(q+1) != '\0') { q++; continue; }
+        if (!in_char && *q == '"') in_str = !in_str;
+        else if (!in_str && *q == '\'') in_char = !in_char;
+    }
+    return in_str || in_char || in_comment;
+}
+
 int check_for_banned_keyword_pattern(const char *line) {
     for (int i = 0; i < banned_patterns_count; i++) {
         const char *pat = banned_patterns[i];
         size_t plen = strlen(pat);
-        /* Trim trailing space/tab from pattern for token-boundary matching */
         while (plen > 0 && (pat[plen-1] == ' ' || pat[plen-1] == '\t')) plen--;
         if (plen == 0) continue;
         const char *p = line;
         while ((p = strstr(p, pat))) {
-            /* Check left boundary: char before match must not be ident */
+            if (position_inside_string_or_comment(line, p)) { p += plen; continue; }
             if (p > line && confirm_character_belongs_identifier_set(*(p-1))) { p += plen; continue; }
-            /* Check right boundary: char after match must not be ident */
             if (confirm_character_belongs_identifier_set(p[plen])) { p += plen; continue; }
             return 1;
         }

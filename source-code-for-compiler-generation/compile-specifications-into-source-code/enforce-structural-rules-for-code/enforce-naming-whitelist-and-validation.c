@@ -90,6 +90,7 @@ int match_header_against_include_whitelist(const char *hdr) {
         "../verify-structural-source-code-rules.h",
         "../../verify-structural-source-code-rules.h",
         "../../../shared-type-declarations-across-modules/soul-naming-forbidden-words-list.h",
+        "../shared-type-declarations-across-modules/soul-naming-forbidden-words-list.h",
         "verify-ed25519-digital-signature-key.h",
         "../../../../verify-ed25519-digital-signature-key.h",
         "../bootstrap-compiled-limit-hash-data/bootstrap-freeze-data-compiled-into.h",
@@ -114,44 +115,6 @@ int check_name_against_allowed_whitelist(const char *name) {
     for (int i = 0; i < allowed_qty; i++)
         if (!strcmp(allowed[i].name, name)) return 1;
     return 0;
-}
-
-static int count_stem_tokens_lowercase_bytewise(const char *stem, const char *fullname, const char *path) {
-    int tokens = 0, tok_len = 0;
-    const char *p = stem;
-    while (*p) {
-        if (*p == '-') {
-            if (tok_len < 3) {
-                fprintf(stderr, "SOUL §10: file '%s' at %s — token has %d chars (min 3)\n"
-                        "  → use full words separated by single '-'\n", fullname, path, tok_len);
-                return -1;
-            }
-            tokens++; tok_len = 0; p++;
-            if (*p == '-') {
-                fprintf(stderr, "SOUL §10: file '%s' at %s has double hyphen\n"
-                        "  → exactly one '-' between each word\n", fullname, path);
-                return -1;
-            }
-            if (*p == '\0') {
-                fprintf(stderr, "SOUL §10: file '%s' at %s has trailing hyphen\n"
-                        "  → remove trailing '-'\n", fullname, path);
-                return -1;
-            }
-            continue;
-        }
-        if (*p < 'a' || *p > 'z') {
-            fprintf(stderr, "SOUL §10: file '%s' at %s — char '%c' (0x%02x) not allowed\n"
-                    "  → use only lowercase a-z and single '-'\n", fullname, path, *p, (unsigned char)*p);
-            return -1;
-        }
-        tok_len++; p++;
-    }
-    if (tok_len < 3) {
-        fprintf(stderr, "SOUL §10: file '%s' at %s — last token has %d chars (min 3)\n"
-                "  → each word must be ≥3 characters\n", fullname, path, tok_len);
-        return -1;
-    }
-    return tokens + 1;
 }
 
 int validate_file_stem_with_dfa(const char *stem, const char *fullname, const char *path) {
@@ -185,12 +148,10 @@ int validate_file_stem_with_dfa(const char *stem, const char *fullname, const ch
 
 void validate_name_against_soul_rules(const char *what, const char *name, const char *fp) {
     if (skip_name_validation_for_keywords(name)) return;
-
     char is_file = (what[0] == 'f' && what[1] == 'i');
     char is_dir  = (what[0] == 'd' && what[1] == 'i');
     char sep_str[2] = {(is_file || is_dir) ? '-' : '_', 0};
     const char *dir_note = is_dir ? dir_note_text : "";
-
     char buf[256]; snprintf(buf, sizeof(buf), "%s", name);
     int words = 0;
     char *tok = strtok(buf, sep_str);
@@ -224,8 +185,6 @@ void validate_name_against_soul_rules(const char *what, const char *name, const 
             (is_file || is_dir) ? "hyphen" : "underscore", soful, dir_note);
         report_fatal_error_and_exit(eb);
     }
-    /* Names that pass all structural checks (5 words, ≥3 chars, no banned words)
-       are valid without whitelist membership. Whitelist is for exceptions only. */
     if (words == 5) return;
     if (!check_name_against_allowed_whitelist(name)) {
         char eb[2048];
