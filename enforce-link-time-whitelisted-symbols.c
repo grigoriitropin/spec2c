@@ -80,6 +80,7 @@ static const char *permitted_weak_stubs[] = {
     "_ITM_registerTMCloneTable",
     "__cxa_finalize",
     "__gmon_start__",
+    "data_start",
 };
 
 /* ── Base Whitelist Snapshot (for additions gate) ────────────────────────── */
