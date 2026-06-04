@@ -286,10 +286,14 @@ static void validate_single_ipm_file_content(const char *sp,
         }
     }
 
-    /* dead code + entry point: skip for modules with imports */
+    /* dead code + entry point: skip for libraries and imported modules */
     {   cJSON *imps = cJSON_GetObjectItemCaseSensitive(root, "imports");
+        cJSON *btype = cJSON_GetObjectItemCaseSensitive(root, "build_type");
+        cJSON *ptype = cJSON_GetObjectItemCaseSensitive(root, "package_type");
+        int is_library = (btype && cJSON_IsString(btype) && !strcmp(btype->valuestring, "library"))
+                      || (ptype && cJSON_IsString(ptype) && !strcmp(ptype->valuestring, "library"));
         int has_imports = imps && cJSON_IsArray(imps) && cJSON_GetArraySize(imps) > 0;
-        if (funcs && cJSON_IsObject(funcs) && !has_imports) {
+        if (funcs && cJSON_IsObject(funcs) && !has_imports && !is_library) {
             int main_cnt = 0; cJSON *fn = funcs->child;
             while (fn) { if (!strcmp(fn->string, "main")) main_cnt++; fn = fn->next; }
             if (main_cnt != 1) { char msg[8448]; snprintf(msg, sizeof(msg),
