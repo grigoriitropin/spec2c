@@ -43,6 +43,7 @@ static const char *allowed_symbols[] = {
 
     /* String functions (used by generated IPM code and verify-ed25519-digital-signature-key) */
     "strcmp", "strchr", "strrchr", "strstr", "strcpy", "strdup", "strtok", "strlen",
+    "strncmp",
 
     /* Number parsing (used by generated IPM code) */
     "strtod", "strtol",
@@ -54,6 +55,7 @@ static const char *allowed_symbols[] = {
 
     /* Process control (used by buffer-output-and-command-launch.c) */
     "fork", "execvp", "waitpid", "dup2", "pipe", "close",
+    "lstat", "execlp",
     "lstat", "execlp",
     "lstat", "execlp",
 };
@@ -75,11 +77,13 @@ static const char *base_whitelist[] = {
     "__fread_chk", "__memcpy_chk",
     "opendir", "readdir", "closedir",
     "strcmp", "strchr", "strrchr", "strstr", "strcpy", "strdup", "strtok", "strlen",
+    "strncmp",
     "strtod", "strtol",
     "__isoc99_sscanf", "__isoc23_sscanf", "__isoc23_strtol",
     "stat", "qsort", "localeconv",
     "__ctype_tolower_loc",
     "fork", "execvp", "waitpid", "dup2", "pipe", "close",
+    "lstat", "execlp",
     "lstat", "execlp",
     "lstat", "execlp",
 };
