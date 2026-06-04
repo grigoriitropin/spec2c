@@ -145,8 +145,10 @@ void enforce_bootstrap_code_freeze_check(const char *srcdir) {
     if (!load_operator_integrity_manifest_file(srcdir, &content, &content_len))
         return;
     char sig_hex[256] = {0};
-    if (!read_sidecar_signature_file(srcdir, "operator-signed-integrity-manifest-hashes.json", sig_hex, sizeof(sig_hex)))
-        { free(content); return; }
+    if (!read_sidecar_signature_file(srcdir, "operator-signed-integrity-manifest-hashes.json", sig_hex, sizeof(sig_hex))) {
+        fprintf(stderr, "spec2c: integrity manifest: missing or invalid signature file\n");
+        free(content); exit(1);
+    }
     if (verify_signature(PUBKEY_HEX, sig_hex, (unsigned char *)content, (size_t)content_len) != 0) {
         fprintf(stderr, "spec2c: integrity manifest: Ed25519 signature invalid\n");
         free(content); exit(1);
