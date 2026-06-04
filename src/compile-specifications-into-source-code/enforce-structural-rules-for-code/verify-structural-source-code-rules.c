@@ -217,9 +217,14 @@ void check_single_file_for_violations(const char *sub, int is_c, int is_source,
                     }
                     if (!in_target) continue;
                     if (check_for_banned_keyword_pattern(pline)) {
-                        fprintf(stderr, "spec2c: SOUL §7: %s line %d — banned pattern after macro expansion\n"
-                                "  → preprocessor reconstructed banned keyword (##, _Pragma, etc.)\n", sub, ln);
-                        fclose(pp); waitpid(pid, NULL, 0); exit(1);
+                        if (lint_mode) {
+                            fprintf(stderr, "spec2c: %s line %d — banned pattern after macro expansion\n", sub, ln);
+                            lint_errors++;
+                        } else {
+                            fprintf(stderr, "spec2c: SOUL §7: %s line %d — banned pattern after macro expansion\n"
+                                    "  → preprocessor reconstructed banned keyword (##, _Pragma, etc.)\n", sub, ln);
+                            fclose(pp); waitpid(pid, NULL, 0); exit(1);
+                        }
                     }
                 }
                 fclose(pp);

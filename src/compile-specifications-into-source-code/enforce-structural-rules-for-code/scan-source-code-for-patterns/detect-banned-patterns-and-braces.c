@@ -159,7 +159,8 @@ static void scan_json_for_banned_words(cJSON *node, const char *path) {
                goto, setjmp, longjmp, #pragma weak, output suppression are
                NEVER legitimate in any IPM field. */
             if (strstr(val, "goto") || strstr(val, "setjmp") ||
-                strstr(val, "longjmp") || strstr(val, "#pragma weak") ||
+                strstr(val, "longjmp") || strstr(val, "#pragma") ||
+                strstr(val, "_Pragma") ||
                 strstr(val, "2>/dev/null") || strstr(val, "2>&1")) {
                 char msg[512]; snprintf(msg, sizeof(msg),
                     "SOUL §7: banned pattern in IPM string at %s\n"
