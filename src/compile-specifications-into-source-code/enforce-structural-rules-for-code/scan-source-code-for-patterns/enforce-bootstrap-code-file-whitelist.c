@@ -146,8 +146,11 @@ void enforce_bootstrap_code_freeze_check(const char *srcdir) {
     if (!root) { free(content); return; }
     cJSON *pub = cJSON_GetObjectItem(root, "public_key_hex");
     cJSON *sig = cJSON_GetObjectItem(root, "signature_hex");
-    if (!pub || !sig || !pub->valuestring || !sig->valuestring)
-        { cJSON_Delete(root); free(content); return; }
+    if (!pub || !sig || !pub->valuestring || !sig->valuestring) {
+        cJSON_Delete(root);
+        free(content);
+        return;
+    }
     char pk[128]; snprintf(pk, sizeof(pk), "%s", pub->valuestring);
     char sh[256]; snprintf(sh, sizeof(sh), "%s", sig->valuestring);
     char payload[16384];
