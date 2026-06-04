@@ -46,67 +46,71 @@ static void validate_single_ipm_name_value(const char *name, const char *what, c
     }
 }
 /* scan ALL string values in JSON tree for banned words */
+static void check_banned_in_ipm_string_value(const char *val, const char *key, const char *path) {
+    char *buf = strdup(val);
+    if (buf) {
+        for (char *tok = strtok(buf, " "); tok; tok = strtok(NULL, " ")) {
+            for (int i = 0; soul_banned_words[i]; i++)
+                if (!strcmp(tok, soul_banned_words[i])) {
+                    char msg[512]; snprintf(msg, sizeof(msg),
+                        "SOUL §10: .ipm string '%s' in %s contains banned word '%s'\n"
+                        "  → replace '%s' with a word describing WHAT it does, not WHAT it is",
+                        val, path, tok, tok);
+                    free(buf);
+                    fprintf(stderr, "spec2c: %s\n", msg); exit(1);
+                }
+        }
+        free(buf);
+    }
+    if (strstr(val, "malloc(") || strstr(val, "free(") || strstr(val, "sizeof(")) {
+        char msg[512]; snprintf(msg, sizeof(msg),
+            "SOUL §7: C-leak — IPM string contains malloc/free/sizeof at %s\n"
+            "  → remove malloc, free, sizeof from IPM strings", path);
+        fprintf(stderr, "spec2c: %s\n", msg); exit(1);
+    }
+    int is_include_ok = !strcmp(key, "template_str") || !strcmp(key, "str");
+    if (!is_include_ok && strstr(val, "#include")) {
+        char msg[512]; snprintf(msg, sizeof(msg),
+            "SOUL §7: C-leak — #include only allowed in template_str/str at %s\n"
+            "  → move #include to template_str or str field", path);
+        fprintf(stderr, "spec2c: %s\n", msg); exit(1);
+    }
+    if (strstr(val, "goto") || strstr(val, "setjmp") ||
+        strstr(val, "longjmp") || strstr(val, "#pragma") ||
+        strstr(val, "_Pragma") ||
+        strstr(val, "2>/dev/null") || strstr(val, "2>&1")) {
+        char msg[512]; snprintf(msg, sizeof(msg),
+            "SOUL §7: banned pattern in IPM string at %s\n"
+            "  → remove goto/setjmp/longjmp/#pragma weak from IPM strings", path);
+        fprintf(stderr, "spec2c: %s\n", msg); exit(1);
+    }
+    if (strstr(val, "\"/")) {
+        char msg[512]; snprintf(msg, sizeof(msg),
+            "SOUL §7: hardcoded path in IPM string at %s\n"
+            "  → resolve paths at runtime, never hardcode", path);
+        fprintf(stderr, "spec2c: %s\n", msg); exit(1);
+    }
+}
+
+static void check_banned_in_ipm_json_key(const char *kn, const char *path) {
+    if (strstr(kn, "goto") || strstr(kn, "setjmp") ||
+        strstr(kn, "longjmp") || strstr(kn, "#pragma") ||
+        strstr(kn, "2>") || strstr(kn, "#include") ||
+        strstr(kn, "malloc") || strstr(kn, "free(") ||
+        strstr(kn, "sizeof")) {
+        char msg[512]; snprintf(msg, sizeof(msg),
+            "SOUL §7: banned pattern in IPM key '%s' at %s\n"
+            "  → rename the key, banned patterns are not allowed in key names", kn, path);
+        fprintf(stderr, "spec2c: %s\n", msg); exit(1);
+    }
+}
+
 static void scan_json_for_banned_words(cJSON *node, const char *path) {
     if (!node) return;
     if (cJSON_IsString(node)) {
-        const char *val = node->valuestring;
-        if (!val || !val[0]) return;
-        char *buf = strdup(val);
-        if (buf) {
-            for (char *tok = strtok(buf, " "); tok; tok = strtok(NULL, " ")) {
-                for (int i = 0; soul_banned_words[i]; i++)
-                    if (!strcmp(tok, soul_banned_words[i])) {
-                        char msg[512]; snprintf(msg, sizeof(msg),
-                            "SOUL §10: .ipm string '%s' in %s contains banned word '%s'\n"
-                            "  → replace '%s' with a word describing WHAT it does, not WHAT it is",
-                            val, path, tok, tok);
-                        free(buf);
-                        fprintf(stderr, "spec2c: %s\n", msg); exit(1);
-                    }
-            }
-            free(buf);
-        }
-        /* C-leak purge: forbid C patterns in IPM strings (except codegen templates) */
-        if (cJSON_IsString(node) && node->string) {
-            const char *key = node->string;
-            /* C-leak patterns (#include, malloc, free, sizeof) are legitimate
-               in codegen template fields — skip those. */
-            /* malloc/free/sizeof are NEVER legitimate in any IPM field */
-            if (strstr(val, "malloc(") || strstr(val, "free(") || strstr(val, "sizeof(")) {
-                char msg[512]; snprintf(msg, sizeof(msg),
-                    "SOUL §7: C-leak — IPM string contains malloc/free/sizeof at %s\n"
-                    "  → remove malloc, free, sizeof from IPM strings", path);
-                fprintf(stderr, "spec2c: %s\n", msg); exit(1);
-            }
-            /* #include only allowed in template_str and str (header generation).
-               Banned in code_format, code, and all other fields. */
-            int is_include_ok = !strcmp(key, "template_str") || !strcmp(key, "str");
-            if (!is_include_ok && strstr(val, "#include")) {
-                char msg[512]; snprintf(msg, sizeof(msg),
-                    "SOUL §7: C-leak — #include only allowed in template_str/str at %s\n"
-                    "  → move #include to template_str or str field", path);
-                fprintf(stderr, "spec2c: %s\n", msg); exit(1);
-            }
-            /* Banned C keywords — checked on ALL JSON values (including codegen fields).
-               goto, setjmp, longjmp, #pragma weak, output suppression are
-               NEVER legitimate in any IPM field. */
-            if (strstr(val, "goto") || strstr(val, "setjmp") ||
-                strstr(val, "longjmp") || strstr(val, "#pragma") ||
-                strstr(val, "_Pragma") ||
-                strstr(val, "2>/dev/null") || strstr(val, "2>&1")) {
-                char msg[512]; snprintf(msg, sizeof(msg),
-                    "SOUL §7: banned pattern in IPM string at %s\n"
-                    "  → remove goto/setjmp/longjmp/#pragma weak from IPM strings", path);
-                fprintf(stderr, "spec2c: %s\n", msg); exit(1);
-            }
-            /* Hardcoded path check on decoded value — always checked */
-            if (strstr(val, "\"/")) {
-                char msg[512]; snprintf(msg, sizeof(msg),
-                    "SOUL §7: hardcoded path in IPM string at %s\n"
-                    "  → resolve paths at runtime, never hardcode", path);
-                fprintf(stderr, "spec2c: %s\n", msg); exit(1);
-            }
-        }
+        if (node->valuestring && node->valuestring[0])
+            check_banned_in_ipm_string_value(node->valuestring,
+                node->string ? node->string : "", path);
         return;
     }
     if (cJSON_IsArray(node)) {
@@ -117,21 +121,7 @@ static void scan_json_for_banned_words(cJSON *node, const char *path) {
     if (cJSON_IsObject(node)) {
         cJSON *child = node->child;
         while (child) {
-            /* Check JSON KEY names (not just values) for banned patterns.
-               cJSON decodes \uXXXX in keys too — catches Unicode-escaped goto/setjmp etc. */
-            if (child->string) {
-                const char *kn = child->string;
-                if (strstr(kn, "goto") || strstr(kn, "setjmp") ||
-                    strstr(kn, "longjmp") || strstr(kn, "#pragma") ||
-                    strstr(kn, "2>") || strstr(kn, "#include") ||
-                    strstr(kn, "malloc") || strstr(kn, "free(") ||
-                    strstr(kn, "sizeof")) {
-                    char msg[512]; snprintf(msg, sizeof(msg),
-                        "SOUL §7: banned pattern in IPM key '%s' at %s\n"
-                        "  → rename the key, banned patterns are not allowed in key names", kn, path);
-                    fprintf(stderr, "spec2c: %s\n", msg); exit(1);
-                }
-            }
+            if (child->string) check_banned_in_ipm_json_key(child->string, path);
             scan_json_for_banned_words(child, path); child = child->next;
         }
     }
