@@ -166,7 +166,11 @@
       ipm-enforce = pkgs.stdenv.mkDerivation {
         pname = "ipm-enforce";
         version = "0.1.0";
-        src = ./.;
+    src = builtins.filterSource (path: type:
+      let bn = baseNameOf path; in
+      bn != "tools" && bn != "tests" && bn != "src.backup" &&
+      bn != "bootstrap" && bn != ".git" && bn != "archive"
+    ) ./.;
         buildInputs = [ self.packages.${system}.spec2c cjson-static ];
         nativeBuildInputs = [ pkgs.pkg-config ];
         S2C_ENFORCE = "${self.packages.${system}.spec2c}/bin/s2c_enforce";
