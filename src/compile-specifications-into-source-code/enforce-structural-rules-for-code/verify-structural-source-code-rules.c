@@ -276,13 +276,11 @@ static void skip_root_files_when_scanning(const char *srcdir)
         struct dirent *de;
         while ((de = readdir(d)) != NULL) {
             if (de->d_name[0] == '.') continue;
-            if (strcmp(de->d_name, "src") != 0) continue;
             char sub[8192];
             snprintf(sub, sizeof(sub), "%s/%s", srcdir, de->d_name);
             struct stat st;
-            if (stat(sub, &st) == 0 && S_ISDIR(st.st_mode)) {
+            if (stat(sub, &st) == 0 && S_ISDIR(st.st_mode))
                 verify_ipm_names_across_sources(sub);
-            }
         }
         closedir(d);
     } else {
