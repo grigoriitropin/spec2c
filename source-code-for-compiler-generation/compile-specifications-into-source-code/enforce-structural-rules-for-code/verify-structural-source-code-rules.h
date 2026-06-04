@@ -84,6 +84,7 @@ static const char *main_exempt_directory_names[] __attribute__((unused)) = {
     "enforce-structural-rules-for-code",
     "verify-source-against-soul-patterns",
     "helper-standalone-executables-for-spec2c",
+    "known-answer-tests-for-primitives",
     NULL
 };
 

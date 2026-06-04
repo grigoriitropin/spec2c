@@ -5,7 +5,6 @@
 #include <string.h>
 #include <elf.h>
 
-#include "source-code-for-compiler-generation/bootstrap-compiled-limit-hash-data/bootstrap-file-sha-hashes-generated.h"
 #include "verify-ed25519-digital-signature-key.h"
 
 /* ── Ed25519 Operator Public Key (hex) ────────────────────────────────────── */
