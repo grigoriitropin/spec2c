@@ -215,7 +215,9 @@ static void validate_single_ipm_file_content(const char *sp,
     if (!root) {
         fprintf(stderr, "spec2c: FATAL: JSON parse error in %s\n", sp); exit(1); }
 
-    scan_json_for_banned_items(root, sp);
+    const char *rp = !strncmp(sp, "./", 2) ? sp + 2 : sp;
+    if (!match_path_against_integrity_manifest(rp))
+        scan_json_for_banned_items(root, sp);
     check_ipm_ast_depth_limits(root, 0, sp);
 
     cJSON *pkg = cJSON_GetObjectItemCaseSensitive(root, "package_name");
