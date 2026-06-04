@@ -415,6 +415,25 @@ static int run_whitelist_check(const char *binary_path, const char *bin_name) {
         return 1;
     }
 
+    /* TLS segment detection: pre-main callback vector (XZ/ShadowChain class).
+       Read program headers BEFORE section headers — must FATAL early. */
+    if (ehdr.e_phnum > 0 && ehdr.e_phentsize == sizeof(Elf64_Phdr)) {
+        Elf64_Phdr *phdrs = malloc((size_t)ehdr.e_phnum * sizeof(Elf64_Phdr));
+        if (phdrs) {
+            if (fseek(f, (long)ehdr.e_phoff, SEEK_SET) == 0 &&
+                fread(phdrs, sizeof(Elf64_Phdr), ehdr.e_phnum, f) == ehdr.e_phnum) {
+                for (int pi = 0; pi < ehdr.e_phnum; pi++) {
+                    if (phdrs[pi].p_type == PT_TLS) {
+                        fprintf(stderr, "TLS DETECTED: %s has TLS segment (pre-main callback vector)\n",
+                            binary_path);
+                        free(phdrs); fclose(f); return 1;
+                    }
+                }
+            }
+            free(phdrs);
+        }
+    }
+
     /* Load section headers */
     if (fseek(f, (long)ehdr.e_shoff, SEEK_SET) != 0) {
         fprintf(stderr, "ENFORCE: cannot seek to shdr in %s\n", binary_path);

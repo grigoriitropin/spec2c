@@ -14,3 +14,16 @@ dlsym(
 dlopen(
 system(
 popen(
+WDAGUtilityAccount
+CExecSvc
+vmsmb
+Sandboxie
+joebox
+IsDebuggerPresent
+CheckRemoteDebuggerPresent
+NtQueryInformationProcess
+SetFileInformationByHandle
+FileDispositionInfo
+AdjustTokenPrivileges
+ExitWindowsEx
+InitiateSystemShutdown
