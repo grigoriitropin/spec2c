@@ -152,7 +152,7 @@ void enforce_bootstrap_code_freeze_check(const char *srcdir) {
     char sh[256]; snprintf(sh, sizeof(sh), "%s", sig->valuestring);
     char payload[16384];
     int plen = extract_signed_integrity_payload_bytes(content, payload, sizeof(payload));
-    if (verify_signature(pk, sh, (unsigned char *)payload, plen) != 0) {
+    if (!plen || verify_signature(pk, sh, (unsigned char *)payload, plen) != 0) {
         fprintf(stderr, "spec2c: integrity manifest: Ed25519 signature invalid\n");
         cJSON_Delete(root); free(content); exit(1);
     }
