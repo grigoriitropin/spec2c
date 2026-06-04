@@ -13,3 +13,7 @@ operator-signed-exemption-name-table.json
 operator-signed-integrity-manifest-hashes.json
 skeleton.json
 source-manifest.json
+spec2c-check.manifest.json
+tools-context.manifest.json
+essentials.manifest.json
+spec2c.manifest.json
