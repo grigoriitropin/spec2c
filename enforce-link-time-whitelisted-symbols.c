@@ -16,8 +16,6 @@ static const char OPERATOR_PUBKEY_HEX[] =
 /* ── Whitelist of Allowed Symbols (Narrowed) ─────────────────────────────── */
 static const char *allowed_symbols[] = {
     /* Toolchain / compiler auto-injected */
-    "data_start",
-    "data_start",
     "__libc_start_main", "__cxa_finalize",
     "__stack_chk_fail", "__gmon_start__",
     "_ITM_deregisterTMCloneTable", "_ITM_registerTMCloneTable",
@@ -82,15 +80,12 @@ static const char *permitted_weak_stubs[] = {
     "_ITM_registerTMCloneTable",
     "__cxa_finalize",
     "__gmon_start__",
-    "data_start",
 };
 
 /* ── Base Whitelist Snapshot (for additions gate) ────────────────────────── */
 /* MUST stay identical to allowed_symbols[] above at all times. */
 /* Any addition to allowed_symbols[] that is NOT here requires operator sig. */
 static const char *base_whitelist[] = {
-    "data_start",
-    "data_start",
     "__libc_start_main", "__cxa_finalize",
     "__stack_chk_fail", "__gmon_start__",
     "_ITM_deregisterTMCloneTable", "_ITM_registerTMCloneTable",
