@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-#include "verify-structural-source-code-rules.h"
+#include "../verify-structural-source-code-rules.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

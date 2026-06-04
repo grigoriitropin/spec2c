@@ -94,6 +94,8 @@ int match_header_against_include_whitelist(const char *hdr) {
         "shared-type-declarations-across-modules/share-type-definitions-across-files.h",
         "../shared-type-declarations-across-modules/share-type-definitions-across-files.h",
         "../../shared-type-declarations-across-modules/share-type-definitions-across-files.h",
+        "../../runtime-for-generated-ipm-code.h",
+        "../verify-structural-source-code-rules.h",
         "share-check-types-and-declarations.h",
         NULL
     };
