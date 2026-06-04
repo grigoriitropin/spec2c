@@ -106,7 +106,6 @@ static int skip_name_validation_for_keywords(const char *name) {
 }
 
 int check_name_against_allowed_whitelist(const char *name) {
-    if (skip_name_validation_for_keywords(name)) return 1;
     for (int i = 0; i < allowed_qty; i++)
         if (!strcmp(allowed[i].name, name)) return 1;
     return 0;
@@ -155,7 +154,6 @@ int validate_file_stem_with_dfa(const char *stem, const char *fullname, const ch
     int is_c = nl > 2 && !strcmp(fullname + nl - 2, ".c");
     int is_ipm = nl > 4 && !strcmp(fullname + nl - 4, ".ipm");
     if (!is_c && !is_ipm) return 0;
-    if (check_name_against_allowed_whitelist(stem)) return 0;
     if (strchr(stem, '.')) {
         fprintf(stderr, "SOUL §10: file '%s' at %s has multiple dots\n"
                 "  → source files must have exactly one dot (before extension)\n", fullname, path);
