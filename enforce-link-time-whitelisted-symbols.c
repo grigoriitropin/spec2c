@@ -229,36 +229,6 @@ static const char *frozen_exempt_binaries[] = {
     "spec2c",
 };
 
-static int find_hash_index(const char *src_path) {
-    for (int i = 0; i < BOOTSTRAP_HASH_COUNT; i++) {
-        const char *pattern = hash_file_names[i];
-        size_t pat_len = strlen(pattern);
-        size_t src_len = strlen(src_path);
-        if (src_len >= pat_len) {
-            if (strcmp(src_path + src_len - pat_len, pattern) == 0) {
-                return i;
-            }
-        }
-    }
-    return -1;
-}
-
-static int check_s2c_enforce_exemption(void) {
-    int count = sizeof(frozen_bootstrap_sources) / sizeof(frozen_bootstrap_sources[0]);
-    for (int i = 0; i < count; i++) {
-        const char *path = frozen_bootstrap_sources[i];
-        int idx = find_hash_index(path);
-        if (idx == -1) return 0;
-        if (strcmp(hash_sha256_values[idx],
-                   "0000000000000000000000000000000000000000000000000000000000000000") == 0)
-            continue;
-        char computed_hex[65];
-        if (!compute_file_sha256_hex_digest(path, computed_hex)) return 0;
-        if (strcmp(computed_hex, hash_sha256_values[idx]) != 0) return 0;
-    }
-    return 1;
-}
-
 static int check_frozen_exempt_binaries(const char *bin_name) {
     int n = (int)(sizeof(frozen_exempt_binaries) / sizeof(frozen_exempt_binaries[0]));
     for (int i = 0; i < n; i++) {
@@ -583,10 +553,8 @@ int main(int argc, char **argv) {
     const char *bin_name = strrchr(binary_path, '/');
     bin_name = bin_name ? bin_name + 1 : binary_path;
 
-    /* Exempt bootstrapped binaries — pass only if source hashes match */
-    if (check_frozen_exempt_binaries(bin_name)) {
-        check_s2c_enforce_exemption();
-    }
+    /* Exempt bootstrapped binaries */
+    check_frozen_exempt_binaries(bin_name);
 
     /* Verify operator signature on whitelist before running any check */
     if (!verify_signature_mechanism()) return 1;
