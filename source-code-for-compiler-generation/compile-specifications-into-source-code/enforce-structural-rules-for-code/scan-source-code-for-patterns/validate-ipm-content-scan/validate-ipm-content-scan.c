@@ -46,7 +46,7 @@ static void validate_single_ipm_name_value(const char *name, const char *what, c
     }
 }
 /* scan ALL string values in JSON tree for banned words */
-static void check_banned_in_ipm_string_value(const char *val, const char *key, const char *path) {
+static void validate_values_against_banned_content(const char *val, const char *key, const char *path) {
     char *buf = strdup(val);
     if (buf) {
         for (char *tok = strtok(buf, " "); tok; tok = strtok(NULL, " ")) {
@@ -92,7 +92,7 @@ static void check_banned_in_ipm_string_value(const char *val, const char *key, c
     }
 }
 
-static void check_banned_in_ipm_json_key(const char *kn, const char *path) {
+static void check_keys_for_banned_content(const char *kn, const char *path) {
     if (strstr(kn, "goto") || strstr(kn, "setjmp") ||
         strstr(kn, "longjmp") || strstr(kn, "#pragma") ||
         strstr(kn, "2>") || strstr(kn, "#include") ||
@@ -105,24 +105,24 @@ static void check_banned_in_ipm_json_key(const char *kn, const char *path) {
     }
 }
 
-static void scan_json_for_banned_words(cJSON *node, const char *path) {
+static void scan_json_for_banned_items(cJSON *node, const char *path) {
     if (!node) return;
     if (cJSON_IsString(node)) {
         if (node->valuestring && node->valuestring[0])
-            check_banned_in_ipm_string_value(node->valuestring,
+            validate_values_against_banned_content(node->valuestring,
                 node->string ? node->string : "", path);
         return;
     }
     if (cJSON_IsArray(node)) {
         cJSON *child = node->child;
-        while (child) { scan_json_for_banned_words(child, path); child = child->next; }
+        while (child) { scan_json_for_banned_items(child, path); child = child->next; }
         return;
     }
     if (cJSON_IsObject(node)) {
         cJSON *child = node->child;
         while (child) {
-            if (child->string) check_banned_in_ipm_json_key(child->string, path);
-            scan_json_for_banned_words(child, path); child = child->next;
+            if (child->string) check_keys_for_banned_content(child->string, path);
+            scan_json_for_banned_items(child, path); child = child->next;
         }
     }
 }
@@ -217,7 +217,7 @@ static void validate_single_ipm_file_content(const char *sp,
     if (!root) {
         fprintf(stderr, "spec2c: FATAL: JSON parse error in %s\n", sp); exit(1); }
 
-    scan_json_for_banned_words(root, sp);
+    scan_json_for_banned_items(root, sp);
     check_ipm_ast_depth_limits(root, 0, sp);
 
     cJSON *pkg = cJSON_GetObjectItemCaseSensitive(root, "package_name");
