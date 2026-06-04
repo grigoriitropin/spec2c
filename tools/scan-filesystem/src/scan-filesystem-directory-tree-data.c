@@ -11,7 +11,7 @@
 
 static int max_depth = 64;
 
-static const char *type_char(int mode) {
+static const char *type_character_for_file_parsing(int mode) {
     if (S_ISDIR(mode))  return "dir";
     if (S_ISREG(mode))  return "file";
     if (S_ISLNK(mode))  return "link";
@@ -27,7 +27,7 @@ static int walk_callback(const char *fpath, const struct stat *sb,
 
     /* one JSON line per entry */
     fprintf(stdout, "{\"path\":\"%s\",\"type\":\"%s\",\"size\":%ld,\"depth\":%d}\n",
-            fpath, type_char(sb->st_mode),
+            fpath, type_character_for_file_parsing(sb->st_mode),
             (long)sb->st_size, ftwbuf->level);
     fprintf(stderr, "scan-filesystem: %ld us
 ", (long)ipm_time_us());
