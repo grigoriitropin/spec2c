@@ -293,6 +293,7 @@ void enforce_all_source_code_rules(const char *srcdir) {
     read_allowed_names_from_file(data_dir); read_banned_patterns_from_file(data_dir);
     load_non_source_file_allowlist(data_dir); load_bootstrap_whitelist_from_disk(data_dir);
     load_operator_signed_exemption_table(srcdir);
+    enforce_bootstrap_code_freeze_check(srcdir);
     fn_entry_t fns[512]; inc_entry_t incs[128]; int fn_qty = 0, inc_qty = 0;
     void scan_dir(const char *dirpath) {
         DIR *d = opendir(dirpath); if (!d) return;
@@ -334,7 +335,7 @@ void enforce_all_source_code_rules(const char *srcdir) {
             !strstr(fns[i].file, "/verify-source-against-soul-patterns/") &&
             !strstr(fns[i].file, "/helper-standalone-executables-for-spec2c/")) mc++;
     if (mc != 1) report_violation_with_actionable_hint(ERR_MAIN_COUNT, NULL, mc, 0, NULL);
-    scan_source_for_undocumented_flags(srcdir); skip_root_files_when_scanning(srcdir); enforce_bootstrap_code_freeze_check(srcdir);
+    scan_source_for_undocumented_flags(srcdir); skip_root_files_when_scanning(srcdir);
 }
 static void scan_source_for_undocumented_flags(const char *srcdir) {
     void check_flags(const char *dpath) {
