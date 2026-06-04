@@ -17,3 +17,11 @@ spec2c-check.manifest.json
 tools-context.manifest.json
 essentials.manifest.json
 spec2c.manifest.json
+forbidden_patterns.json
+.githooks/pre-commit
+templates/.gitkeep
+tests/fixtures/enforcement/allowed-names.txt
+tests/fixtures/enforcement/banned-patterns.txt
+tests/fixtures/enforcement/bootstrap-c-freeze-limits.txt
+tests/fixtures/enforcement/bootstrap-c-whitelist.txt
+src.backup/allowed-names.txt
