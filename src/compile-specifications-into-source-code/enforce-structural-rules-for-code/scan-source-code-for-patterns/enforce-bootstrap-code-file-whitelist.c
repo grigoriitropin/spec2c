@@ -114,18 +114,55 @@ static int read_sidecar_signature_file(const char *srcdir, const char *basename,
     return 1;
 }
 
+static int search_file_by_full_path(const char *srcdir, const char *manifest_path, char *out, size_t outsz) {
+    void walk(const char *dpath, const char *prefix) {
+        DIR *d = opendir(dpath);
+        if (!d) return;
+        struct dirent *de;
+        while ((de = readdir(d)) != NULL) {
+            if (de->d_name[0] == '.') continue;
+            char sub[8192];
+            snprintf(sub, sizeof(sub), "%s/%s", dpath, de->d_name);
+            char rel[8192];
+            if (prefix[0])
+                snprintf(rel, sizeof(rel), "%s/%s", prefix, de->d_name);
+            else
+                snprintf(rel, sizeof(rel), "%s", de->d_name);
+            struct stat st;
+            if (stat(sub, &st) != 0) continue;
+            if (S_ISDIR(st.st_mode))
+                { walk(sub, rel); continue; }
+            if (!strcmp(rel, manifest_path)) {
+                snprintf(out, outsz, "%s", sub);
+                closedir(d);
+                return;
+            }
+        }
+        closedir(d);
+    }
+    walk(srcdir, "");
+    return (out[0] != 0);
+}
+
 static void verify_manifest_entry_file_hash(const char *srcdir, const char *fname, const char *expected) {
     char found[8192] = {0};
-    if (!search_file_using_name_recursive(srcdir, fname, found, sizeof(found)))
-        return;
+    if (!search_file_by_full_path(srcdir, fname, found, sizeof(found))) {
+        fprintf(stderr, "spec2c: integrity manifest: file not found: %s\n", fname);
+        exit(1);
+    }
     FILE *f2 = fopen(found, "rb");
-    if (!f2) return;
+    if (!f2) {
+        fprintf(stderr, "spec2c: integrity manifest: cannot open: %s\n", fname);
+        exit(1);
+    }
     fseek(f2, 0, SEEK_END);
     long fsz = ftell(f2);
     fseek(f2, 0, SEEK_SET);
-    if (fsz <= 0 || fsz > 1048576) { fclose(f2); return; }
+    if (fsz <= 0 || fsz > 1048576) { fclose(f2);
+        fprintf(stderr, "spec2c: integrity manifest: bad size: %s\n", fname);
+        exit(1); }
     uint8_t *buf = malloc((size_t)fsz);
-    if (!buf) { fclose(f2); return; }
+    if (!buf) { fclose(f2); exit(1); }
     size_t n = fread(buf, 1, (size_t)fsz, f2);
     fclose(f2);
     uint8_t hash[32];
