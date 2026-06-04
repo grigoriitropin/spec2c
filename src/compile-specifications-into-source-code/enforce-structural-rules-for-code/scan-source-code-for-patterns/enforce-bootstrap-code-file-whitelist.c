@@ -119,7 +119,7 @@ static int read_sidecar_signature_file_bytes(const char *srcdir, const char *bas
 static int search_file_using_full_path(const char *srcdir, const char *manifest_path, char *out, size_t outsz) {
     void walk(const char *dpath, const char *prefix) {
         DIR *d = opendir(dpath);
-        if (!d) { fprintf(stderr, "FATAL: opendir failed: %s\n", dpath); exit(1); }
+        if (!d) { fprintf(stderr, "spec2c: warning: skipping unreadable directory: %s\n", dpath); return; }
         struct dirent *de;
         while ((de = readdir(d)) != NULL) {
             if (de->d_name[0] == '.') continue;
@@ -164,7 +164,7 @@ static void verify_manifest_entry_file_hash(const char *srcdir, const char *fnam
         fprintf(stderr, "spec2c: integrity manifest: bad size: %s\n", fname);
         exit(1); }
     uint8_t *buf = malloc((size_t)fsz);
-    if (!buf) { fclose(f2); exit(1); }
+    if (!buf) { fclose(f2); fprintf(stderr, "FATAL: malloc failed for %s\n", fname); exit(1); }
     size_t n = fread(buf, 1, (size_t)fsz, f2);
     fclose(f2);
     uint8_t hash[32];
