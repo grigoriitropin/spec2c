@@ -9,7 +9,6 @@
 #include <cjson/cJSON.h>
 
 void compute_sha256_hash_into_bytes(const uint8_t *data, uint32_t len, uint8_t out[32]);
-static char hex_buf[65];
 
 static void file_sha256_hex(const char *path, char out[65]) {
     FILE *f = fopen(path, "rb");
