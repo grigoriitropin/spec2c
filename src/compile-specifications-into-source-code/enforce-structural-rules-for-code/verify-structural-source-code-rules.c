@@ -270,7 +270,7 @@ static int check_non_source_and_bootstrap(const char *name, const char *sub, con
         /* Bootstrap whitelist only covers files in src/ — files elsewhere with
            a whitelisted basename are NOT exempt */
         const char *rp = sub; while (*rp == '.' || *rp == '/') rp++;
-        if (strncmp(rp, "src/", 4)) {
+        if (!strstr(rp, "/src/") && strncmp(rp, "src/", 4)) {
             size_t dn_len2 = strlen(name);
             if (!(dn_len2 > 4 && !strcmp(name + dn_len2 - 4, ".ipm")))
                 report_violation_with_actionable_hint(ERR_NOT_IN_BOOTSTRAP_WHITELIST, sub, 0, 0, NULL);
