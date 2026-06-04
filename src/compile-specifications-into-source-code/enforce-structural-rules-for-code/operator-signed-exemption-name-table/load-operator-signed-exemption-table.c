@@ -42,32 +42,6 @@ static char *read_file_content_into_memory(const char *srcdir) {
     return buf;
 }
 
-static int extract_signed_payload_bytes_raw(const char *raw, char *out, size_t outsz) {
-    int len = 0;
-    const char *p = raw;
-    while (*p) {
-        if (!strncmp(p, ",\"signature_hex\":", 17) || !strncmp(p, ",\"signed_bytes_sha256\":", 23)) {
-            while (*p && *p != '"') p++;
-            if (*p == '"') {
-                p++;
-                while (*p && *p != '"') p++;
-                if (*p == '"') p++;
-            }
-            while (*p && *p != '"') p++;
-            if (*p == '"') {
-                p++;
-                while (*p && *p != '"') p++;
-                if (*p == '"') p++;
-            }
-        } else {
-            if (len < (int)outsz - 1) out[len++] = *p;
-            p++;
-        }
-    }
-    out[len] = 0;
-    return len;
-}
-
 void load_operator_signed_exemption_table(const char *srcdir) {
     char *content = read_file_content_into_memory(srcdir);
     if (!content)
