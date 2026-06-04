@@ -16,8 +16,6 @@ static const char *banned_type_words[] = {
 
 static fn_entry_t fns[512];
 static int fn_qty = 0;
-static inc_entry_t incs[128];
-static int inc_qty = 0;
 static int total_main = 0;
 
 extern int validate_file_stem_naming_dfa(const char *name_arg);

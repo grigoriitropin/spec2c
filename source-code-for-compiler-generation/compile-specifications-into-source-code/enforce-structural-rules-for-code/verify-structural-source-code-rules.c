@@ -260,7 +260,7 @@ static void verify_post_directory_scan_rules(fn_entry_t *fns, int fn_qty, const 
 }
 void enforce_all_source_code_rules(const char *srcdir) {
     load_all_enforcement_config_tables(srcdir);
-    fn_entry_t fns[512]; inc_entry_t incs[128]; int fn_qty = 0, inc_qty = 0;
+    fn_entry_t fns[512]; int fn_qty = 0;
     void scan_dir(const char *dirpath) {
         static int scan_depth = 0;
         if (++scan_depth > 256) {
