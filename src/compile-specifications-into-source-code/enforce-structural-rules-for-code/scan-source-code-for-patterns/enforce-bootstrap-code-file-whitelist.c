@@ -122,7 +122,7 @@ static int search_file_using_full_path(const char *srcdir, const char *manifest_
         if (!d) { fprintf(stderr, "spec2c: warning: skipping unreadable directory: %s\n", dpath); return; }
         struct dirent *de;
         while ((de = readdir(d)) != NULL) {
-            if (de->d_name[0] == '.') continue;
+            if (!strcmp(de->d_name, ".") || !strcmp(de->d_name, "..")) continue;
             char sub[8192];
             snprintf(sub, sizeof(sub), "%s/%s", dpath, de->d_name);
             char rel[8192];

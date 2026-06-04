@@ -274,7 +274,7 @@ static void skip_root_files_when_scanning(const char *srcdir)
         if (!d) report_fatal_error_and_exit("cannot open root directory for scan");
         struct dirent *de;
         while ((de = readdir(d)) != NULL) {
-            if (de->d_name[0] == '.') continue;
+            if (!strcmp(de->d_name, ".") || !strcmp(de->d_name, "..")) continue;
             char sub[8192];
             snprintf(sub, sizeof(sub), "%s/%s", srcdir, de->d_name);
             struct stat st;
@@ -307,14 +307,14 @@ void enforce_all_source_code_rules(const char *srcdir) {
         DIR *d = opendir(dirpath); if (!d) report_fatal_error_and_exit("cannot open source dir for structural audit");
         int file_cnt = 0, dir_cnt = 0; struct dirent *de;
         while ((de = readdir(d)) != NULL) {
-            if (de->d_name[0] == '.') continue;
+            if (!strcmp(de->d_name, ".") || !strcmp(de->d_name, "..")) continue;
+            char sub[8192]; snprintf(sub, sizeof(sub), "%s/%s", dirpath, de->d_name);
+            struct stat st; if (stat(sub, &st) != 0) continue;
             const char *scan = match_name_against_exemption_table(de->d_name);
             if (scan) {
                 if (!strcmp(scan, "subtree-skip")) { closedir(d); return; }
-                continue;
+                if (!S_ISDIR(st.st_mode)) continue;
             }
-            char sub[8192]; snprintf(sub, sizeof(sub), "%s/%s", dirpath, de->d_name);
-            struct stat st; if (stat(sub, &st) != 0) continue;
             if (S_ISDIR(st.st_mode)) {
                 scan_dir(sub); dir_cnt++; continue;
             }

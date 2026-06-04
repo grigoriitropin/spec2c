@@ -387,7 +387,7 @@ void verify_ipm_names_across_sources(const char *srcdir) {
         int ipm_cnt = 0;
         struct dirent *de2;
         while ((de2 = readdir(dd)) != NULL) {
-            if (de2->d_name[0] == '.') continue;
+            if (!strcmp(de2->d_name, ".") || !strcmp(de2->d_name, "..")) continue;
             char sp[8192]; snprintf(sp, sizeof(sp), "%s/%s", dpath, de2->d_name);
             struct stat sst; if (stat(sp, &sst) != 0) continue;
             if (S_ISDIR(sst.st_mode)) { scan_ipm(sp); continue; }
