@@ -381,7 +381,10 @@ void enforce_all_source_code_rules(const char *srcdir) {
             file_cnt++;
             char fname[256]; snprintf(fname, sizeof(fname), "%s", de->d_name);
             char *dot = strrchr(fname, '.'); if (dot) *dot = 0;
-            if (validate_file_stem_with_dfa(fname, de->d_name, sub)) exit(1);
+            /* Naming DFA only enforced on src/ and root files (tools/ etc. are separate packages) */
+            { const char *rp = sub; while (*rp == '.' || *rp == '/') rp++;
+              if (!strncmp(rp, "src/", 4) || !strcmp(rp, de->d_name))
+                if (validate_file_stem_with_dfa(fname, de->d_name, sub)) exit(1); }
             int is_c = !strcmp(de->d_name + strlen(de->d_name) - 2, ".c");
             int is_source = is_c || (strlen(de->d_name) > 4 && !strcmp(de->d_name + strlen(de->d_name) - 4, ".ipm"));
             check_single_file_for_violations(sub, is_c, is_source, fns, &fn_qty, incs, &inc_qty);
