@@ -89,6 +89,7 @@ int match_header_against_include_whitelist(const char *hdr) {
         "verify-structural-source-code-rules.h",
         "../verify-structural-source-code-rules.h",
         "../../verify-structural-source-code-rules.h",
+        "../../../shared-type-declarations-across-modules/soul-naming-forbidden-words-list.h",
         "verify-ed25519-digital-signature-key.h",
         "../bootstrap-compiled-limit-hash-data/bootstrap-freeze-data-compiled-into.h",
         "../bootstrap-compiled-limit-hash-data/bootstrap-file-sha-hashes-generated.h",

@@ -9,8 +9,6 @@
 #include <string.h>
 #include <cjson/cJSON.h>
 
-/* ── cross-reference: .ipm validation ──────────────────────────────── */
-#include <cjson/cJSON.h>
 static void validate_single_ipm_name_value(const char *name, const char *what, const char *path) {
     if (!name || !name[0]) {
         fprintf(stderr, "spec2c: SOUL §10: empty %s in %s\n", what, path ? path : "?");
