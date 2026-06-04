@@ -198,6 +198,8 @@ static void check_include_headers_for_file(const char *sub, inc_entry_t *incs, i
         char hdr[128] = {0}; int is_angle = 0;
         if (sscanf(line, " #include <%127[^>]>", hdr) == 1) is_angle = 1;
         else if (sscanf(line, " #include \"%127[^\"]\"", hdr) == 1) is_angle = 0;
+        else if (sscanf(line, " # include <%127[^>]>", hdr) == 1) is_angle = 1;
+        else if (sscanf(line, " # include \"%127[^\"]\"", hdr) == 1) is_angle = 0;
         else continue;
         if (!match_header_against_include_whitelist(hdr)) {
             fclose(f2); report_violation_with_actionable_hint(ERR_HEADER_NOT_IN_WHITELIST, hdr, 0, 0, sub);
