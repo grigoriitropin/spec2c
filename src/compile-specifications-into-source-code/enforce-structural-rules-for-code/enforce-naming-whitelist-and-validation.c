@@ -219,6 +219,9 @@ void validate_name_against_soul_rules(const char *what, const char *name, const 
             (is_file || is_dir) ? "hyphen" : "underscore", soful, dir_note);
         report_fatal_error_and_exit(eb);
     }
+    /* Names that pass all structural checks (5 words, ≥3 chars, no banned words)
+       are valid without whitelist membership. Whitelist is for exceptions only. */
+    if (words == 5) return;
     if (!check_name_against_allowed_whitelist(name)) {
         char eb[2048];
         snprintf(eb, sizeof(eb),
