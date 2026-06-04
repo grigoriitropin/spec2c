@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
-// bootstrap C whitelist + SHA256 hash verification — HASHES COMPILED INTO BINARY
+// bootstrap C whitelist + external integrity manifest verification
 #include "verify-structural-source-code-rules.h"
-#include "../bootstrap-compiled-limit-hash-data/bootstrap-file-sha-hashes-generated.h"
+#include "verify-ed25519-digital-signature-key.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,7 +9,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <stdint.h>
-
+#include <cjson/cJSON.h>
 
 
 extern void compute_sha256_hash_into_bytes(const uint8_t *data, uint32_t len, uint8_t out[32]);
@@ -68,41 +68,111 @@ static int search_file_using_name_recursive(const char *dpath, const char *targe
     return 0;
 }
 
-/* Verify SHA256 hashes of bootstrap files — hashes compiled into binary */
-void enforce_bootstrap_code_freeze_check(const char *srcdir) {
-    for (int i = 0; i < BOOTSTRAP_HASH_COUNT; i++) {
-        char found[8192] = {0};
-        if (!search_file_using_name_recursive(srcdir, hash_file_names[i], found, sizeof(found)))
+/* Verify SHA256 hashes from external operator-signed integrity manifest */
+static int load_operator_integrity_manifest_file(const char *srcdir, char **out, long *out_len) {
+    char path[4096];
+    FILE *f = fopen("operator-signed-integrity-manifest.json", "r");
+    if (!f) {
+        snprintf(path, sizeof(path), "%s/operator-signed-integrity-manifest.json", srcdir);
+        f = fopen(path, "r");
+    }
+    if (!f) {
+        snprintf(path, sizeof(path), "%s/../operator-signed-integrity-manifest.json", srcdir);
+        f = fopen(path, "r");
+    }
+    if (!f) return 0;
+    fseek(f, 0, SEEK_END);
+    *out_len = ftell(f);
+    fseek(f, 0, SEEK_SET);
+    if (*out_len < 0) { fclose(f); return 0; }
+    *out = malloc(*out_len + 1);
+    if (!*out) { fclose(f); return 0; }
+    size_t rd = fread(*out, 1, *out_len, f);
+    fclose(f);
+    (*out)[rd] = 0;
+    *out_len = (long)rd;
+    return 1;
+}
+
+static int extract_signed_integrity_payload_bytes(const char *raw, long len, char *out, int outsz) {
+    int o = 0;
+    for (long i = 0; i < len && o < outsz - 1; i++) {
+        if (i + 17 < len && !strncmp(raw + i, ",\"signature_hex\":", 17)) {
+            i += 16;
+            while (i < len && raw[i] != '"') i++;
+            if (i < len && raw[i] == '"') {
+                i++;
+                while (i < len && raw[i] != '"') i++;
+            }
             continue;
-        /* Compute actual SHA256 of the file */
-        FILE *f2 = fopen(found, "rb");
-        if (!f2) continue;
-        fseek(f2, 0, SEEK_END);
-        long sz = ftell(f2);
-        fseek(f2, 0, SEEK_SET);
-        if (sz <= 0 || sz > 1048576) { fclose(f2); continue; }
-        uint8_t *buf = malloc((size_t)sz);
-        if (!buf) { fclose(f2); continue; }
-        size_t n = fread(buf, 1, (size_t)sz, f2);
-        fclose(f2);
-        uint8_t hash[32];
-        compute_sha256_hash_into_bytes(buf, (uint32_t)n, hash);
-        char actual_hex[65];
-        for (int j = 0; j < 32; j++)
-            snprintf(actual_hex + j*2, 3, "%02x", hash[j]);
-        actual_hex[64] = 0;
-        free(buf);
-        if (strcmp(actual_hex, hash_sha256_values[i]) != 0) {
-            fprintf(stderr, "spec2c: SOUL §7: bootstrap file %s SHA256 mismatch — file was modified\n"
-                "  → expected %s\n"
-                "  → actual   %s\n"
-                "  → hashes are compiled into the binary, rewrite changes as IPM module\n",
-                hash_file_names[i], hash_sha256_values[i], actual_hex);
-            exit(1);
+        }
+        out[o++] = raw[i];
+    }
+    out[o] = 0;
+    return o;
+}
+
+static void verify_manifest_entry_file_hash(const char *srcdir, const char *fname, const char *expected) {
+    char found[8192] = {0};
+    if (!search_file_using_name_recursive(srcdir, fname, found, sizeof(found)))
+        return;
+    FILE *f2 = fopen(found, "rb");
+    if (!f2) return;
+    fseek(f2, 0, SEEK_END);
+    long fsz = ftell(f2);
+    fseek(f2, 0, SEEK_SET);
+    if (fsz <= 0 || fsz > 1048576) { fclose(f2); return; }
+    uint8_t *buf = malloc((size_t)fsz);
+    if (!buf) { fclose(f2); return; }
+    size_t n = fread(buf, 1, (size_t)fsz, f2);
+    fclose(f2);
+    uint8_t hash[32];
+    compute_sha256_hash_into_bytes(buf, (uint32_t)n, hash);
+    char actual_hex[65];
+    for (int j = 0; j < 32; j++)
+        snprintf(actual_hex + j*2, 3, "%02x", hash[j]);
+    actual_hex[64] = 0;
+    free(buf);
+    if (strcmp(actual_hex, expected) != 0) {
+        fprintf(stderr, "spec2c: SOUL §7: file %s SHA256 mismatch — modified\n"
+            "  → expected %s\n  → actual   %s\n",
+            fname, expected, actual_hex);
+        exit(1);
+    }
+}
+
+void enforce_bootstrap_code_freeze_check(const char *srcdir) {
+    char *content = NULL;
+    long content_len = 0;
+    if (!load_operator_integrity_manifest_file(srcdir, &content, &content_len))
+        return;
+    cJSON *root = cJSON_Parse(content);
+    if (!root) { free(content); return; }
+    cJSON *pub = cJSON_GetObjectItem(root, "public_key_hex");
+    cJSON *sig = cJSON_GetObjectItem(root, "signature_hex");
+    if (!pub || !sig || !pub->valuestring || !sig->valuestring)
+        { cJSON_Delete(root); free(content); return; }
+    char pk[128]; snprintf(pk, sizeof(pk), "%s", pub->valuestring);
+    char sh[256]; snprintf(sh, sizeof(sh), "%s", sig->valuestring);
+    char payload[16384];
+    int plen = extract_signed_integrity_payload_bytes(content, content_len, payload, sizeof(payload));
+    if (verify_signature(pk, sh, (unsigned char *)payload, plen) != 0) {
+        fprintf(stderr, "spec2c: integrity manifest: Ed25519 signature invalid\n");
+        cJSON_Delete(root); free(content); exit(1);
+    }
+    cJSON *entries = cJSON_GetObjectItem(root, "entries");
+    if (entries) {
+        int sz = cJSON_GetArraySize(entries);
+        for (int i = 0; i < sz; i++) {
+            cJSON *item = cJSON_GetArrayItem(entries, i);
+            cJSON *fn = cJSON_GetObjectItem(item, "file");
+            cJSON *hs = cJSON_GetObjectItem(item, "sha256");
+            if (fn && hs && fn->valuestring && hs->valuestring)
+                verify_manifest_entry_file_hash(srcdir, fn->valuestring, hs->valuestring);
         }
     }
-
-
+    cJSON_Delete(root);
+    free(content);
 }
 // rebuild
 

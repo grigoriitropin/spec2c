@@ -158,6 +158,7 @@ execute_command_with_argument_list
 extract_config_keys_from_json
 extract_json_field_string_value
 extract_pattern_fields_from_json
+extract_signed_integrity_payload_bytes
 extract_signed_payload_bytes_raw
 extracted-codegen-helper-functions-here
 ffi-function-export-layer-here
@@ -214,6 +215,7 @@ load_bootstrap_whitelist_from_disk
 load_exemption_entries_into_table
 load_ipm_import_whitelist_file
 load_non_source_file_allowlist
+load_operator_integrity_manifest_file
 load_operator_signed_exemption_table
 load_vehir_configuration_from_file
 locate-all-function-body-blocks
@@ -229,6 +231,7 @@ match_pattern_against_text_string
 match_source_code_header_filename
 match_type_against_strict_whitelist
 operator-signed-exemption-name-table
+operator-signed-integrity-manifest
 operator_signed_exemption_name_table
 parse-and-generate-json-data
 parse-command-dispatch-into-pipeline
@@ -325,6 +328,7 @@ verify_database_connection_still_alive
 verify_exemption_table_json_versions
 verify_file_line_density_count
 verify_ipm_names_across_sources
+verify_manifest_entry_file_hash
 verify_name_complies_with_soul
 write_bytes_into_file_path
 write_component_header_with_prototypes
