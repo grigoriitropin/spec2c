@@ -2,6 +2,7 @@
 // whitelist + naming validation — shared with enforce.c
 
 #include "verify-structural-source-code-rules.h"
+        "../verify-structural-source-code-rules.h",
 #include "../shared-type-declarations-across-modules/soul-naming-forbidden-words-list.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -87,6 +88,7 @@ int match_header_against_include_whitelist(const char *hdr) {
         "shared-type-declarations-across-modules/soul-rules-for-naming-validation.h",
         "vehir-shared-abstraction-wrapper-code.h",
         "verify-structural-source-code-rules.h",
+        "../verify-structural-source-code-rules.h",
         "verify-ed25519-digital-signature-key.h",
         "../bootstrap-compiled-limit-hash-data/bootstrap-freeze-data-compiled-into.h",
         "../bootstrap-compiled-limit-hash-data/bootstrap-file-sha-hashes-generated.h",
