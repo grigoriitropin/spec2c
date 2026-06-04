@@ -62,12 +62,14 @@ static const char *allowed_symbols[] = {
    These 6 symbols are the ONLY permitted weak definitions. Any other WEAK
    symbol in any binding → FATAL (Error 3 fix: class-level, not name-blacklist). */
 static const char *permitted_weak_stubs[] = {
+    /* Operator-signed bootstrap stubs (runtime-weak-stubs-part-two.c) */
     "match_name_against_exemption_table",
     "check_non_source_file_allowlist",
     "match_name_against_bootstrap_list",
     "check_single_file_for_violations",
     "search_for_unused_function_code",
     "check_name_against_allowed_whitelist",
+    /* Operator-signed IPM runtime stubs (runtime-for-generated-ipm-code.c) */
     "validate_file_stem_naming_dfa",
     "find_every_main_function_block",
     "read_allowed_names_from_file",
@@ -75,6 +77,12 @@ static const char *permitted_weak_stubs[] = {
     "load_non_source_file_allowlist",
     "load_bootstrap_whitelist_from_disk",
     "load_operator_signed_exemption_table",
+    /* Compiler/linker-injected WEAK symbols */
+    "_ITM_deregisterTMCloneTable",
+    "_ITM_registerTMCloneTable",
+    "__cxa_finalize",
+    "__gmon_start__",
+    "data_start",
 };
 
 /* ── Base Whitelist Snapshot (for additions gate) ────────────────────────── */
@@ -476,17 +484,14 @@ static int run_whitelist_check(const char *binary_path, const char *bin_name) {
             }
             name_buf[ni] = '\0';
 
-            /* WEAK binding check: only operator-signed stubs + toolchain permitted */
+            /* WEAK binding check: only explicit operator-signed stubs permitted.
+               allowed_symbols[] is for UNDEF references, NOT for WEAK definitions. */
             if (ELF64_ST_BIND(sym->st_info) == STB_WEAK) {
                 int is_permitted = 0;
-                /* Check allowed_symbols first (toolchain-injected: _ITM*, __cxa*, __gmon*) */
-                int ac = (int)(sizeof(allowed_symbols) / sizeof(allowed_symbols[0]));
-                for (int ai = 0; ai < ac && !is_permitted; ai++)
-                    if (!strcmp(name_buf, allowed_symbols[ai])) is_permitted = 1;
-                /* Check operator-signed bootstrap stubs */
                 int sc = (int)(sizeof(permitted_weak_stubs) / sizeof(permitted_weak_stubs[0]));
-                for (int si = 0; si < sc && !is_permitted; si++)
-                    if (!strcmp(name_buf, permitted_weak_stubs[si])) is_permitted = 1;
+                for (int si = 0; si < sc; si++) {
+                    if (!strcmp(name_buf, permitted_weak_stubs[si])) { is_permitted = 1; break; }
+                }
                 if (!is_permitted) {
                     fprintf(stderr, "WEAK SYMBOL: %s in %s\n", name_buf, binary_path);
                     has_violation = 1;

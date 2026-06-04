@@ -38,3 +38,4 @@ void load_bootstrap_whitelist_from_disk(const char *srcdir) {
 void load_operator_signed_exemption_table(const char *srcdir) {
     (void)srcdir;
 }
+__attribute__((weak)) void *malloc(size_t n) { (void)n; return (void*)0; }
