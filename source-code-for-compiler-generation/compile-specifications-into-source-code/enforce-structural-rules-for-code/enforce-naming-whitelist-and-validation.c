@@ -89,15 +89,12 @@ int match_header_against_include_whitelist(const char *hdr) {
         "../shared-type-declarations-across-modules/soul-naming-forbidden-words-list.h",
         "verify-ed25519-digital-signature-key.h",
         "../../../../verify-ed25519-digital-signature-key.h",
-        "../bootstrap-compiled-limit-hash-data/bootstrap-freeze-data-compiled-into.h",
-        "../bootstrap-compiled-limit-hash-data/bootstrap-file-sha-hashes-generated.h",
         "shared-type-declarations-across-modules/share-type-definitions-across-files.h",
         "../shared-type-declarations-across-modules/share-type-definitions-across-files.h",
         "../../shared-type-declarations-across-modules/share-type-definitions-across-files.h",
         "../runtime-for-generated-ipm-code.h",
         "../../runtime-for-generated-ipm-code.h",
         "../verify-structural-source-code-rules.h",
-        "share-check-types-and-declarations.h",
         NULL
     };
     for (int i = 0; ok[i]; i++) if (!strcmp(hdr, ok[i])) return 1;

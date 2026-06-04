@@ -114,6 +114,9 @@
         doCheck = true;
         checkPhase = ''
           runHook preCheck
+          cc -O2 source-code-for-compiler-generation/known-answer-tests-for-primitives/verify-sha-produces-known-answers.c \
+            source-code-for-compiler-generation/support-code-for-compiled-output/compute-file-sha-hash-digest/compute-sha256-hash-for-files.c \
+            -o sha-kat && ./sha-kat || exit 1
           cc -O2 -I. enforce-link-time-whitelisted-symbols.c -o enforce-link-time-symbol-whitelist
           mkdir -p $out/bin
           cp s2c-enforce $out/bin/
@@ -178,6 +181,9 @@
         doCheck = true;
         checkPhase = ''
           runHook preCheck
+          cc -O2 source-code-for-compiler-generation/known-answer-tests-for-primitives/verify-sha-produces-known-answers.c \
+            source-code-for-compiler-generation/support-code-for-compiled-output/compute-file-sha-hash-digest/compute-sha256-hash-for-files.c \
+            -o sha-kat && ./sha-kat || exit 1
           cc -O2 -I. enforce-link-time-whitelisted-symbols.c -o enforce-link-time-symbol-whitelist
           mkdir -p $out/bin
           cp spec2c s2c_enforce $out/bin/
@@ -355,6 +361,9 @@
         doCheck = true;
         checkPhase = ''
           runHook preCheck
+          cc -O2 source-code-for-compiler-generation/known-answer-tests-for-primitives/verify-sha-produces-known-answers.c \
+            source-code-for-compiler-generation/support-code-for-compiled-output/compute-file-sha-hash-digest/compute-sha256-hash-for-files.c \
+            -o sha-kat && ./sha-kat || exit 1
           cc -O2 -I. enforce-link-time-whitelisted-symbols.c -o enforce-link-time-symbol-whitelist
           mkdir -p $out/bin
           cp ipm-enforce $out/bin/

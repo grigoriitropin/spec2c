@@ -1,6 +1,5 @@
 # Bootstrap freeze limits
 buffer-output-and-command-launch.c 70 8
-check-source-conformance-entry-point.c 298 10
 compile-abstract-instructions-into-code.c 156 5
 detect-banned-patterns-and-braces.c 413 13
 dump-context-from-ipm-graph.c 109 3
@@ -17,8 +16,6 @@ parse-command-dispatch-into-pipeline.c 417 14
 parse-old-format-specification-data.c 141 4
 runtime-for-generated-ipm-code.c 54 0
 runtime-for-generated-ipm-code.h 134 26
-scan-patterns-against-source-code.c 229 7
-share-check-types-and-declarations.h 95 18
 share-type-definitions-across-files.h 65 19
 soul-naming-forbidden-words-list.h 14 0
 soul-rules-for-naming-validation.h 58 2
