@@ -337,3 +337,4 @@ write_bytes_into_file_path
 write_component_header_with_prototypes
 write_string_buffer_into_file
 write_text_string_into_file
+type_character_for_file_parsing
