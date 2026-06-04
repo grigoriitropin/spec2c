@@ -38,13 +38,13 @@
       });
       cflags = [ "-O2" "-Wall" "-Wextra" "-Werror" "-std=c2x" "-D_POSIX_C_SOURCE=200809L"
                  "-fno-ident" "-frandom-seed=spec2c" "-Wl,--build-id=none" ];
-      S = "src/compile-specifications-into-source-code";
+      S = "source-code-for-compiler-generation/compile-specifications-into-source-code";
       inc = [
-        "-Isrc"
+        "-Isource-code-for-compiler-generation"
         "-I${S}"
         "-I${S}/shared-type-declarations-across-modules"
         "-I${S}/parse-legacy-specification-file-format"
-        "-Isrc/support-code-for-compiled-output"
+        "-Isource-code-for-compiler-generation/support-code-for-compiled-output"
       ];
       enforce_inc = inc ++ [
         "-I."
@@ -52,15 +52,15 @@
         "-I${S}/verify-conformance-against-soul-patterns"
       ];
       runtime_src = [
-        "src/runtime-for-generated-ipm-code.c"
-        "src/runtime-weak-stub-symbol-overrides/runtime-weak-stubs-part-two.c"
-        "src/compile-specifications-into-source-code/enforce-structural-rules-for-code/scan-source-code-for-patterns/check-naming-rules-for-ffi.c"
-        "src/support-code-for-compiled-output/file-string-and-json-parsing.c"
-        "src/support-code-for-compiled-output/hash-table-and-substitution-code.c"
-            "src/support-code-for-compiled-output/compute-file-sha-hash-digest/compute-sha256-hash-for-files.c"
-        "src/support-code-for-compiled-output/structural-rule-checker-batch-two/structural-rule-checker-batch-two.c"
-        "src/support-code-for-compiled-output/validate-type-name-against-whitelist/validate-type-name-against-whitelist.c"
-        "src/support-code-for-compiled-output/buffer-output-and-command-launch.c"
+        "source-code-for-compiler-generation/runtime-for-generated-ipm-code.c"
+        "source-code-for-compiler-generation/runtime-weak-stub-symbol-overrides/runtime-weak-stubs-part-two.c"
+        "source-code-for-compiler-generation/compile-specifications-into-source-code/enforce-structural-rules-for-code/scan-source-code-for-patterns/check-naming-rules-for-ffi.c"
+        "source-code-for-compiler-generation/support-code-for-compiled-output/file-string-and-json-parsing.c"
+        "source-code-for-compiler-generation/support-code-for-compiled-output/hash-table-and-substitution-code.c"
+            "source-code-for-compiler-generation/support-code-for-compiled-output/compute-file-sha-hash-digest/compute-sha256-hash-for-files.c"
+        "source-code-for-compiler-generation/support-code-for-compiled-output/structural-rule-checker-batch-two/structural-rule-checker-batch-two.c"
+        "source-code-for-compiler-generation/support-code-for-compiled-output/validate-type-name-against-whitelist/validate-type-name-against-whitelist.c"
+        "source-code-for-compiler-generation/support-code-for-compiled-output/buffer-output-and-command-launch.c"
       ];
     in {
       # ── Manifest generator (C, no Python in trust path) ─────────────
@@ -70,9 +70,9 @@
         inherit src;
         buildInputs = [ cjson-static ];
         buildPhase = ''
-          cc -O2 -Wall -Werror -std=c2x -Isrc/support-code-for-compiled-output \
+          cc -O2 -Wall -Werror -std=c2x -Isource-code-for-compiler-generation/support-code-for-compiled-output \
             generate-integrity-manifest-from-source.c \
-            src/support-code-for-compiled-output/compute-file-sha-hash-digest/compute-sha256-hash-for-files.c \
+            source-code-for-compiler-generation/support-code-for-compiled-output/compute-file-sha-hash-digest/compute-sha256-hash-for-files.c \
             -o generate-integrity-manifest-from-source \
             ${cjson-static}/lib/libcjson.a -lm
         '';
@@ -198,8 +198,8 @@
           spec2c check-banned-patterns-pure-ipm.ipm --library -o dfa_obj/dfa.c
           sed -i '/^{"ok"/d' dfa_obj/dfa.c
           $CC ${builtins.toString cflags} \
-            -Isrc -I${S} -I${S}/shared-type-declarations-across-modules \
-            -Isrc/support-code-for-compiled-output \
+            -Isource-code-for-compiler-generation -I${S} -I${S}/shared-type-declarations-across-modules \
+            -Isource-code-for-compiler-generation/support-code-for-compiled-output \
             -c dfa_obj/dfa.c -o dfa_obj/dfa.o
 
           # Line density checker
@@ -210,8 +210,8 @@
           sed -i 's/(char \* path)/(const char *path)/g' density_obj/check_each_line_token_density.h
           sed -i 's/const char \*_name = "[^"]*";//' density_obj/density.c
           $CC ${builtins.toString cflags} \
-            -Isrc -I${S} -I${S}/shared-type-declarations-across-modules \
-            -Isrc/support-code-for-compiled-output \
+            -Isource-code-for-compiler-generation -I${S} -I${S}/shared-type-declarations-across-modules \
+            -Isource-code-for-compiler-generation/support-code-for-compiled-output \
             -c density_obj/density.c -o density_obj/density.o
 
           # Hardcoded path detector
@@ -222,8 +222,8 @@
           sed -i 's/(char \* path)/(const char *path)/g' path_obj/detect_any_hardcoded_filesystem_paths.h
           sed -i 's/const char \*_name = "[^"]*";//' path_obj/path.c
           $CC ${builtins.toString cflags} \
-            -Isrc -I${S} -I${S}/shared-type-declarations-across-modules \
-            -Isrc/support-code-for-compiled-output \
+            -Isource-code-for-compiler-generation -I${S} -I${S}/shared-type-declarations-across-modules \
+            -Isource-code-for-compiler-generation/support-code-for-compiled-output \
             -c path_obj/path.c -o path_obj/path.o
 
           # Naming rules validator
@@ -237,8 +237,8 @@
           sed -i 's/extern int check_name_against_allowed_whitelist_ffi/extern int check_allowed_name_whitelist_ffi/' naming_obj/naming.c
           sed -i 's/check_name_against_allowed_whitelist_ffi(name_arg)/check_allowed_name_whitelist_ffi(name_arg)/' naming_obj/naming.c
           $CC ${builtins.toString cflags} \
-            -Isrc -I${S} -I${S}/shared-type-declarations-across-modules \
-            -Isrc/support-code-for-compiled-output \
+            -Isource-code-for-compiler-generation -I${S} -I${S}/shared-type-declarations-across-modules \
+            -Isource-code-for-compiler-generation/support-code-for-compiled-output \
             -c naming_obj/naming.c -o naming_obj/naming.o
 
           # C lexer (function count + length)
@@ -249,8 +249,8 @@
           sed -i 's/(char \* path)/(const char *path)/g' clex_obj/locate_all_function_body_blocks.h
           sed -i 's/const char \*_name = "[^"]*";//' clex_obj/clex.c
           $CC ${builtins.toString cflags} \
-            -Isrc -I${S} -I${S}/shared-type-declarations-across-modules \
-            -Isrc/support-code-for-compiled-output \
+            -Isource-code-for-compiler-generation -I${S} -I${S}/shared-type-declarations-across-modules \
+            -Isource-code-for-compiler-generation/support-code-for-compiled-output \
             -c clex_obj/clex.c -o clex_obj/clex.o
 
           # Main() detector
@@ -262,8 +262,8 @@
           sed -i 's/const char \*_name = "[^"]*";//' main_obj/main.c
           sed -i 's/(char \* text, char \* pattern)/(const char *text, const char *pattern)/' main_obj/main.c
           $CC ${builtins.toString cflags} \
-            -Isrc -I${S} -I${S}/shared-type-declarations-across-modules \
-            -Isrc/support-code-for-compiled-output \
+            -Isource-code-for-compiler-generation -I${S} -I${S}/shared-type-declarations-across-modules \
+            -Isource-code-for-compiler-generation/support-code-for-compiled-output \
             -c main_obj/main.c -o main_obj/main.o
 
           # ── Step 2: Build IPM enforcer executable ────────
@@ -291,28 +291,28 @@
 
           $CC ${builtins.toString cflags} \
             -I. \
-            -Isrc \
+            -Isource-code-for-compiler-generation \
             -I${S} \
             -I${S}/shared-type-declarations-across-modules \
-            -Isrc/support-code-for-compiled-output \
+            -Isource-code-for-compiler-generation/support-code-for-compiled-output \
             -I${S}/enforce-structural-rules-for-code \
             -I${S}/enforce-structural-rules-for-code/scan-source-code-for-patterns \
-            src/support-code-for-compiled-output/file-string-and-json-parsing.c \
-            src/support-code-for-compiled-output/hash-table-and-substitution-code.c \
-            src/support-code-for-compiled-output/buffer-output-and-command-launch.c \
-            src/support-code-for-compiled-output/compute-file-sha-hash-digest/compute-sha256-hash-for-files.c \
-            src/support-code-for-compiled-output/structural-rule-checker-batch-two/structural-rule-checker-batch-two.c \
-            src/support-code-for-compiled-output/ipm-file-validator-ffi-batch/ipm-file-validator-ffi-batch.c \
-            src/support-code-for-compiled-output/validate-type-name-against-whitelist/validate-type-name-against-whitelist.c \
-            src/compile-specifications-into-source-code/enforce-structural-rules-for-code/enforce-naming-whitelist-and-validation.c \
-            src/compile-specifications-into-source-code/enforce-structural-rules-for-code/operator-signed-exemption-name-table/load-operator-signed-exemption-table.c \
-            src/compile-specifications-into-source-code/enforce-structural-rules-for-code/scan-source-code-for-patterns/enforce-bootstrap-code-file-whitelist.c \
-            src/runtime-weak-stub-symbol-overrides/runtime-weak-stubs-part-two.c \
+            source-code-for-compiler-generation/support-code-for-compiled-output/file-string-and-json-parsing.c \
+            source-code-for-compiler-generation/support-code-for-compiled-output/hash-table-and-substitution-code.c \
+            source-code-for-compiler-generation/support-code-for-compiled-output/buffer-output-and-command-launch.c \
+            source-code-for-compiler-generation/support-code-for-compiled-output/compute-file-sha-hash-digest/compute-sha256-hash-for-files.c \
+            source-code-for-compiler-generation/support-code-for-compiled-output/structural-rule-checker-batch-two/structural-rule-checker-batch-two.c \
+            source-code-for-compiler-generation/support-code-for-compiled-output/ipm-file-validator-ffi-batch/ipm-file-validator-ffi-batch.c \
+            source-code-for-compiler-generation/support-code-for-compiled-output/validate-type-name-against-whitelist/validate-type-name-against-whitelist.c \
+            source-code-for-compiler-generation/compile-specifications-into-source-code/enforce-structural-rules-for-code/enforce-naming-whitelist-and-validation.c \
+            source-code-for-compiler-generation/compile-specifications-into-source-code/enforce-structural-rules-for-code/operator-signed-exemption-name-table/load-operator-signed-exemption-table.c \
+            source-code-for-compiler-generation/compile-specifications-into-source-code/enforce-structural-rules-for-code/scan-source-code-for-patterns/enforce-bootstrap-code-file-whitelist.c \
+            source-code-for-compiler-generation/runtime-weak-stub-symbol-overrides/runtime-weak-stubs-part-two.c \
             verify-ed25519-digital-signature-key.c \
-            src/compile-specifications-into-source-code/enforce-structural-rules-for-code/scan-source-code-for-patterns/check-naming-rules-for-ffi.c \
-            src/compile-specifications-into-source-code/enforce-structural-rules-for-code/scan-source-code-for-patterns/ffi-function-export-layer-here/enforce-ffi-function-export-layer.c \
-            src/support-code-for-compiled-output/remaining-rules-ffi-batch-four/remaining-rules-ffi-batch-four.c \
-            src/support-code-for-compiled-output/dead-code-header-check-batch/dead-code-header-check-batch.c \
+            source-code-for-compiler-generation/compile-specifications-into-source-code/enforce-structural-rules-for-code/scan-source-code-for-patterns/check-naming-rules-for-ffi.c \
+            source-code-for-compiler-generation/compile-specifications-into-source-code/enforce-structural-rules-for-code/scan-source-code-for-patterns/ffi-function-export-layer-here/enforce-ffi-function-export-layer.c \
+            source-code-for-compiler-generation/support-code-for-compiled-output/remaining-rules-ffi-batch-four/remaining-rules-ffi-batch-four.c \
+            source-code-for-compiler-generation/support-code-for-compiled-output/dead-code-header-check-batch/dead-code-header-check-batch.c \
             dfa_obj/dfa.o \
             density_obj/density.o \
             path_obj/path.o \
@@ -326,10 +326,10 @@
           mkdir -p gen_c
           cp dfa_obj/dfa.c density_obj/density.c path_obj/path.c \
              naming_obj/naming.c clex_obj/clex.c main_obj/main.c gen_c/
-          cp src/allowed-names.txt gen_c/
-          cp src/banned-patterns.txt gen_c/
-          cp src/bootstrap-c-whitelist.txt gen_c/
-          cp src/bootstrap-c-freeze-limits.txt gen_c/
+          cp source-code-for-compiler-generation/allowed-names.txt gen_c/
+          cp source-code-for-compiler-generation/banned-patterns.txt gen_c/
+          cp source-code-for-compiler-generation/bootstrap-c-whitelist.txt gen_c/
+          cp source-code-for-compiler-generation/bootstrap-c-freeze-limits.txt gen_c/
           for f in gen_c/*.c; do sed -i '/^{"ok"/d' "$f"; done
           echo "=== Translation Gate ==="
           $S2C_ENFORCE --lint ./gen_c || exit 1

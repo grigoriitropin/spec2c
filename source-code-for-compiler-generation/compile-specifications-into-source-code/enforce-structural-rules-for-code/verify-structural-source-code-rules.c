@@ -310,9 +310,7 @@ static int check_non_source_and_bootstrap(const char *name, const char *sub, con
         size_t dn_len2 = strlen(name);
         if (!(dn_len2 > 4 && !strcmp(name + dn_len2 - 4, ".ipm"))) {
             const char *rp = sub; while (*rp == '.' || *rp == '/') rp++;
-            /* Bootstrap whitelist only enforced for src/ and root files.
-               tools/, modules/, etc. are separate packages — skip check. */
-            if (!strncmp(rp, "src/", 4) || !strcmp(rp, name))
+            if (!strcmp(rp, name))
                 report_violation_with_actionable_hint(ERR_NOT_IN_BOOTSTRAP_WHITELIST, sub, 0, 0, NULL);
         }
     }
@@ -347,8 +345,7 @@ static int is_main_count_exempt_file(const char *path) {
     return 0;
 }
 void enforce_all_source_code_rules(const char *srcdir) {
-    const char *data_dir = srcdir; char sd[4096]; snprintf(sd, sizeof(sd), "%s/src", srcdir);
-    struct stat st_sd; if (!lstat(sd, &st_sd) && S_ISDIR(st_sd.st_mode)) data_dir = sd;
+    const char *data_dir = srcdir;
     load_operator_signed_exemption_table(srcdir);
     read_allowed_names_from_file(data_dir); read_banned_patterns_from_file(data_dir);
     load_non_source_file_allowlist(data_dir); load_bootstrap_whitelist_from_disk(data_dir);
@@ -381,9 +378,8 @@ void enforce_all_source_code_rules(const char *srcdir) {
             file_cnt++;
             char fname[256]; snprintf(fname, sizeof(fname), "%s", de->d_name);
             char *dot = strrchr(fname, '.'); if (dot) *dot = 0;
-            /* Naming DFA only enforced on src/ and root files (tools/ etc. are separate packages) */
             { const char *rp = sub; while (*rp == '.' || *rp == '/') rp++;
-              if (!strncmp(rp, "src/", 4) || !strcmp(rp, de->d_name))
+              if (!strcmp(rp, de->d_name))
                 if (validate_file_stem_with_dfa(fname, de->d_name, sub)) exit(1); }
             int is_c = !strcmp(de->d_name + strlen(de->d_name) - 2, ".c");
             int is_source = is_c || (strlen(de->d_name) > 4 && !strcmp(de->d_name + strlen(de->d_name) - 4, ".ipm"));

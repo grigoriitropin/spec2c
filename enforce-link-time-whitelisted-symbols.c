@@ -5,7 +5,7 @@
 #include <string.h>
 #include <elf.h>
 
-#include "src/bootstrap-compiled-limit-hash-data/bootstrap-file-sha-hashes-generated.h"
+#include "source-code-for-compiler-generation/bootstrap-compiled-limit-hash-data/bootstrap-file-sha-hashes-generated.h"
 #include "verify-ed25519-digital-signature-key.h"
 
 /* ── Ed25519 Operator Public Key (hex) ────────────────────────────────────── */
@@ -202,26 +202,26 @@ static int compute_file_sha256_hex_digest(const char *path, char *out_hex) {
 /* ── Exemption Check Logic ────────────────────────────────────────────────── */
 static const char *frozen_bootstrap_sources[] = {
     /* s2c_enforce / s2c-enforce sources: */
-    "src/compile-specifications-into-source-code/enforce-structural-rules-for-code/verify-structural-source-code-rules.c",
-    "src/compile-specifications-into-source-code/enforce-structural-rules-for-code/enforce-naming-whitelist-and-validation.c",
-    "src/compile-specifications-into-source-code/enforce-structural-rules-for-code/scan-source-code-for-patterns/detect-banned-patterns-and-braces.c",
-    "src/compile-specifications-into-source-code/enforce-structural-rules-for-code/scan-source-code-for-patterns/enforce-bootstrap-code-file-whitelist.c",
-    "src/runtime-for-generated-ipm-code.c",
-    "src/compile-specifications-into-source-code/enforce-structural-rules-for-code/scan-source-code-for-patterns/check-naming-rules-for-ffi.c",
-    "src/support-code-for-compiled-output/file-string-and-json-parsing.c",
-    "src/support-code-for-compiled-output/hash-table-and-substitution-code.c",
-    "src/support-code-for-compiled-output/compute-file-sha-hash-digest/compute-sha256-hash-for-files.c",
-    "src/support-code-for-compiled-output/structural-rule-checker-batch-two/structural-rule-checker-batch-two.c",
-    "src/support-code-for-compiled-output/validate-type-name-against-whitelist/validate-type-name-against-whitelist.c",
-    "src/support-code-for-compiled-output/buffer-output-and-command-launch.c",
+    "source-code-for-compiler-generation/compile-specifications-into-source-code/enforce-structural-rules-for-code/verify-structural-source-code-rules.c",
+    "source-code-for-compiler-generation/compile-specifications-into-source-code/enforce-structural-rules-for-code/enforce-naming-whitelist-and-validation.c",
+    "source-code-for-compiler-generation/compile-specifications-into-source-code/enforce-structural-rules-for-code/scan-source-code-for-patterns/detect-banned-patterns-and-braces.c",
+    "source-code-for-compiler-generation/compile-specifications-into-source-code/enforce-structural-rules-for-code/scan-source-code-for-patterns/enforce-bootstrap-code-file-whitelist.c",
+    "source-code-for-compiler-generation/runtime-for-generated-ipm-code.c",
+    "source-code-for-compiler-generation/compile-specifications-into-source-code/enforce-structural-rules-for-code/scan-source-code-for-patterns/check-naming-rules-for-ffi.c",
+    "source-code-for-compiler-generation/support-code-for-compiled-output/file-string-and-json-parsing.c",
+    "source-code-for-compiler-generation/support-code-for-compiled-output/hash-table-and-substitution-code.c",
+    "source-code-for-compiler-generation/support-code-for-compiled-output/compute-file-sha-hash-digest/compute-sha256-hash-for-files.c",
+    "source-code-for-compiler-generation/support-code-for-compiled-output/structural-rule-checker-batch-two/structural-rule-checker-batch-two.c",
+    "source-code-for-compiler-generation/support-code-for-compiled-output/validate-type-name-against-whitelist/validate-type-name-against-whitelist.c",
+    "source-code-for-compiler-generation/support-code-for-compiled-output/buffer-output-and-command-launch.c",
     /* spec2c specific sources: */
-    "src/compile-specifications-into-source-code/codegen-instruction-handler-function-set/emit-variable-declaration-handler-function.c",
-    "src/compile-specifications-into-source-code/codegen-instruction-handler-function-set/extracted-codegen-helper-functions-here/emit-report-error-and-exit.c",
-    "src/compile-specifications-into-source-code/compile-abstract-instructions-into-code.c",
-    "src/compile-specifications-into-source-code/generate-output-from-ipm-specification.c",
-    "src/compile-specifications-into-source-code/parse-command-dispatch-into-pipeline.c",
-    "src/compile-specifications-into-source-code/parse-legacy-specification-file-format/parse-old-format-specification-data.c",
-    "src/compile-specifications-into-source-code/shared-type-declarations-across-modules/share-type-definitions-across-files.h",
+    "source-code-for-compiler-generation/compile-specifications-into-source-code/codegen-instruction-handler-function-set/emit-variable-declaration-handler-function.c",
+    "source-code-for-compiler-generation/compile-specifications-into-source-code/codegen-instruction-handler-function-set/extracted-codegen-helper-functions-here/emit-report-error-and-exit.c",
+    "source-code-for-compiler-generation/compile-specifications-into-source-code/compile-abstract-instructions-into-code.c",
+    "source-code-for-compiler-generation/compile-specifications-into-source-code/generate-output-from-ipm-specification.c",
+    "source-code-for-compiler-generation/compile-specifications-into-source-code/parse-command-dispatch-into-pipeline.c",
+    "source-code-for-compiler-generation/compile-specifications-into-source-code/parse-legacy-specification-file-format/parse-old-format-specification-data.c",
+    "source-code-for-compiler-generation/compile-specifications-into-source-code/shared-type-declarations-across-modules/share-type-definitions-across-files.h",
 };
 
 static const char *frozen_exempt_binaries[] = {
