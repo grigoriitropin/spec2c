@@ -41,9 +41,24 @@ void pull_function_name_from_definition(const char *line, char *out, size_t sz) 
     if (len == 0) { out[0] = 0; return; }
     memcpy(out, start, len); out[len] = 0;
 }
+static int is_ident_char(int c) { return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_'; }
+
 int check_for_banned_keyword_pattern(const char *line) {
-    for (int i = 0; i < banned_patterns_count; i++)
-        if (strstr(line, banned_patterns[i])) return 1;
+    for (int i = 0; i < banned_patterns_count; i++) {
+        const char *pat = banned_patterns[i];
+        size_t plen = strlen(pat);
+        /* Trim trailing space/tab from pattern for token-boundary matching */
+        while (plen > 0 && (pat[plen-1] == ' ' || pat[plen-1] == '\t')) plen--;
+        if (plen == 0) continue;
+        const char *p = line;
+        while ((p = strstr(p, pat))) {
+            /* Check left boundary: char before match must not be ident */
+            if (p > line && is_ident_char(*(p-1))) { p += plen; continue; }
+            /* Check right boundary: char after match must not be ident */
+            if (is_ident_char(p[plen])) { p += plen; continue; }
+            return 1;
+        }
+    }
     return 0;
 }
 int detect_hardcoded_file_path_string(const char *line, const char *filepath) {
@@ -124,16 +139,21 @@ static void scan_json_for_banned_words(cJSON *node, const char *path) {
             const char *key = node->string;
             /* C-leak patterns (#include, malloc, free, sizeof) are legitimate
                in codegen template fields — skip those. */
-            int is_codegen = !strcmp(key, "template_str") || !strcmp(key, "str") ||
-                             !strcmp(key, "code_format") || !strcmp(key, "code");
-            if (!is_codegen) {
-                if (strstr(val, "#include") || strstr(val, "malloc(") ||
-                    strstr(val, "free(") || strstr(val, "sizeof(")) {
-                    char msg[512]; snprintf(msg, sizeof(msg),
-                        "SOUL §7: C-leak detected — IPM string contains C code pattern in %s\n"
-                        "  → remove #include, malloc, free, sizeof from IPM strings", path);
-                    fprintf(stderr, "spec2c: %s\n", msg); exit(1);
-                }
+            /* malloc/free/sizeof are NEVER legitimate in any IPM field */
+            if (strstr(val, "malloc(") || strstr(val, "free(") || strstr(val, "sizeof(")) {
+                char msg[512]; snprintf(msg, sizeof(msg),
+                    "SOUL §7: C-leak — IPM string contains malloc/free/sizeof at %s\n"
+                    "  → remove malloc, free, sizeof from IPM strings", path);
+                fprintf(stderr, "spec2c: %s\n", msg); exit(1);
+            }
+            /* #include only allowed in template_str and str (header generation).
+               Banned in code_format, code, and all other fields. */
+            int is_include_ok = !strcmp(key, "template_str") || !strcmp(key, "str");
+            if (!is_include_ok && strstr(val, "#include")) {
+                char msg[512]; snprintf(msg, sizeof(msg),
+                    "SOUL §7: C-leak — #include only allowed in template_str/str at %s\n"
+                    "  → move #include to template_str or str field", path);
+                fprintf(stderr, "spec2c: %s\n", msg); exit(1);
             }
             /* Banned C keywords — checked on ALL JSON values (including codegen fields).
                goto, setjmp, longjmp, #pragma weak, output suppression are
